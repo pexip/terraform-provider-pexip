@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/pexip/go-infinity-sdk"
+	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 	"github.com/rs/zerolog/log"
 	"sync"
