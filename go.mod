@@ -1,6 +1,8 @@
 module github.com/pexip/terraform-provider-pexip
 
-go 1.24
+go 1.24.3
+
+toolchain go1.24.4
 
 require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
@@ -44,6 +46,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
+	github.com/pexip/go-infinity-sdk v0.0.0-20250611071833-d191cc445dcc // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
