@@ -14,6 +14,10 @@ terraform {
 }
 
 provider "pexip" {
+  # information about the Infinity manager
+  address = "https://manager.example.com"
+  username = "admin"
+  password = "password"
 }
 
 data "infinity_manager_config" "config" {
@@ -22,9 +26,7 @@ data "infinity_manager_config" "config" {
 }
 
 data "infinity_manager" "manager" {
-  # information about the Infinity manager
-  name = "my-infinity-manager"
-  address = "manager.example.com"
+  address = "https://manager.example.com"
   username = "admin"
   password = "password"
 }
