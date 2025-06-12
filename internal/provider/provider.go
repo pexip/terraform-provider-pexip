@@ -50,12 +50,6 @@ func New() *schema.Provider {
 				ValidateFunc: validation.NoZeroValues,
 				Description:  "Pexip Infinity Manager password for authentication",
 			},
-			"log_caller": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Include calling function in log entries",
-				Default:     false,
-			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"infinity_manager_config": dataSourceInfinityManagerConfig(),
