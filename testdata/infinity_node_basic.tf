@@ -1,11 +1,3 @@
-# Pexip Terraform Provider
-
-This is the Pexip Terraform provider, which allows you to manage Pexip Infinity using
-Terraform. The provider is designed tobe used to automate the provisioning of Pexip Infinity.
-
-## Example usage
-
-```terraform
 terraform {
   required_providers {
     pexip = {
@@ -24,4 +16,3 @@ provider "pexip" {
 resource "pexip_infinity_node" "node" {
   config = "<config from manager>"
 }
-```

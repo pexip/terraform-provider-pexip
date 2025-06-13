@@ -19,6 +19,7 @@ provider "pexip" {
   password = "password"
 }
 
+# Creating a Pexip Infinity Manager bootstrap config
 data "pexip_infinity_manager_config" "config" {
   hostname              = "test-mgr1"
   domain                = "dev.vcops.tech"
@@ -33,6 +34,11 @@ data "pexip_infinity_manager_config" "config" {
   error_reports         = false
   enable_analytics      = false
   contact_email_address = "vcops@pexip.com"
+}
+
+# Registering a Pexip Infinity node with the Pexip Infinity Manager
+resource "pexip_infinity_node" "node" {
+  config = "<config from manager>"
 }
 
 ```

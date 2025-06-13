@@ -66,9 +66,9 @@ func (p *pexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 func (p *pexipProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		//func() resource.Resource {
-		//	return &infinityNodeResource{}
-		//},
+		func() resource.Resource {
+			return &infinityNodeResource{}
+		},
 	}
 }
 
