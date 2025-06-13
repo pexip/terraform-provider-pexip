@@ -37,7 +37,8 @@ data "pexip_infinity_manager_config" "config" {
 }
 
 # Registering a Pexip Infinity node with the Pexip Infinity Manager
-resource "pexip_infinity_node" "node" {
+resource "pexip_infinity_node" "test-node-1" {
+  name = "test-node-1"
   config = "<config from manager>"
 }
 

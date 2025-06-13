@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-type InfinityManagerConfig struct {
+type InfinityManagerConfigModel struct {
 	ID                  types.String `tfsdk:"id"`
 	Hostname            types.String `tfsdk:"hostname"`
 	Domain              types.String `tfsdk:"domain"`
@@ -52,7 +52,7 @@ type innerInfinityBootstrapConfig struct {
 	ContactEmailAddress string `json:"contact_email_address"`
 }
 
-func (c *InfinityManagerConfig) toOuterConfig() outerInfinityManagerConfig {
+func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
 	return outerInfinityManagerConfig{
 		ManagementNodeConfig: innerInfinityBootstrapConfig{
 			Hostname:            c.Hostname.ValueString(),
@@ -72,7 +72,7 @@ func (c *InfinityManagerConfig) toOuterConfig() outerInfinityManagerConfig {
 	}
 }
 
-func (c *InfinityManagerConfig) validate(ctx context.Context) diag.Diagnostics {
+func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	diags.Append(c.setDefaults(ctx)...)
@@ -201,7 +201,7 @@ func (c *InfinityManagerConfig) validate(ctx context.Context) diag.Diagnostics {
 	return diags
 }
 
-func (c *InfinityManagerConfig) setDefaults(ctx context.Context) diag.Diagnostics {
+func (c *InfinityManagerConfigModel) setDefaults(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if c.ErrorReports.IsNull() || c.ErrorReports.IsUnknown() {
@@ -214,7 +214,7 @@ func (c *InfinityManagerConfig) setDefaults(ctx context.Context) diag.Diagnostic
 	return diags
 }
 
-func (c *InfinityManagerConfig) update(ctx context.Context) diag.Diagnostics {
+func (c *InfinityManagerConfigModel) update(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	output, err := json.MarshalIndent(c.toOuterConfig(), "", "")

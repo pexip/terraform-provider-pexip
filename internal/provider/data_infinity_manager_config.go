@@ -10,17 +10,17 @@ import (
 )
 
 var (
-	_ datasource.DataSourceWithValidateConfig = (*infinityManagerConfigDataSource)(nil)
+	_ datasource.DataSourceWithValidateConfig = (*InfinityManagerConfigDataSource)(nil)
 )
 
-type infinityManagerConfigDataSource struct{}
+type InfinityManagerConfigDataSource struct{}
 
-func (d *infinityManagerConfigDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *InfinityManagerConfigDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_infinity_manager_config"
 }
 
-func (d *infinityManagerConfigDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-	var infinityManagerConfig InfinityManagerConfig
+func (d *InfinityManagerConfigDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+	var infinityManagerConfig InfinityManagerConfigModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &infinityManagerConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -30,7 +30,7 @@ func (d *infinityManagerConfigDataSource) ValidateConfig(ctx context.Context, re
 	resp.Diagnostics.Append(infinityManagerConfig.validate(ctx)...)
 }
 
-func (d *infinityManagerConfigDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"hostname": schema.StringAttribute{
@@ -133,14 +133,14 @@ func (d *infinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 	}
 }
 
-func (d *infinityManagerConfigDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var infinityManagerConfig InfinityManagerConfig
+func (d *InfinityManagerConfigDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var model InfinityManagerConfigModel
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &infinityManagerConfig)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(infinityManagerConfig.update(ctx)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &infinityManagerConfig)...)
+	resp.Diagnostics.Append(model.update(ctx)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

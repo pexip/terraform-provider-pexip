@@ -8,30 +8,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
+	"log"
 	"sync"
 )
 
 var (
-	_ provider.Provider = (*pexipProvider)(nil)
+	_ provider.Provider = (*PexipProvider)(nil)
 )
 
-type pexipProvider struct {
+type PexipProviderModel struct {
+	Address  types.String `tfsdk:"address"`
+	Username types.String `tfsdk:"username"`
+	Password types.String `tfsdk:"password"`
+}
+
+type PexipProvider struct {
 	Address        string
 	Mutex          *sync.Mutex
 	InfinityClient *infinity.Client
 }
 
 func New() provider.Provider {
-	return &pexipProvider{}
+	return &PexipProvider{}
 }
 
-func (p *pexipProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *PexipProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "pexip"
+	resp.Version = "1.0.0" // TODO: Fetch this from the build data
 }
 
-func (p *pexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "TThe Pexip Terraform provider exposes data sources and resources to deploy Pexip Infinity.",
 		Attributes: map[string]schema.Attribute{
@@ -61,49 +70,44 @@ func (p *pexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 	}
 }
 
-func (p *pexipProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var data PexipProviderModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	p.Address = data.Address.String()
+
+	var err error
+	p.InfinityClient, err = infinity.New(
+		infinity.WithBaseURL(data.Address.String()),
+		infinity.WithBasicAuth(data.Username.String(), data.Password.String()),
+		infinity.WithMaxRetries(2),
+	)
+	if err != nil {
+		log.Fatalf("failed to create Infinity SDK client: %v", err)
+	}
+
+	var mut sync.Mutex
+	p.Mutex = &mut
+
+	resp.DataSourceData = p //TODO check if this is correct or if we should use a dedicated structure
+	resp.ResourceData = p   //TODO check if this is correct or if we should use a dedicated structure
 }
 
-func (p *pexipProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		func() resource.Resource {
-			return &infinityNodeResource{}
+			return &InfinityNodeResource{}
 		},
 	}
 }
 
-func (p *pexipProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *PexipProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		func() datasource.DataSource {
-			return &infinityManagerConfigDataSource{}
+			return &InfinityManagerConfigDataSource{}
 		},
 	}
 }
-
-//func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-//	// Warning or errors can be collected in a slice type
-//	var diags diag.Diagnostics
-//
-//	// load provider config vars
-//	address := helpers.ResourceToString(d, "address")
-//	username := helpers.ResourceToString(d, "username")
-//	password := helpers.ResourceToString(d, "password")
-//
-//	// Initialize the InfinityClient SDK client with the base URL and authentication
-//	client, err := infinity.New(
-//		infinity.WithBaseURL(address),
-//		infinity.WithBasicAuth(username, password),
-//		infinity.WithMaxRetries(2),
-//	)
-//	if err != nil {
-//		log.Error().Err(err).Msg("failed to create Infinity SDK client")
-//	}
-//
-//	var mut sync.Mutex
-//	conf := providerConfiguration{
-//		Address:        address,
-//		Mutex:          &mut,
-//		InfinityClient: client,
-//	}
-//	return conf, diags
-//}
