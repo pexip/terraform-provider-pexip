@@ -9,31 +9,32 @@ Terraform and to automate the provisioning of Pexip Infinity.
 ```terraform
 terraform {
   required_providers {
-    pexip = "~> 1.0"
+    pexip = "=> 1.0.0"
   }
 }
 
 provider "pexip" {
-  # information about the Infinity manager
   address = "https://manager.example.com"
   username = "admin"
   password = "password"
 }
 
-data "infinity_manager_config" "config" {
-  # set config values here and fetch the rendered config from the .render attribute
-  # this is used as input to the compute resource metadata field.
+data "pexip_infinity_manager_config" "config" {
+  hostname              = "test-mgr1"
+  domain                = "dev.vcops.tech"
+  ip                    = "10.0.0.40"
+  mask                  = "255.255.255.0"
+  gw                    = "10.0.0.1"
+  dns                   = "1.1.1.1"
+  ntp                   = "pool.ntp.org"
+  user                  = "admin"
+  pass                  = "admin_password"
+  admin_password        = "admin_password"
+  error_reports         = false
+  enable_analytics      = false
+  contact_email_address = "vcops@pexip.com"
 }
 
-data "infinity_manager" "manager" {
-  address = "https://manager.example.com"
-  username = "admin"
-  password = "password"
-}
-
-resource "infinity_node" "node" {
-  manager = data.infinity_manager.manager.id
-}
 ```
 
 ### Multiple Provider Configurations

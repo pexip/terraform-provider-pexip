@@ -1,35 +1,21 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var providerFactories = map[string]func() (*schema.Provider, error){
-	"pexip": func() (*schema.Provider, error) {
-		return New(), nil
-	},
+var testProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
+	"pexip": providerserver.NewProtocol5WithError(New()),
 }
 
 func TestMain(m *testing.M) {
-	if os.Getenv("TF_ACC") == "" {
-		os.Exit(m.Run())
-	}
+	//if os.Getenv("TF_ACC") == "" {
+	//	os.Exit(m.Run())
+	//}
+	os.Setenv("TF_ACC", "true") // Enable acceptance tests
 	resource.TestMain(m)
-}
-
-func init() {
-}
-
-//nolint:deadcode,unused
-func testAnsiblePreCheck(t *testing.T, resourceName string) {
-}
-
-func TestProvider(t *testing.T) {
-	if err := New().InternalValidate(); err != nil {
-		t.Fatalf("provider internal validation failed: %v", err)
-	}
 }

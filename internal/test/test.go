@@ -8,7 +8,6 @@ import (
 	"testing"
 )
 
-//nolint:unused
 func GetTestdataLocation() (string, error) {
 	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
@@ -17,8 +16,7 @@ func GetTestdataLocation() (string, error) {
 	return fmt.Sprintf("%s/testdata", strings.TrimSpace(string(cmdOut))), nil
 }
 
-//nolint:deadcode,unused
-func LoadTestConfig(t *testing.T, file string) string {
+func LoadTestData(t *testing.T, file string) string {
 	loc, err := GetTestdataLocation()
 	if err != nil {
 		t.Fatalf("failed to get test data location")

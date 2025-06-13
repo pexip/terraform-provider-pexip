@@ -2,49 +2,145 @@ package provider
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
-func dataSourceInfinityManagerConfig() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: dataSourceInfinityManagerConfigRead,
-		Schema: map[string]*schema.Schema{
-			"head": {
-				Type:     schema.TypeString,
-				Computed: true,
+var (
+	_ datasource.DataSourceWithValidateConfig = (*infinityManagerConfigDataSource)(nil)
+)
+
+type infinityManagerConfigDataSource struct{}
+
+func (d *infinityManagerConfigDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_infinity_manager_config"
+}
+
+func (d *infinityManagerConfigDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+	var infinityManagerConfig InfinityManagerConfig
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &infinityManagerConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(infinityManagerConfig.validate(ctx)...)
+}
+
+func (d *infinityManagerConfigDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"hostname": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(3),
+				},
+				MarkdownDescription: "Pexip Infinity Manager hostname, e.g. `manager-1`",
+			},
+			"domain": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(3),
+				},
+				MarkdownDescription: "Pexip Infinity Manager domain, e.g. `example.com`",
+			},
+			"ip": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "Pexip Infinity Manager IP address",
+			},
+			"mask": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "Pexip Infinity Manager subnet mask in CIDR notation",
+			},
+			"gw": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "Pexip Infinity Manager gateway IP address",
+			},
+			"dns": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "Pexip Infinity Manager DNS server IP address",
+			},
+			"ntp": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(3),
+				},
+				MarkdownDescription: "Pexip Infinity Manager NTP server",
+			},
+			"user": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "Pexip Infinity Manager username for authentication",
+			},
+			"pass": schema.StringAttribute{
+				Required:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "Pexip Infinity Manager password for authentication",
+			},
+			"admin_password": schema.StringAttribute{
+				Required:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "Pexip Infinity Manager admin password for authentication",
+			},
+			"error_reports": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Pexip Infinity Manager error reports",
+			},
+			"enable_analytics": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Pexip Infinity Manager enable analytics",
+			},
+			"contact_email_address": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(3),
+				},
+				MarkdownDescription: "Pexip Infinity Manager contact email address for notifications",
+			},
+			"rendered": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Rendered Pexip Infinity Manager bootstrap configuration.",
+			},
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "[CRC-32](https://pkg.go.dev/hash/crc32) checksum of `rendered` Pexip Infinity bootstrap config.",
 			},
 		},
+		MarkdownDescription: "Renders Pexip Infinity Manager bootstrap configuration.",
 	}
 }
 
-func dataSourceInfinityManagerConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	conf := meta.(providerConfiguration)
+func (d *infinityManagerConfigDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var infinityManagerConfig InfinityManagerConfig
 
-	repo := repository.Factory(conf.RepositoryType, conf.PrivateKey, conf.PrivateKeyPassword, conf.UseDefaultSSH)
-	_, err := repo.Clone(conf.RepositoryURL, conf.RepositoryBranch)
-	if err != nil {
-		return diag.FromErr(err)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &infinityManagerConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	err = updateRepositoryResource(d, repo)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
-}
-
-func updateRepositoryResource(d *schema.ResourceData, repo repository.Repository) error {
-	head, err := repo.Head()
-	if err != nil {
-		return err
-	}
-	_ = d.Set("head", head)
-
-	// Always set this
-	d.SetId(repo.ID())
-
-	return nil
+	resp.Diagnostics.Append(infinityManagerConfig.update(ctx)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &infinityManagerConfig)...)
 }

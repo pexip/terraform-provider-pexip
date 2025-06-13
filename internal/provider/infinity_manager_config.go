@@ -1,15 +1,42 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 	"net"
 	"net/mail"
+	"strconv"
 	"strings"
 )
 
 type InfinityManagerConfig struct {
+	ID                  types.String `tfsdk:"id"`
+	Hostname            types.String `tfsdk:"hostname"`
+	Domain              types.String `tfsdk:"domain"`
+	IP                  types.String `tfsdk:"ip"`
+	Mask                types.String `tfsdk:"mask"`
+	GW                  types.String `tfsdk:"gw"`
+	DNS                 types.String `tfsdk:"dns"`
+	NTP                 types.String `tfsdk:"ntp"`
+	User                types.String `tfsdk:"user"`
+	Pass                types.String `tfsdk:"pass"`
+	AdminPassword       types.String `tfsdk:"admin_password"`
+	ErrorReports        types.Bool   `tfsdk:"error_reports"`
+	EnableAnalytics     types.Bool   `tfsdk:"enable_analytics"`
+	ContactEmailAddress types.String `tfsdk:"contact_email_address"`
+	Rendered            types.String `tfsdk:"rendered"`
+}
+
+type outerInfinityManagerConfig struct {
+	ManagementNodeConfig innerInfinityBootstrapConfig `json:"management_node_config"`
+}
+
+type innerInfinityBootstrapConfig struct {
 	Hostname            string `json:"hostname"`
 	Domain              string `json:"domain"`
 	IP                  string `json:"ip"`
@@ -25,62 +52,181 @@ type InfinityManagerConfig struct {
 	ContactEmailAddress string `json:"contact_email_address"`
 }
 
-func (c *InfinityManagerConfig) Validate() error {
-	var errs []string
-
-	checkRequired := func(value, fieldName string) {
-		if value == "" {
-			errs = append(errs, fmt.Sprintf("%s is required", fieldName))
-		}
+func (c *InfinityManagerConfig) toOuterConfig() outerInfinityManagerConfig {
+	return outerInfinityManagerConfig{
+		ManagementNodeConfig: innerInfinityBootstrapConfig{
+			Hostname:            c.Hostname.ValueString(),
+			Domain:              c.Domain.ValueString(),
+			IP:                  c.IP.ValueString(),
+			Mask:                c.Mask.ValueString(),
+			GW:                  c.GW.ValueString(),
+			DNS:                 c.DNS.ValueString(),
+			NTP:                 c.NTP.ValueString(),
+			User:                c.User.ValueString(),
+			Pass:                c.Pass.ValueString(),
+			AdminPassword:       c.AdminPassword.ValueString(),
+			ErrorReports:        c.ErrorReports.ValueBool(),
+			EnableAnalytics:     c.EnableAnalytics.ValueBool(),
+			ContactEmailAddress: c.ContactEmailAddress.ValueString(),
+		},
 	}
-
-	checkRequiredIP := func(value, fieldName string) {
-		if value == "" {
-			errs = append(errs, fmt.Sprintf("%s is required", fieldName))
-		} else if net.ParseIP(value) == nil {
-			errs = append(errs, fmt.Sprintf("invalid %s: %s", fieldName, value))
-		}
-	}
-
-	checkRequiredEmail := func(value, fieldName string) {
-		if value == "" {
-			errs = append(errs, fmt.Sprintf("%s is required", fieldName))
-		} else {
-			_, err := mail.ParseAddress(value)
-			if err != nil {
-				errs = append(errs, fmt.Sprintf("invalid %s '%s': %v", fieldName, value, err))
-			}
-		}
-	}
-
-	checkRequired(c.Hostname, "hostname")
-	checkRequired(c.Domain, "domain")
-
-	checkRequiredIP(c.IP, "IP address")
-	checkRequiredIP(c.Mask, "subnet mask")
-	checkRequiredIP(c.GW, "gateway")
-
-	checkRequired(c.DNS, "DNS server")
-	checkRequired(c.NTP, "NTP server")
-
-	checkRequired(c.User, "user")
-	checkRequired(c.Pass, "password")
-	checkRequired(c.AdminPassword, "admin password")
-
-	checkRequiredEmail(c.ContactEmailAddress, "contact email address")
-
-	if len(errs) > 0 {
-		return fmt.Errorf("validation failed: %s", strings.Join(errs, "; "))
-	}
-
-	return nil
 }
 
-func (c *InfinityManagerConfig) String() string {
-	b, err := json.Marshal(c)
-	if err != nil {
-		log.Error().Err(err).Msgf("error marshalling InfinityManagerConfig: %v", err)
-		return "{}"
+func (c *InfinityManagerConfig) validate(ctx context.Context) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	diags.Append(c.setDefaults(ctx)...)
+	if diags.HasError() {
+		return diags
 	}
-	return string(b)
+
+	if c.Hostname.IsNull() || c.Hostname.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("hostname"),
+			"Hostname is required",
+			"Hostname must be set to a valid value.",
+		)
+	}
+	if c.Domain.IsNull() || c.Domain.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("domain"),
+			"Domain is required",
+			"Domain must be set to a valid value.",
+		)
+	}
+	if c.IP.IsNull() || c.IP.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("ip"),
+			"IP is required",
+			"IP must be set to a valid value.",
+		)
+	} else {
+		if net.ParseIP(c.IP.ValueString()) == nil {
+			diags.AddAttributeError(
+				path.Root("ip"),
+				"Invalid IP Address",
+				fmt.Sprintf("IP '%s' is not a valid IP address.", c.IP.ValueString()),
+			)
+		}
+	}
+	if c.Mask.IsNull() || c.Mask.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("mask"),
+			"Mask is required",
+			"Mask must be set to a valid value.",
+		)
+	} else {
+		if net.ParseIP(c.Mask.ValueString()) == nil {
+			diags.AddAttributeError(
+				path.Root("mask"),
+				"Invalid Mask",
+				fmt.Sprintf("Mask '%s' is not a valid IP subnet.", c.Mask.ValueString()),
+			)
+		}
+	}
+	if c.GW.IsNull() || c.GW.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("gw"),
+			"Gateway is required",
+			"Gateway must be set to a valid value.",
+		)
+	} else {
+		if net.ParseIP(c.GW.ValueString()) == nil {
+			diags.AddAttributeError(
+				path.Root("gw"),
+				"Invalid Gateway IP Address",
+				fmt.Sprintf("Gateway '%s' is not a valid IP address.", c.GW.ValueString()),
+			)
+		}
+	}
+	if c.DNS.IsNull() || c.DNS.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("dns"),
+			"DNS is required",
+			"DNS must be set to a valid value.",
+		)
+	} else {
+		if net.ParseIP(c.DNS.ValueString()) == nil {
+			diags.AddAttributeError(
+				path.Root("dns"),
+				"Invalid DNS IP Address",
+				fmt.Sprintf("DNS '%s' is not a valid IP address.", c.DNS.ValueString()),
+			)
+		}
+	}
+	if c.NTP.IsNull() || c.NTP.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("ntp"),
+			"NTP is required",
+			"NTP must be set to a valid value.",
+		)
+	}
+	if c.User.IsNull() || c.User.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("user"),
+			"User is required",
+			"User must be set to a valid value.",
+		)
+	}
+	if c.Pass.IsNull() || c.Pass.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("pass"),
+			"Password is required",
+			"Password must be set to a valid value.",
+		)
+	}
+	if c.AdminPassword.IsNull() || c.AdminPassword.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("admin_password"),
+			"Admin Password is required",
+			"Admin Password must be set to a valid value.",
+		)
+	}
+	if c.ContactEmailAddress.IsNull() || c.ContactEmailAddress.IsUnknown() {
+		diags.AddAttributeError(
+			path.Root("contact_email_address"),
+			"Contact Email Address is required",
+			"Contact Email Address must be set to a valid value.",
+		)
+	} else {
+		if _, err := mail.ParseAddress(c.ContactEmailAddress.ValueString()); err != nil {
+			diags.AddAttributeError(
+				path.Root("contact_email_address"),
+				"Invalid Email Address",
+				fmt.Sprintf("Contact Email Address '%s' is not a valid email address.", c.ContactEmailAddress.ValueString()),
+			)
+		}
+	}
+
+	return diags
+}
+
+func (c *InfinityManagerConfig) setDefaults(ctx context.Context) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if c.ErrorReports.IsNull() || c.ErrorReports.IsUnknown() {
+		c.ErrorReports = types.BoolValue(false)
+	}
+	if c.EnableAnalytics.IsNull() || c.EnableAnalytics.IsUnknown() {
+		c.EnableAnalytics = types.BoolValue(false)
+	}
+
+	return diags
+}
+
+func (c *InfinityManagerConfig) update(ctx context.Context) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	output, err := json.MarshalIndent(c.toOuterConfig(), "", "")
+	if err != nil {
+		diags.AddError("Failed to marshal infinity manager config for output", err.Error())
+		return diags
+	}
+
+	cleanOutput := strings.Replace(string(output), "\n", "", -1)
+
+	c.ID = types.StringValue(strconv.Itoa(helpers.String(string(cleanOutput))))
+	c.Rendered = types.StringValue(string(cleanOutput))
+
+	return diags
 }
