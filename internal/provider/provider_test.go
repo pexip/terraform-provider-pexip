@@ -13,9 +13,8 @@ var testProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, 
 }
 
 func TestMain(m *testing.M) {
-	//if os.Getenv("TF_ACC") == "" {
-	//	os.Exit(m.Run())
-	//}
-	os.Setenv("TF_ACC", "true") // Enable acceptance tests
+	if os.Getenv("TF_ACC") == "" {
+		os.Exit(m.Run())
+	}
 	resource.TestMain(m)
 }

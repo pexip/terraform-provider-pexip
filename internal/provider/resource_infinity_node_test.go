@@ -14,7 +14,10 @@ func TestInfinityNode(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_node.node", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_node.node", "name"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_node.node", "config"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "name", "test-node-1"),
 				),
 			},
 		},

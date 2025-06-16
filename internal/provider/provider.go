@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
-	"log"
 	"sync"
 )
 
@@ -42,7 +42,7 @@ func (p *PexipProvider) Metadata(ctx context.Context, req provider.MetadataReque
 
 func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "TThe Pexip Terraform provider exposes data sources and resources to deploy Pexip Infinity.",
+		MarkdownDescription: "The Pexip Terraform provider exposes data sources and resources to deploy Pexip Infinity.",
 		Attributes: map[string]schema.Attribute{
 			"address": schema.StringAttribute{
 				Required: true,
@@ -86,7 +86,11 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		infinity.WithMaxRetries(2),
 	)
 	if err != nil {
-		log.Fatalf("failed to create Infinity SDK client: %v", err)
+		resp.Diagnostics.AddError(
+			"Failed to create Infinity SDK client",
+			fmt.Sprintf("Could not create Infinity SDK client: %s", err),
+		)
+		return
 	}
 
 	var mut sync.Mutex

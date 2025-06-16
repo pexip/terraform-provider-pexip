@@ -59,7 +59,7 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "Pexip Infinity Manager subnet mask in CIDR notation",
+				MarkdownDescription: "Pexip Infinity Manager subnet mask (e.g. 255.255.255.0)",
 			},
 			"gw": schema.StringAttribute{
 				Required: true,

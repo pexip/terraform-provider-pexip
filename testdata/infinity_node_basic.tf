@@ -14,5 +14,6 @@ provider "pexip" {
 }
 
 resource "pexip_infinity_node" "node" {
+  name   = "test-node-1"
   config = "<config from manager>"
 }

@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/pexip/terraform-provider-pexip/internal/log"
 	"github.com/pexip/terraform-provider-pexip/internal/provider"
 	"os"
@@ -31,9 +30,12 @@ func main() {
 
 	logger.Infof(ctx, "%s", getVersionString("terraform-provider-pexip"))
 	logger.Infof(ctx, "%s", path)
-	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: func() *schema.Provider {
-			return provider.New()
-		},
+
+	err = providerserver.Serve(ctx, provider.New, providerserver.ServeOpts{
+		Address: "registry.terraform.io/pexip/pexip",
 	})
+	if err != nil {
+		logger.Errorf(ctx, "failed to serve provider: %s", err.Error())
+		os.Exit(1)
+	}
 }
