@@ -11,8 +11,8 @@ variable "location" {
 }
 
 variable "hostname" {
-  type       = string
-  default    = "infinity-manager"
+  type        = string
+  default     = "infinity-manager"
   description = "Hostname of the VM instance"
 }
 
@@ -23,9 +23,9 @@ variable "dns_zone_name" {
 }
 
 variable "vm_image_project" {
-    type        = string
-    default     = "trusted-lemur-145810"
-    description = "Project ID where the VM image is located"
+  type        = string
+  default     = "trusted-lemur-145810"
+  description = "Project ID where the VM image is located"
 }
 
 variable "vm_image_name" {

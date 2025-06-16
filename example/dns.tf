@@ -1,5 +1,5 @@
 data "google_dns_managed_zone" "main" {
-  name        = var.dns_zone_name
+  name = var.dns_zone_name
 }
 
 resource "google_dns_record_set" "infinity_manager_dns" {

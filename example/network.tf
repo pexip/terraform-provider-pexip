@@ -3,8 +3,8 @@ data "google_compute_network" "default" {
 }
 
 data "google_compute_subnetwork" "default" {
-    name   = "default"
-    region = var.location
+  name   = "default"
+  region = var.location
 }
 
 resource "google_compute_address" "infinity_manager_static_ip" {

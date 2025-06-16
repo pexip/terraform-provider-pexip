@@ -1,10 +1,10 @@
 data "google_compute_image" "pexip-infinity-image" {
-  name = var.vm_image_name
+  name    = var.vm_image_name
   project = var.vm_image_project
 }
 
 # https://github.com/hashicorp/terraform-provider-cloudinit/blob/main/internal/provider/data_source_cloudinit_config.go
-data "infinity_manager_config" conf {
+data "infinity_manager_config" "conf" {
 
 }
 
@@ -43,11 +43,11 @@ resource "local_file" "infinity_manager_config" {
 }
 
 resource "random_string" "disk_encryption_key" {
-  length   = 32
-  special  = true
-  upper    = true
-  lower    = true
-  numeric  = true
+  length  = 32
+  special = true
+  upper   = true
+  lower   = true
+  numeric = true
 }
 
 resource "google_compute_instance" "infinity_manager" {
