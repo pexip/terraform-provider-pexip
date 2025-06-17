@@ -1,5 +1,5 @@
 resource "google_compute_firewall" "allow_ssh" {
-  name    = "allow-ssh"
+  name    = "allow-ssh-${var.project_id}"
   network = data.google_compute_network.default.name
 
   allow {
@@ -9,11 +9,11 @@ resource "google_compute_firewall" "allow_ssh" {
 
   #source_ranges = ["0.0.0.0/0"] # Allow SSH from anywhere
   source_ranges = ["35.235.240.0/20"] # Allow SSH from GCP console
-  target_tags   = ["allow-ssh"]
+  target_tags   = ["allow-ssh-${var.project_id}"]
 }
 
 resource "google_compute_firewall" "allow_https" {
-  name    = "allow-https"
+  name    = "allow-https-${var.project_id}"
   network = data.google_compute_network.default.name
 
   allow {
@@ -23,5 +23,5 @@ resource "google_compute_firewall" "allow_https" {
 
   #source_ranges = ["0.0.0.0/0"] # Allow from anywhere
   source_ranges = ["35.235.240.0/20"] # Allow SSH from GCP console
-  target_tags   = ["allow-https"]
+  target_tags   = ["allow-https-${var.project_id}"]
 }

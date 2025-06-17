@@ -1,3 +1,5 @@
+# NOTE: If your organization requires Shielded VMs, ensure the image is Shielded VM-compatible
+# or use a family that supports Shielded VMs (e.g., add family = "pexip-mgr-shielded")
 data "google_compute_image" "pexip-infinity-image" {
   name    = var.vm_image_name
   project = var.vm_image_project
@@ -21,7 +23,7 @@ data "pexip_infinity_manager_config" "conf" {
 
 resource "local_file" "pexip_infinity_manager_config" {
   file_permission = "0640"
-  filename        = "${path.module}/infinity-manager.conf"
+  filename        = "${path.root}/infinity-manager.conf"
   content         = data.pexip_infinity_manager_config.conf.rendered
 }
 
@@ -48,10 +50,11 @@ resource "google_compute_instance" "infinity_manager" {
     disk_encryption_key_raw = base64encode(random_string.disk_encryption_key.result)
     initialize_params {
       image = data.google_compute_image.pexip-infinity-image.self_link
+      type  = "pd-ssd"
     }
   }
 
-  tags = ["allow-ssh", "allow-http", "allow-https"]
+  tags = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
 
   network_interface {
     network    = data.google_compute_network.default.id
@@ -63,9 +66,9 @@ resource "google_compute_instance" "infinity_manager" {
   }
 
   shielded_instance_config {
-    enable_secure_boot          = true
-    enable_vtpm                 = true
-    enable_integrity_monitoring = true
+    enable_secure_boot          = false
+    enable_vtpm                 = false
+    enable_integrity_monitoring = false
   }
 
   service_account {
@@ -75,7 +78,42 @@ resource "google_compute_instance" "infinity_manager" {
   }
 }
 
+resource "null_resource" "wait_for_infinity_manager_http" {
+  depends_on = [google_compute_instance.infinity_manager]
+
+  # Re‑run this null_resource whenever the instance is replaced
+  triggers = {
+    instance_id = google_compute_instance.infinity_manager.id
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
+for i in $(seq 1 30); do
+  status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" \
+    https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/health)
+
+  if [ "$status" -eq 200 ]; then
+    echo "Infinity Manager is ready (HTTP 200)."
+    exit 0
+  fi
+
+  sleep 10
+done
+
+echo "Timed out: Infinity Manager did not return HTTP 200" >&2
+exit 1
+EOT
+    interpreter = ["/bin/bash", "-c"]
+  }
+}
+
 resource "pexip_infinity_node" "infinity-node-01" {
   name = "infinity-node-01"
   hostname = "infinity-node-01"
+
+  depends_on = [
+    google_compute_instance.infinity_manager,
+    null_resource.wait_for_infinity_manager_http,
+  ]
 }
