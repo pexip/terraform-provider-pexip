@@ -31,14 +31,15 @@ sec:
 	$(shell go list -f {{.Target}} github.com/securego/gosec/v2/cmd/gosec) -fmt=golint ./...
 
 build-dev:
-	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X main.buildTime=$(BUILD_TIME) -X main.version=$(VERSION) -X main.builtBy=${USER}" -o ~/.terraform.d/plugins/$(NAME)_$(VERSION) .
+	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o ~/.terraform.d/plugins/$(NAME)_$(VERSION) .
 
 build: prepare
-	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X main.buildTime=$(BUILD_TIME) -X main.version=$(VERSION) -X main.builtBy=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
+	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersionn=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
 
 install: build
-	mkdir -p ~/.terraform.d/plugins/github.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
-	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/github.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)_$(VERSION)
+	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
+	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
+	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
 
 test: prepare
 	go test -v -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
@@ -57,8 +58,8 @@ release-test: testacc
 
 release: export GITHUB_SHA=$(GITSHA)
 release: release-test
-	git tag -a $(VERSION) -m "Release" && git push origin $(VERSION)
+	git tag -a v$(VERSION) -m "Release" && git push origin v$(VERSION)
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -rf ~/.terraform.d/plugins/github.com/pexip/pexip
+	rm -rf ~/.terraform.d/plugins/pexip.com/pexip/pexip

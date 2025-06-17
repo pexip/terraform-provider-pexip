@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
+	"github.com/pexip/terraform-provider-pexip/internal/version"
 	"sync"
 )
 
@@ -37,7 +38,7 @@ func New() provider.Provider {
 
 func (p *PexipProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "pexip"
-	resp.Version = "1.0.0" // TODO: Fetch this from the build data
+	resp.Version = version.Version().String()
 }
 
 func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
@@ -77,12 +78,12 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
-	p.Address = data.Address.String()
+	p.Address = data.Address.ValueString()
 
 	var err error
 	p.InfinityClient, err = infinity.New(
-		infinity.WithBaseURL(data.Address.String()),
-		infinity.WithBasicAuth(data.Username.String(), data.Password.String()),
+		infinity.WithBaseURL(data.Address.ValueString()),
+		infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
 		infinity.WithMaxRetries(2),
 	)
 	if err != nil {

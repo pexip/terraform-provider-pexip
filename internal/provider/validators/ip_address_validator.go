@@ -24,13 +24,15 @@ func (v IPAddressValidator) ValidateString(ctx context.Context, req validator.St
 		return
 	}
 
-	ip := net.ParseIP(req.ConfigValue.ValueString())
-	if ip == nil {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid IP Address",
-			fmt.Sprintf("The value %q is not a valid IPv4 or IPv6 address.", req.ConfigValue.ValueString()),
-		)
+	if value := req.ConfigValue.ValueString(); value != "" {
+		ip := net.ParseIP(value)
+		if ip == nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid IP Address",
+				fmt.Sprintf("IP '%s' is not a valid IP address.", value),
+			)
+		}
 	}
 }
 

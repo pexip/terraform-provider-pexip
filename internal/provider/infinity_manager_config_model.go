@@ -80,27 +80,27 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 		return diags
 	}
 
-	if c.Hostname.IsNull() || c.Hostname.IsUnknown() {
+	if c.Hostname.IsNull() && !c.Hostname.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("hostname"),
 			"Hostname is required",
 			"Hostname must be set to a valid value.",
 		)
 	}
-	if c.Domain.IsNull() || c.Domain.IsUnknown() {
+	if c.Domain.IsNull() && !c.Domain.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("domain"),
 			"Domain is required",
 			"Domain must be set to a valid value.",
 		)
 	}
-	if c.IP.IsNull() || c.IP.IsUnknown() {
+	if c.IP.IsNull() && !c.IP.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("ip"),
 			"IP is required",
 			"IP must be set to a valid value.",
 		)
-	} else {
+	} else if !c.IP.IsUnknown() && c.IP.ValueString() != "" {
 		if net.ParseIP(c.IP.ValueString()) == nil {
 			diags.AddAttributeError(
 				path.Root("ip"),
@@ -109,13 +109,13 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 			)
 		}
 	}
-	if c.Mask.IsNull() || c.Mask.IsUnknown() {
+	if c.Mask.IsNull() && !c.Mask.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("mask"),
 			"Mask is required",
 			"Mask must be set to a valid value.",
 		)
-	} else {
+	} else if !c.Mask.IsUnknown() && c.Mask.ValueString() != "" {
 		if net.ParseIP(c.Mask.ValueString()) == nil {
 			diags.AddAttributeError(
 				path.Root("mask"),
@@ -124,13 +124,13 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 			)
 		}
 	}
-	if c.GW.IsNull() || c.GW.IsUnknown() {
+	if c.GW.IsNull() && !c.GW.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("gw"),
 			"Gateway is required",
 			"Gateway must be set to a valid value.",
 		)
-	} else {
+	} else if !c.GW.IsUnknown() && c.GW.ValueString() != "" {
 		if net.ParseIP(c.GW.ValueString()) == nil {
 			diags.AddAttributeError(
 				path.Root("gw"),
@@ -139,13 +139,13 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 			)
 		}
 	}
-	if c.DNS.IsNull() || c.DNS.IsUnknown() {
+	if c.DNS.IsNull() && !c.DNS.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("dns"),
 			"DNS is required",
 			"DNS must be set to a valid value.",
 		)
-	} else {
+	} else if !c.DNS.IsUnknown() && c.DNS.ValueString() != "" {
 		if net.ParseIP(c.DNS.ValueString()) == nil {
 			diags.AddAttributeError(
 				path.Root("dns"),
@@ -154,41 +154,41 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 			)
 		}
 	}
-	if c.NTP.IsNull() || c.NTP.IsUnknown() {
+	if c.NTP.IsNull() && !c.NTP.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("ntp"),
 			"NTP is required",
 			"NTP must be set to a valid value.",
 		)
 	}
-	if c.User.IsNull() || c.User.IsUnknown() {
+	if c.User.IsNull() && !c.User.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("user"),
 			"User is required",
 			"User must be set to a valid value.",
 		)
 	}
-	if c.Pass.IsNull() || c.Pass.IsUnknown() {
+	if c.Pass.IsNull() && !c.Pass.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("pass"),
 			"Password is required",
 			"Password must be set to a valid value.",
 		)
 	}
-	if c.AdminPassword.IsNull() || c.AdminPassword.IsUnknown() {
+	if c.AdminPassword.IsNull() && !c.AdminPassword.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("admin_password"),
 			"Admin Password is required",
 			"Admin Password must be set to a valid value.",
 		)
 	}
-	if c.ContactEmailAddress.IsNull() || c.ContactEmailAddress.IsUnknown() {
+	if c.ContactEmailAddress.IsNull() && !c.ContactEmailAddress.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("contact_email_address"),
 			"Contact Email Address is required",
 			"Contact Email Address must be set to a valid value.",
 		)
-	} else {
+	} else if !c.ContactEmailAddress.IsUnknown() && c.ContactEmailAddress.ValueString() != "" {
 		if _, err := mail.ParseAddress(c.ContactEmailAddress.ValueString()); err != nil {
 			diags.AddAttributeError(
 				path.Root("contact_email_address"),
@@ -204,10 +204,10 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 func (c *InfinityManagerConfigModel) setDefaults(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if c.ErrorReports.IsNull() || c.ErrorReports.IsUnknown() {
+	if c.ErrorReports.IsNull() {
 		c.ErrorReports = types.BoolValue(false)
 	}
-	if c.EnableAnalytics.IsNull() || c.EnableAnalytics.IsUnknown() {
+	if c.EnableAnalytics.IsNull() {
 		c.EnableAnalytics = types.BoolValue(false)
 	}
 

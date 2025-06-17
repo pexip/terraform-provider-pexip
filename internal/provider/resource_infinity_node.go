@@ -25,9 +25,9 @@ type InfinityNodeResource struct {
 }
 
 type InfinityNodeResourceModel struct {
-	ID     types.Int32  `tfsdk:"id"`
-	Name   types.String `tfsdk:"name"`
-	Config types.String `tfsdk:"config"`
+	ID       types.Int32  `tfsdk:"id"`
+	Name     types.String `tfsdk:"name"`
+	Hostname types.String `tfsdk:"hostname"`
 }
 
 func (r *InfinityNodeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -66,12 +66,12 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 				},
 				MarkdownDescription: "The name of the Infinity node. This should be unique within the Infinity cluster.",
 			},
-			"config": schema.StringAttribute{
+			"hostname": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(10),
+					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "Bootstrap configuration for the Infinity node.",
+				MarkdownDescription: "The hostname of the Infinity node. This should be resolvable within the Infinity cluster.",
 			},
 		},
 		MarkdownDescription: "Registers a node with the Infinity service. This resource is used to manage the lifecycle of nodes in the Infinity cluster.",
@@ -91,6 +91,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 	// Set name if provided, otherwise use generated name
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		createRequest.Name = data.Name.ValueString()
+		createRequest.Hostname = data.Hostname.ValueString()
 	}
 
 	vm, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
@@ -132,6 +133,7 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	data.Name = types.StringValue(vm.Name)
+	data.Hostname = types.StringValue(vm.Hostname)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -149,6 +151,7 @@ func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRe
 	// Set name if provided
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		updateRequest.Name = data.Name.ValueString()
+		updateRequest.Hostname = data.Hostname.ValueString()
 	}
 
 	vm, err := r.InfinityClient.Config.UpdateWorkerVM(ctx, int(data.ID.ValueInt32()), updateRequest)

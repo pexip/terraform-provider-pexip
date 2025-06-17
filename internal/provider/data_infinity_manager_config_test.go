@@ -3,10 +3,12 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/terraform-provider-pexip/internal/test"
+	"os"
 	"testing"
 )
 
 func TestInfinityManagerConfig(t *testing.T) {
+	os.Setenv("TF_ACC", "1")
 	expected := test.LoadTestData(t, "data_infinity_manager_config_basic_rendered.txt")
 	config := test.LoadTestData(t, "data_infinity_manager_config_basic.tf")
 	resource.Test(t, resource.TestCase{

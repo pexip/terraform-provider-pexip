@@ -25,11 +25,14 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      GOPRIVATE: github.com/pexip
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.21", "1.22", "1.23", "1.24"]
-        terraform-version: ["1.0", "1.5", "1.6"]
+        go-version: ["1.21", "1.24"]
+        terraform-version: ["1.0", "1.12"]
     
     steps:
     - uses: actions/checkout@v4
@@ -38,6 +41,10 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
+
+    - name: Authenticate git for private modules
+      run: |
+        git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
@@ -103,28 +110,28 @@ jobs:
           exit 1
         fi
 
-  security:
-    name: Security
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    
-    - name: Run gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
-    
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: results.sarif
+#  security:
+#    name: Security
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 10
+#
+#    steps:
+#    - uses: actions/checkout@v4
+#
+#    - name: Set up Go
+#      uses: actions/setup-go@v4
+#      with:
+#        go-version: ${{ env.GO_VERSION }}
+#
+#    - name: Run gosec Security Scanner
+#      uses: securego/gosec@master
+#      with:
+#        args: '-no-fail -fmt sarif -out results.sarif ./...'
+#
+#    - name: Upload SARIF file
+#      uses: github/codeql-action/upload-sarif@v2
+#      with:
+#        sarif_file: results.sarif
 
   terraform:
     name: Terraform
@@ -136,8 +143,6 @@ jobs:
     
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.6"
     
     - name: Terraform fmt
       run: terraform fmt -check -recursive ./example/

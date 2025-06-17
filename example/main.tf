@@ -3,43 +3,26 @@ data "google_compute_image" "pexip-infinity-image" {
   project = var.vm_image_project
 }
 
-# https://github.com/hashicorp/terraform-provider-cloudinit/blob/main/internal/provider/data_source_cloudinit_config.go
-data "infinity_manager_config" "conf" {
-
+data "pexip_infinity_manager_config" "conf" {
+  hostname              = var.infinity_hostname
+  domain                = data.google_dns_managed_zone.main.dns_name
+  ip                    = google_compute_address.infinity_manager_static_ip.address
+  mask                  = "255.255.255.0"
+  gw                    = data.google_compute_subnetwork.default.gateway_address
+  dns                   = var.infinity_primary_dns_server
+  ntp                   = var.infinity_ntp_server
+  user                  = var.infinity_username
+  pass                  = var.infinity_password
+  admin_password        = var.infinity_password
+  error_reports         = var.infinity_report_errors
+  enable_analytics      = var.infinity_enable_analytics
+  contact_email_address = var.infinity_contact_email_address
 }
 
-# data "cloudinit_config" "conf" {
-#   gzip          = false
-#   base64_encode = false
-#
-#   part {
-#     content_type = "text/cloud-config"
-#     content = templatefile("cloud-init.yml.tmpl", {
-#       caddy_domain = "${var.hostname}.${trimsuffix(data.google_dns_managed_zone.main.dns_name, ".")}"
-#       caddy_acme_ca   = var.caddy_acme_ca
-#       caddy_acme_email = var.caddy_acme_email
-#       caddy_use_custom_tls = var.caddy_use_custom_tls
-#       oauth2_proxy_email_domain = var.oauth2_proxy_email_domain
-#       oauth2_proxy_auth_provider = var.oauth2_proxy_auth_provider
-#       oauth2_proxy_oidc_issuer_url = var.oauth2_proxy_oidc_issuer_url
-#       oauth2_proxy_client_id = var.oauth2_proxy_client_id
-#       oauth2_proxy_client_secret = google_secret_manager_secret.oauth2_proxy_client_secret.name
-#       oauth2_proxy_cookie_secret = google_secret_manager_secret.oauth2_proxy_cookie_secret.name
-#       backup_bucket_name = google_storage_bucket.pexip_backups.name
-#       restore_on_first_boot = var.restore_on_first_boot
-#       vector_config = file("${path.module}/vector.yml")
-#       prometheus_config = file("${path.module}/prometheus.yml")
-#       blackbox_config = file("${path.module}/blackbox.yml")
-#       pexip_metric_config = file("${path.module}/pexip-metric-exporter.yml")
-#     })
-#     filename = "cloud-init.yml"
-#   }
-# }
-
-resource "local_file" "infinity_manager_config" {
+resource "local_file" "pexip_infinity_manager_config" {
   file_permission = "0640"
   filename        = "${path.module}/infinity-manager.conf"
-  content         = data.infinity_manager_config.conf.rendered
+  content         = data.pexip_infinity_manager_config.conf.rendered
 }
 
 resource "random_string" "disk_encryption_key" {
@@ -53,11 +36,11 @@ resource "random_string" "disk_encryption_key" {
 resource "google_compute_instance" "infinity_manager" {
   name             = var.hostname
   zone             = "${var.location}-a"
-  machine_type     = "n2d-standard-4"
+  machine_type     = "n2d-standard-16"
   min_cpu_platform = "AMD Milan"
 
   metadata = {
-    user-data = data.infinity_manager_config.conf.rendered
+    user-data = data.pexip_infinity_manager_config.conf.rendered
     fqdn      = "${var.hostname}.${data.google_dns_managed_zone.main.dns_name}"
   }
 
@@ -90,4 +73,9 @@ resource "google_compute_instance" "infinity_manager" {
     email  = google_service_account.infinity-sa.email
     scopes = ["cloud-platform"]
   }
+}
+
+resource "pexip_infinity_node" "infinity-node-01" {
+  name = "infinity-node-01"
+  hostname = "infinity-node-01"
 }

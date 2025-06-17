@@ -87,10 +87,10 @@ To test workflows locally, you can use [act](https://github.com/nektos/act):
 
 ```bash
 # Test the test workflow
-act -W .github/workflows/test.yml
+act -W --container-architecture linux/amd64 .github/workflows/test.yml
 
 # Test the build workflow (will call test workflow)
-act -W .github/workflows/build.yml
+act -W  --container-architecture linux/amd64.github/workflows/build.yml
 ```
 
 Note: Some jobs may need secrets or specific environments to run successfully.

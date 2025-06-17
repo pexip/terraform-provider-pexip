@@ -319,9 +319,15 @@ make build
 ```hcl
 provider_installation {
   dev_overrides {
-    "pexip/pexip" = "/path/to/your/terraform-plugins"
+    "pexip.com/pexip/pexip" = "</path/to/your/terraform-plugins>/pexip.com/pexip/pexip"
   }
-  direct {}
+  filesystem_mirror {
+    path = "</path/to/your/terraform-plugins>"
+    include = ["pexip.com/*/*"]
+  }
+  direct {
+    exclude = ["pexip.com/*/*"]
+  }
 }
 ```
 
