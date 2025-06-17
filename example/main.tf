@@ -1,5 +1,3 @@
-# NOTE: If your organization requires Shielded VMs, ensure the image is Shielded VM-compatible
-# or use a family that supports Shielded VMs (e.g., add family = "pexip-mgr-shielded")
 data "google_compute_image" "pexip-infinity-image" {
   name    = var.vm_image_name
   project = var.vm_image_project
