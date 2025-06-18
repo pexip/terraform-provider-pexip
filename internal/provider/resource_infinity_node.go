@@ -172,7 +172,7 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data InfinityNodeResourceModel
+	data := &InfinityNodeResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -199,7 +199,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		createRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
 	}
 
-	vm, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
+	createResponse, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity Node",
@@ -208,33 +208,28 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	data.ID = types.Int32Value(int32(vm.ID))
-	data.Name = types.StringValue(vm.Name)
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", vm.ID, vm.Name))
+	resourceID, err := createResponse.GetID()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Retrieving Infinity Node ID",
+			fmt.Sprintf("Could not retrieve ID for created Infinity node: %s", err),
+		)
+		return
+	}
+
+	data, err = r.read(ctx, resourceID)
+	data.Config = types.StringValue(createResponse.Body)
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", data.ID, data.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *InfinityNodeResource) read(ctx context.Context, resourceID int) (*InfinityNodeResourceModel, error) {
 	var data InfinityNodeResourceModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	vm, err := r.InfinityClient.Config.GetWorkerVM(ctx, int(data.ID.ValueInt32()))
+	vm, err := r.InfinityClient.Config.GetWorkerVM(ctx, resourceID)
 	if err != nil {
-		// Check if the error is a 404 (not found)
-		if isNotFoundError(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error Reading Infinity Node",
-			fmt.Sprintf("Could not read Infinity node with ID %d: %s", data.ID.ValueInt32(), err),
-		)
-		return
+		return nil, err
 	}
 
 	data.Name = types.StringValue(vm.Name)
@@ -251,6 +246,31 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 	data.Transcoding = types.BoolValue(vm.Transcoding)
 	data.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
 	data.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
+
+	return &data, nil
+}
+
+func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	data := &InfinityNodeResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data, err := r.read(ctx, int(data.ID.ValueInt32()))
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Error Reading Infinity Node",
+			fmt.Sprintf("Could not read Infinity node with ID %d: %s", data.ID.ValueInt32(), err),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
