@@ -82,12 +82,6 @@ variable "infinity_primary_dns_server" {
   description = "Primary DNS server for Infinity Manager"
 }
 
-variable "infinity_secondary_dns_server" {
-  type        = string
-  default     = "8.8.4.4"
-  description = "Secondary DNS server for Infinity Manager"
-}
-
 variable "infinity_ntp_server" {
   type        = string
   default     = "pool.ntp.org"
