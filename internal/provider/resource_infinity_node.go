@@ -28,6 +28,7 @@ type InfinityNodeResourceModel struct {
 	ID       types.Int32  `tfsdk:"id"`
 	Name     types.String `tfsdk:"name"`
 	Hostname types.String `tfsdk:"hostname"`
+	Config   types.String `tfsdk:"config"`
 }
 
 func (r *InfinityNodeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -72,6 +73,10 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 					stringvalidator.LengthAtLeast(1),
 				},
 				MarkdownDescription: "The hostname of the Infinity node. This should be resolvable within the Infinity cluster.",
+			},
+			"config": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Bootstrap configuration for the Infinity Node.",
 			},
 		},
 		MarkdownDescription: "Registers a node with the Infinity service. This resource is used to manage the lifecycle of nodes in the Infinity cluster.",
