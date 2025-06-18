@@ -58,7 +58,7 @@ variable "cpu_platform" {
 
 variable "service_account_email" {
   type        = string
-  description = "Email of the service account to use for the Infinity NOde VM"
+  description = "Email of the service account to use for the Infinity Node VM"
 }
 
 variable "dns_zone_name" {

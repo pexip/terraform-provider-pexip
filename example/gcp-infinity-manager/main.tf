@@ -18,7 +18,7 @@ data "pexip_infinity_manager_config" "conf" {
   ntp                   = var.ntp_server
   user                  = var.username
   pass                  = var.password
-  admin_password        = var.password
+  admin_password        = var.admin_password
   error_reports         = var.report_errors
   enable_analytics      = var.enable_analytics
   contact_email_address = var.contact_email_address

@@ -76,7 +76,7 @@ resource "google_compute_instance" "infinity_worker" {
   }
 }
 
-resource "null_resource" "wait_for_infinity_manager_http" {
+resource "null_resource" "wait_for_infinity_node_http" {
   depends_on = [google_compute_instance.infinity_worker]
 
   # Re‑run this null_resource whenever the instance is replaced
@@ -86,19 +86,19 @@ resource "null_resource" "wait_for_infinity_manager_http" {
 
   provisioner "local-exec" {
     command     = <<EOT
-echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
+echo "Waiting for Infinity Node (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
   status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
   if [ "$status" -eq 200 ]; then
-    echo "Infinity Manager is ready (HTTP 200)."
+    echo "Infinity Node is ready (HTTP 200)."
     exit 0
   fi
 
   sleep 10
 done
 
-echo "Timed out: Infinity Manager did not return HTTP 200" >&2
+echo "Timed out: Infinity Node did not return HTTP 200" >&2
 exit 1
 EOT
     interpreter = ["/bin/bash", "-c"]
