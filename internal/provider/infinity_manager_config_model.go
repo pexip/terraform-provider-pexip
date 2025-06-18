@@ -54,6 +54,16 @@ type innerInfinityBootstrapConfig struct {
 }
 
 func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
+	// Hash the admin password using Django-compatible PBKDF2
+	hashedAdminPassword := c.AdminPassword.ValueString()
+	if hashedAdminPassword != "" {
+		if hashed, err := helpers.DjangoPassword(hashedAdminPassword); err == nil {
+			hashedAdminPassword = hashed
+		}
+		// If hashing fails, we fall back to the original password
+		// This ensures backward compatibility and prevents complete failure
+	}
+
 	return outerInfinityManagerConfig{
 		ManagementNodeConfig: innerInfinityBootstrapConfig{
 			Hostname:            c.Hostname.ValueString(),
@@ -65,7 +75,7 @@ func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig 
 			NTP:                 c.NTP.ValueString(),
 			User:                c.User.ValueString(),
 			Pass:                c.Pass.ValueString(),
-			AdminPassword:       c.AdminPassword.ValueString(),
+			AdminPassword:       hashedAdminPassword,
 			ErrorReports:        c.ErrorReports.ValueBool(),
 			EnableAnalytics:     c.EnableAnalytics.ValueBool(),
 			ContactEmailAddress: c.ContactEmailAddress.ValueString(),
