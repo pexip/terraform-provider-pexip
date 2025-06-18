@@ -199,7 +199,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		createRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
 	}
 
-	createResponse, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
+	_, createResponse, err := r.InfinityClient.Config.CreateWorkerVMWithResponse(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity Node",
@@ -208,7 +208,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	resourceID, err := createResponse.GetID()
+	resourceID, err := createResponse.ResourceID()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Retrieving Infinity Node ID",
@@ -218,7 +218,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	data, err = r.read(ctx, resourceID)
-	data.Config = types.StringValue(createResponse.Body)
+	data.Config = types.StringValue(string(createResponse.Body))
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", data.ID, data.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
