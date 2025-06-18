@@ -120,7 +120,7 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 				Required:  true,
 				Sensitive: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(8),
+					stringvalidator.LengthAtLeast(5),
 				},
 				MarkdownDescription: "The password for the Infinity node. This is used for authentication and should be kept secure.",
 			},

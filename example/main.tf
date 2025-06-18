@@ -43,4 +43,10 @@ module "gcp-infinity-node" {
   subnetwork_id         = data.google_compute_subnetwork.default.id
   dns_zone_name         = var.dns_zone_name
   tags                  = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
+
+  gateway         = data.google_compute_subnetwork.default.gateway_address
+  subnetwork_mask = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
+  password        = var.infinity_password
+  node_type       = "worker"
+  system_location = "OSL"
 }

@@ -8,8 +8,20 @@ data "google_compute_image" "pexip-infinity-node-image" {
 }
 
 resource "pexip_infinity_node" "worker" {
-  name     = local.hostname
-  hostname = local.hostname
+  name                    = local.hostname
+  hostname                = local.hostname
+  address                 = google_compute_address.infinity_node_static_ip.address
+  netmask                 = var.subnetwork_mask
+  domain                  = local.domain
+  gateway                 = var.gateway
+  password                = var.password
+  node_type               = var.node_type
+  system_location         = var.system_location
+  maintenance_mode        = var.maintenance_mode
+  maintenance_mode_reason = var.maintenance_mode_reason
+  transcoding             = var.transcoding
+  vm_cpu_count            = var.vm_cpu_count
+  vm_system_memory        = var.vm_system_memory
 }
 
 resource "random_string" "disk_encryption_key" {
@@ -46,7 +58,7 @@ resource "google_compute_instance" "infinity_worker" {
     subnetwork = var.subnetwork_id
 
     access_config {
-      nat_ip = google_compute_address.infinity_node_static_ip[count.index].address
+      nat_ip = google_compute_address.infinity_node_static_ip.address
     }
   }
 

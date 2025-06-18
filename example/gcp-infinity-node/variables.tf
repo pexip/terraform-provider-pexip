@@ -23,6 +23,16 @@ variable "subnetwork_id" {
   description = "ID of the GCP subnetwork to use"
 }
 
+variable "gateway" {
+  type        = string
+  description = "subnetwork gateway IP address"
+}
+
+variable "subnetwork_mask" {
+  type        = string
+  description = "subnetwork mask ('255.255.255.0' format)"
+}
+
 variable "vm_image_name" {
   type        = string
   description = "Pexip Infinity VM image to use"
@@ -56,6 +66,12 @@ variable "dns_zone_name" {
   description = "name of GCP DNS zone"
 }
 
+variable "password" {
+  type        = string
+  sensitive   = true
+  description = "Password for the Infinity Node"
+}
+
 variable "tags" {
   type        = list(string)
   default     = []
@@ -67,3 +83,45 @@ variable "index" {
   default     = 1
   description = "Index of the Infinity Node"
 }
+
+variable "node_type" {
+  type        = string
+  description = "Type of Infinity Node (e.g., worker, transcoder)"
+}
+
+variable "system_location" {
+  type        = string
+  description = "Location of the Infinity Node system"
+}
+
+variable "maintenance_mode" {
+  type        = bool
+  default     = false
+  description = "Enable maintenance mode for the Infinity Node"
+}
+
+variable "maintenance_mode_reason" {
+  type        = string
+  default     = ""
+  description = "Reason for enabling maintenance mode"
+}
+
+variable "transcoding" {
+  type        = bool
+  default     = false
+  description = "Enable transcoding for the Infinity Node"
+}
+
+variable "vm_cpu_count" {
+  type        = number
+  default     = 16
+  description = "Number of vCPUs for the Infinity Node VM"
+}
+
+variable "vm_system_memory" {
+  type        = number
+  default     = 65536
+  description = "Amount of system memory (in MB) for the Infinity Node VM"
+}
+
+
