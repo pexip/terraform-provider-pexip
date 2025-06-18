@@ -2,8 +2,8 @@ locals {
   manager_hostname = "${var.environment}-manager"
 }
 
-data "google_compute_image" "pexip-infinity-image" {
-  name    = var.vm_image_name
+data "google_compute_image" "pexip-infinity-manager-image" {
+  name    = var.vm_image_manager_name
   project = var.vm_image_project
 }
 
@@ -11,7 +11,7 @@ data "pexip_infinity_manager_config" "conf" {
   hostname              = var.infinity_hostname
   domain                = data.google_dns_managed_zone.main.dns_name
   ip                    = google_compute_address.infinity_manager_static_ip.address
-  mask                  = "255.255.255.0"
+  mask                  = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
   gw                    = data.google_compute_subnetwork.default.gateway_address
   dns                   = var.infinity_primary_dns_server
   ntp                   = var.infinity_ntp_server
@@ -40,8 +40,8 @@ resource "random_string" "disk_encryption_key" {
 resource "google_compute_instance" "infinity_manager" {
   name             = local.manager_hostname
   zone             = "${var.location}-a"
-  machine_type     = "n2d-standard-16"
-  min_cpu_platform = "AMD Milan"
+  machine_type     = var.infinity_manager_machine_type
+  min_cpu_platform = var.infinity_manager_cpu_platform
 
   metadata = {
     user-data = data.pexip_infinity_manager_config.conf.rendered
@@ -51,7 +51,7 @@ resource "google_compute_instance" "infinity_manager" {
   boot_disk {
     disk_encryption_key_raw = base64encode(random_string.disk_encryption_key.result)
     initialize_params {
-      image = data.google_compute_image.pexip-infinity-image.self_link
+      image = data.google_compute_image.pexip-infinity-manager-image.self_link
       type  = "pd-ssd"
     }
   }
@@ -109,13 +109,61 @@ EOT
   }
 }
 
+data "google_compute_image" "pexip-infinity-node-image" {
+  name    = var.vm_image_node_name
+  project = var.vm_image_project
+}
+
 resource "pexip_infinity_node" "workers" {
-  count  = var.infinity_node_count
-  name   = "${var.environment}-worker-${count.index + 1}"
+  count    = var.infinity_node_count
+  name     = "${var.environment}-worker-${count.index + 1}"
   hostname = "${var.environment}-worker-${count.index + 1}"
 
   depends_on = [
     google_compute_instance.infinity_manager,
     null_resource.wait_for_infinity_manager_http,
   ]
+}
+
+resource "google_compute_instance" "infinity_workers" {
+  count            = var.infinity_node_count
+  name             = "${var.environment}-worker-${count.index + 1}"
+  zone             = "${var.location}-a"
+  machine_type     = var.infinity_node_machine_type
+  min_cpu_platform = var.infinity_node_cpu_platform
+
+  metadata = {
+    user-data = pexip_infinity_node.workers[count.index].config
+    fqdn      = "${var.environment}-worker-${count.index + 1}.${data.google_dns_managed_zone.main.dns_name}"
+  }
+
+  boot_disk {
+    disk_encryption_key_raw = base64encode(random_string.disk_encryption_key.result)
+    initialize_params {
+      image = data.google_compute_image.pexip-infinity-node-image.self_link
+      type  = "pd-ssd"
+    }
+  }
+
+  tags = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
+
+  network_interface {
+    network    = data.google_compute_network.default.id
+    subnetwork = data.google_compute_subnetwork.default.id
+
+    access_config {
+      nat_ip = google_compute_address.infinity_workers_static_ip[count.index].address
+    }
+  }
+
+  shielded_instance_config {
+    enable_secure_boot          = false
+    enable_vtpm                 = false
+    enable_integrity_monitoring = false
+  }
+
+  service_account {
+    email  = google_service_account.infinity-sa.email
+    scopes = ["cloud-platform"]
+  }
 }

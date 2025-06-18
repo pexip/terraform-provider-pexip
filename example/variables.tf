@@ -28,9 +28,15 @@ variable "vm_image_project" {
   description = "Project ID where the VM image is located"
 }
 
-variable "vm_image_name" {
+variable "vm_image_manager_name" {
   type        = string
   default     = "pexip-mgr-v37"
+  description = "VM image to use"
+}
+
+variable "vm_image_node_name" {
+  type        = string
+  default     = "pexip-cnf-v37"
   description = "VM image to use"
 }
 
@@ -44,6 +50,30 @@ variable "infinity_hostname" {
   type        = string
   default     = "manager-01"
   description = "Hostname for Infinity Manager"
+}
+
+variable "infinity_manager_machine_type" {
+  type        = string
+  default     = "n2d-standard-16"
+  description = "Machine type for Infinity Manager VM"
+}
+
+variable "infinity_node_machine_type" {
+    type        = string
+    default     = "n2d-standard-16"
+    description = "Machine type for Infinity nodes"
+}
+
+variable "infinity_manager_cpu_platform" {
+  type        = string
+  default     = "AMD Milan"
+  description = "Minimum CPU platform for Infinity Manager VM"
+}
+
+variable "infinity_node_cpu_platform" {
+  type        = string
+  default     = "AMD Milan"
+  description = "Minimum CPU platform for Infinity Manager VM"
 }
 
 variable "infinity_username" {
