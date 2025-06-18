@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"strconv"
 	"strings"
 )
@@ -25,10 +26,23 @@ type InfinityNodeResource struct {
 }
 
 type InfinityNodeResourceModel struct {
-	ID       types.Int32  `tfsdk:"id"`
-	Name     types.String `tfsdk:"name"`
-	Hostname types.String `tfsdk:"hostname"`
-	Config   types.String `tfsdk:"config"`
+	ID                    types.Int32  `tfsdk:"id"`
+	Name                  types.String `tfsdk:"name"`
+	Hostname              types.String `tfsdk:"hostname"`
+	Address               types.String `tfsdk:"address"`
+	Netmask               types.String `tfsdk:"netmask"`
+	Domain                types.String `tfsdk:"domain"`
+	Gateway               types.String `tfsdk:"gateway"`
+	Password              types.String `tfsdk:"password"`
+	NodeType              types.String `tfsdk:"node_type"`
+	SystemLocation        types.String `tfsdk:"system_location"`
+	MaintenanceMode       types.Bool   `tfsdk:"maintenance_mode"`
+	MaintenanceModeReason types.String `tfsdk:"maintenance_mode_reason"`
+	Transcoding           types.Bool   `tfsdk:"transcoding"`
+	VMCPUCount            types.Int64  `tfsdk:"vm_cpu_count"`
+	VMSystemMemory        types.Int64  `tfsdk:"vm_system_memory"`
+
+	Config types.String `tfsdk:"config"`
 }
 
 func (r *InfinityNodeResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -74,6 +88,76 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 				},
 				MarkdownDescription: "The hostname of the Infinity node. This should be resolvable within the Infinity cluster.",
 			},
+			"address": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "The IP address of the Infinity node. This should be reachable within the Infinity cluster.",
+			},
+			"netmask": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "The netmask for the Infinity node's network interface.",
+			},
+			"domain": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "The domain name for the Infinity node. This is used for DNS resolution within the Infinity cluster.",
+			},
+			"gateway": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					validators.IPAddress(),
+				},
+				MarkdownDescription: "The gateway IP address for the Infinity node. This is used for routing traffic outside the Infinity cluster.",
+			},
+			"password": schema.StringAttribute{
+				Required:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(8),
+				},
+				MarkdownDescription: "The password for the Infinity node. This is used for authentication and should be kept secure.",
+			},
+			"node_type": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("worker", "controller", "transcoder"),
+				},
+				MarkdownDescription: "The type of the Infinity node. Valid values are `worker`, `controller`, or `transcoder`. This determines the role of the node in the Infinity cluster.",
+			},
+			"system_location": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "The system location for the Infinity node. This is used for geographical identification and should be a valid location string.",
+			},
+			"maintenance_mode": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates whether the Infinity node is in maintenance mode. When set to `true`, the node will not accept new workloads and will be excluded from load balancing.",
+			},
+			"maintenance_mode_reason": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The reason for putting the Infinity node into maintenance mode. This is optional and can be used to provide context for the maintenance operation.",
+			},
+			"transcoding": schema.BoolAttribute{
+				Required:            true,
+				MarkdownDescription: "Indicates whether the Infinity node is capable of transcoding media streams. This should be set to `true` if the node has the necessary resources and software to perform transcoding operations.",
+			},
+			"vm_cpu_count": schema.Int64Attribute{
+				Required:            true,
+				MarkdownDescription: "The number of CPUs used by the Infinity node",
+			},
+			"vm_system_memory": schema.Int64Attribute{
+				Required:            true,
+				MarkdownDescription: "The amount of system memory (RAM) allocated to the Infinity node, in megabytes.",
+			},
 			"config": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Bootstrap configuration for the Infinity Node.",
@@ -97,6 +181,18 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		createRequest.Name = data.Name.ValueString()
 		createRequest.Hostname = data.Hostname.ValueString()
+		createRequest.Address = data.Address.ValueString()
+		createRequest.Netmask = data.Netmask.ValueString()
+		createRequest.Domain = data.Domain.ValueString()
+		createRequest.Gateway = data.Gateway.ValueString()
+		createRequest.Password = data.Password.ValueString()
+		createRequest.NodeType = data.NodeType.ValueString()
+		createRequest.SystemLocation = data.SystemLocation.ValueString()
+		createRequest.MaintenanceMode = data.MaintenanceMode.ValueBool()
+		createRequest.MaintenanceModeReason = data.MaintenanceModeReason.ValueString()
+		createRequest.Transcoding = data.Transcoding.ValueBool()
+		createRequest.VMCPUCount = int(data.VMCPUCount.ValueInt64())
+		createRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
 	}
 
 	vm, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
@@ -139,6 +235,18 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 
 	data.Name = types.StringValue(vm.Name)
 	data.Hostname = types.StringValue(vm.Hostname)
+	data.Address = types.StringValue(vm.Address)
+	data.Netmask = types.StringValue(vm.Netmask)
+	data.Domain = types.StringValue(vm.Domain)
+	data.Gateway = types.StringValue(vm.Gateway)
+	data.Password = types.StringValue(vm.Password)
+	data.NodeType = types.StringValue(vm.NodeType)
+	data.SystemLocation = types.StringValue(vm.SystemLocation)
+	data.MaintenanceMode = types.BoolValue(vm.MaintenanceMode)
+	data.MaintenanceModeReason = types.StringValue(vm.MaintenanceModeReason)
+	data.Transcoding = types.BoolValue(vm.Transcoding)
+	data.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
+	data.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -153,10 +261,47 @@ func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRe
 
 	updateRequest := &config.WorkerVMUpdateRequest{}
 
-	// Set name if provided
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		updateRequest.Name = data.Name.ValueString()
+	}
+	if !data.Hostname.IsNull() && !data.Hostname.IsUnknown() {
 		updateRequest.Hostname = data.Hostname.ValueString()
+	}
+	if !data.Address.IsNull() && !data.Address.IsUnknown() {
+		updateRequest.Address = data.Address.ValueString()
+	}
+	if !data.Netmask.IsNull() && !data.Netmask.IsUnknown() {
+		updateRequest.Netmask = data.Netmask.ValueString()
+	}
+	if !data.Domain.IsNull() && !data.Domain.IsUnknown() {
+		updateRequest.Domain = data.Domain.ValueString()
+	}
+	if !data.Gateway.IsNull() && !data.Gateway.IsUnknown() {
+		updateRequest.Gateway = data.Gateway.ValueString()
+	}
+	if !data.Password.IsNull() && !data.Password.IsUnknown() {
+		updateRequest.Password = data.Password.ValueString()
+	}
+	if !data.NodeType.IsNull() && !data.NodeType.IsUnknown() {
+		updateRequest.NodeType = data.NodeType.ValueString()
+	}
+	if !data.SystemLocation.IsNull() && !data.SystemLocation.IsUnknown() {
+		updateRequest.SystemLocation = data.SystemLocation.ValueString()
+	}
+	if !data.MaintenanceMode.IsNull() && !data.MaintenanceMode.IsUnknown() {
+		updateRequest.MaintenanceMode = data.MaintenanceMode.ValueBool()
+	}
+	if !data.MaintenanceModeReason.IsNull() && !data.MaintenanceModeReason.IsUnknown() {
+		updateRequest.MaintenanceModeReason = data.MaintenanceModeReason.ValueString()
+	}
+	if !data.Transcoding.IsNull() && !data.Transcoding.IsUnknown() {
+		updateRequest.Transcoding = data.Transcoding.ValueBool()
+	}
+	if !data.VMCPUCount.IsNull() && !data.VMCPUCount.IsUnknown() {
+		updateRequest.VMCPUCount = int(data.VMCPUCount.ValueInt64())
+	}
+	if !data.VMSystemMemory.IsNull() && !data.VMSystemMemory.IsUnknown() {
+		updateRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
 	}
 
 	vm, err := r.InfinityClient.Config.UpdateWorkerVM(ctx, int(data.ID.ValueInt32()), updateRequest)
@@ -169,6 +314,19 @@ func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	data.Name = types.StringValue(vm.Name)
+	data.Hostname = types.StringValue(vm.Hostname)
+	data.Address = types.StringValue(vm.Address)
+	data.Netmask = types.StringValue(vm.Netmask)
+	data.Domain = types.StringValue(vm.Domain)
+	data.Gateway = types.StringValue(vm.Gateway)
+	data.Password = types.StringValue(vm.Password)
+	data.NodeType = types.StringValue(vm.NodeType)
+	data.SystemLocation = types.StringValue(vm.SystemLocation)
+	data.MaintenanceMode = types.BoolValue(vm.MaintenanceMode)
+	data.MaintenanceModeReason = types.StringValue(vm.MaintenanceModeReason)
+	data.Transcoding = types.BoolValue(vm.Transcoding)
+	data.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
+	data.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
