@@ -2,168 +2,45 @@ locals {
   manager_hostname = "${var.environment}-manager"
 }
 
-data "google_compute_image" "pexip-infinity-manager-image" {
-  name    = var.vm_image_manager_name
-  project = var.vm_image_project
-}
+module "gcp-infinity-manager" {
+  source                = "./gcp-infinity-manager"
+  vm_image_name         = var.vm_image_manager_name
+  machine_type          = var.infinity_manager_machine_type
+  cpu_platform          = var.infinity_manager_cpu_platform
+  environment           = var.environment
+  project_id            = var.project_id
+  location              = var.location
+  service_account_email = google_service_account.infinity-sa.email
+  network_id            = data.google_compute_network.default.id
+  subnetwork_id         = data.google_compute_subnetwork.default.id
+  dns_zone_name         = var.dns_zone_name
+  tags                  = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
 
-data "pexip_infinity_manager_config" "conf" {
-  hostname              = var.infinity_hostname
-  domain                = data.google_dns_managed_zone.main.dns_name
-  ip                    = google_compute_address.infinity_manager_static_ip.address
-  mask                  = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
-  gw                    = data.google_compute_subnetwork.default.gateway_address
-  dns                   = var.infinity_primary_dns_server
-  ntp                   = var.infinity_ntp_server
-  user                  = var.infinity_username
-  pass                  = var.infinity_password
+  gateway               = data.google_compute_subnetwork.default.gateway_address
+  subnetwork_mask       = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
+  dns_server            = var.infinity_primary_dns_server
+  ntp_server            = var.infinity_ntp_server
+  username              = var.infinity_username
+  password              = var.infinity_password
   admin_password        = var.infinity_password
-  error_reports         = var.infinity_report_errors
+  report_errors         = var.infinity_report_errors
   enable_analytics      = var.infinity_enable_analytics
   contact_email_address = var.infinity_contact_email_address
 }
 
-resource "local_file" "pexip_infinity_manager_config" {
-  file_permission = "0640"
-  filename        = "${path.root}/infinity-manager.conf"
-  content         = data.pexip_infinity_manager_config.conf.rendered
-}
-
-resource "random_string" "disk_encryption_key" {
-  length  = 32
-  special = true
-  upper   = true
-  lower   = true
-  numeric = true
-}
-
-resource "google_compute_instance" "infinity_manager" {
-  name             = local.manager_hostname
-  zone             = "${var.location}-a"
-  machine_type     = var.infinity_manager_machine_type
-  min_cpu_platform = var.infinity_manager_cpu_platform
-
-  metadata = {
-    user-data = data.pexip_infinity_manager_config.conf.rendered
-    fqdn      = "${local.manager_hostname}.${data.google_dns_managed_zone.main.dns_name}"
-  }
-
-  boot_disk {
-    disk_encryption_key_raw = base64encode(random_string.disk_encryption_key.result)
-    initialize_params {
-      image = data.google_compute_image.pexip-infinity-manager-image.self_link
-      type  = "pd-ssd"
-    }
-  }
-
-  tags = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
-
-  network_interface {
-    network    = data.google_compute_network.default.id
-    subnetwork = data.google_compute_subnetwork.default.id
-
-    access_config {
-      nat_ip = google_compute_address.infinity_manager_static_ip.address
-    }
-  }
-
-  shielded_instance_config {
-    enable_secure_boot          = false
-    enable_vtpm                 = false
-    enable_integrity_monitoring = false
-  }
-
-  service_account {
-    email  = google_service_account.infinity-sa.email
-    scopes = ["cloud-platform"]
-  }
-}
-
-resource "null_resource" "wait_for_infinity_manager_http" {
-  depends_on = [google_compute_instance.infinity_manager]
-
-  # Re‑run this null_resource whenever the instance is replaced
-  triggers = {
-    instance_id = google_compute_instance.infinity_manager.id
-  }
-
-  provisioner "local-exec" {
-    command     = <<EOT
-echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
-for i in $(seq 1 30); do
-  status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" \
-    https://${local.manager_hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/configuration/v1/)
-
-  if [ "$status" -eq 200 ]; then
-    echo "Infinity Manager is ready (HTTP 200)."
-    exit 0
-  fi
-
-  sleep 10
-done
-
-echo "Timed out: Infinity Manager did not return HTTP 200" >&2
-exit 1
-EOT
-    interpreter = ["/bin/bash", "-c"]
-  }
-}
-
-data "google_compute_image" "pexip-infinity-node-image" {
-  name    = var.vm_image_node_name
-  project = var.vm_image_project
-}
-
-resource "pexip_infinity_node" "workers" {
-  count    = var.infinity_node_count
-  name     = "${var.environment}-worker-${count.index + 1}"
-  hostname = "${var.environment}-worker-${count.index + 1}"
-
-  depends_on = [
-    google_compute_instance.infinity_manager,
-    null_resource.wait_for_infinity_manager_http,
-  ]
-}
-
-resource "google_compute_instance" "infinity_workers" {
-  count            = var.infinity_node_count
-  name             = "${var.environment}-worker-${count.index + 1}"
-  zone             = "${var.location}-a"
-  machine_type     = var.infinity_node_machine_type
-  min_cpu_platform = var.infinity_node_cpu_platform
-
-  metadata = {
-    user-data = pexip_infinity_node.workers[count.index].config
-    fqdn      = "${var.environment}-worker-${count.index + 1}.${data.google_dns_managed_zone.main.dns_name}"
-  }
-
-  boot_disk {
-    disk_encryption_key_raw = base64encode(random_string.disk_encryption_key.result)
-    initialize_params {
-      image = data.google_compute_image.pexip-infinity-node-image.self_link
-      type  = "pd-ssd"
-    }
-  }
-
-  tags = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
-
-  network_interface {
-    network    = data.google_compute_network.default.id
-    subnetwork = data.google_compute_subnetwork.default.id
-
-    access_config {
-      nat_ip = google_compute_address.infinity_workers_static_ip[count.index].address
-    }
-  }
-
-  shielded_instance_config {
-    enable_secure_boot          = false
-    enable_vtpm                 = false
-    enable_integrity_monitoring = false
-  }
-
-  service_account {
-    email  = google_service_account.infinity-sa.email
-    scopes = ["cloud-platform"]
-  }
+module "gcp-infinity-node" {
+  source                = "./gcp-infinity-node"
+  count                 = var.infinity_node_count
+  index                 = count.index
+  vm_image_name         = var.vm_image_node_name
+  machine_type          = var.infinity_node_machine_type
+  cpu_platform          = var.infinity_node_cpu_platform
+  environment           = var.environment
+  project_id            = var.project_id
+  location              = var.location
+  service_account_email = google_service_account.infinity-sa.email
+  network_id            = data.google_compute_network.default.id
+  subnetwork_id         = data.google_compute_subnetwork.default.id
+  dns_zone_name         = var.dns_zone_name
+  tags                  = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
 }

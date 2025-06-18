@@ -22,16 +22,10 @@ variable "dns_zone_name" {
   description = "name of GCP DNS zone"
 }
 
-variable "vm_image_project" {
-  type        = string
-  default     = "vc-operations"
-  description = "Project ID where the VM image is located"
-}
-
 variable "vm_image_manager_name" {
   type        = string
   default     = "pexip-mgr-v37"
-  description = "VM image to use"
+  description = "Pexip Infinity VM image to use"
 }
 
 variable "vm_image_node_name" {
@@ -44,12 +38,6 @@ variable "infinity_address" {
   type        = string
   default     = "https://manager.example.com"
   description = "Address of the Infinity Manager"
-}
-
-variable "infinity_hostname" {
-  type        = string
-  default     = "manager-01"
-  description = "Hostname for Infinity Manager"
 }
 
 variable "infinity_manager_machine_type" {
