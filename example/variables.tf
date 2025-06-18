@@ -59,9 +59,9 @@ variable "infinity_manager_machine_type" {
 }
 
 variable "infinity_node_machine_type" {
-    type        = string
-    default     = "n2d-standard-16"
-    description = "Machine type for Infinity nodes"
+  type        = string
+  default     = "n2d-standard-16"
+  description = "Machine type for Infinity nodes"
 }
 
 variable "infinity_manager_cpu_platform" {
