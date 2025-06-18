@@ -86,7 +86,11 @@ variable "index" {
 
 variable "node_type" {
   type        = string
-  description = "Type of Infinity Node (e.g., worker, transcoder)"
+  description = "Type of Infinity Node (e.g., CONFERENCING, PROXYING)"
+  validation {
+    condition     = contains(["CONFERENCING", "PROXYING"], var.node_type)
+    error_message = "Valid values for node_type are CONFERENCING or PROXYING."
+  }
 }
 
 variable "system_location" {

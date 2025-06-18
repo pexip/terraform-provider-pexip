@@ -21,7 +21,7 @@ resource "pexip_infinity_node" "node" {
   domain                  = "example.com"
   gateway                 = "192.168.1.1"
   password                = "test_password"
-  node_type               = "worker"
+  node_type               = "CONFERENCING"
   system_location         = "Test Location"
   maintenance_mode        = false
   maintenance_mode_reason = ""

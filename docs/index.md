@@ -174,7 +174,7 @@ resource "pexip_infinity_node" "prod_workers" {
   count           = 3
   name            = "prod-worker-${count.index + 1}"
   hostname        = "prod-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = "Production"
 }
 
@@ -183,7 +183,7 @@ resource "pexip_infinity_node" "dev_workers" {
   count           = 1
   name            = "dev-worker-${count.index + 1}"
   hostname        = "dev-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = "Development"
 }
 ```
@@ -281,7 +281,7 @@ resource "pexip_infinity_node" "workers" {
   count           = var.node_count
   name            = "${var.environment}-worker-${count.index + 1}"
   hostname        = "${var.environment}-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = var.environment
 }
 ```

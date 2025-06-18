@@ -47,6 +47,6 @@ module "gcp-infinity-node" {
   gateway         = data.google_compute_subnetwork.default.gateway_address
   subnetwork_mask = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
   password        = var.infinity_password
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = "OSL"
 }

@@ -214,7 +214,7 @@ resource "pexip_infinity_node" "worker" {
   domain                  = "example.com"
   gateway                 = "192.168.1.1"
   password                = var.node_password
-  node_type               = "worker"
+  node_type               = "CONFERENCING"
   system_location         = "Data Center 1"
   maintenance_mode        = false
   transcoding             = true
@@ -292,7 +292,7 @@ resource "pexip_infinity_node" "prod_workers" {
   count           = 3
   name            = "prod-worker-${count.index + 1}"
   hostname        = "prod-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = "Production"
 }
 
@@ -301,7 +301,7 @@ resource "pexip_infinity_node" "dev_workers" {
   count           = 1
   name            = "dev-worker-${count.index + 1}"
   hostname        = "dev-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = "Development"
 }
 ```
@@ -331,7 +331,7 @@ resource "pexip_infinity_node" "workers" {
   count           = var.node_count
   name            = "${var.environment}-worker-${count.index + 1}"
   hostname        = "${var.environment}-worker-${count.index + 1}"
-  node_type       = "worker"
+  node_type       = "CONFERENCING"
   system_location = var.environment
 }
 ```
