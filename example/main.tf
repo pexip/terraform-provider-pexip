@@ -89,7 +89,7 @@ resource "null_resource" "wait_for_infinity_manager_http" {
 echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
   status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" \
-    https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/health)
+    https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/configuration/v1/)
 
   if [ "$status" -eq 200 ]; then
     echo "Infinity Manager is ready (HTTP 200)."
