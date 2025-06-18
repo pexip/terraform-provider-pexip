@@ -10,10 +10,10 @@ variable "location" {
   description = "location where resources will be created"
 }
 
-variable "hostname" {
+variable "environment" {
   type        = string
-  default     = "infinity-manager"
-  description = "Hostname of the VM instance"
+  default     = "dev"
+  description = "Environment for the deployment (e.g., dev, prod)"
 }
 
 variable "dns_zone_name" {
@@ -91,4 +91,10 @@ variable "infinity_enable_analytics" {
 variable "infinity_contact_email_address" {
   type        = string
   description = "Contact email address for Infinity Manager"
+}
+
+variable "infinity_node_count" {
+  type        = number
+  default     = 1
+  description = "Number of Infinity nodes to deploy"
 }

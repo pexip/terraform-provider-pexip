@@ -1,3 +1,7 @@
+locals {
+  manager_hostname = "${var.environment}-manager"
+}
+
 data "google_compute_image" "pexip-infinity-image" {
   name    = var.vm_image_name
   project = var.vm_image_project
@@ -34,14 +38,14 @@ resource "random_string" "disk_encryption_key" {
 }
 
 resource "google_compute_instance" "infinity_manager" {
-  name             = var.hostname
+  name             = local.manager_hostname
   zone             = "${var.location}-a"
   machine_type     = "n2d-standard-16"
   min_cpu_platform = "AMD Milan"
 
   metadata = {
     user-data = data.pexip_infinity_manager_config.conf.rendered
-    fqdn      = "${var.hostname}.${data.google_dns_managed_zone.main.dns_name}"
+    fqdn      = "${local.manager_hostname}.${data.google_dns_managed_zone.main.dns_name}"
   }
 
   boot_disk {
@@ -88,7 +92,7 @@ resource "null_resource" "wait_for_infinity_manager_http" {
 echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
   status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" \
-    https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/configuration/v1/)
+    https://${local.manager_hostname}.${data.google_dns_managed_zone.main.dns_name}/api/admin/configuration/v1/)
 
   if [ "$status" -eq 200 ]; then
     echo "Infinity Manager is ready (HTTP 200)."
@@ -105,9 +109,10 @@ EOT
   }
 }
 
-resource "pexip_infinity_node" "infinity-node-01" {
-  name     = "infinity-node-01"
-  hostname = "infinity-node-01"
+resource "pexip_infinity_node" "workers" {
+  count  = var.infinity_node_count
+  name   = "${var.environment}-worker-${count.index + 1}"
+  hostname = "${var.environment}-worker-${count.index + 1}"
 
   depends_on = [
     google_compute_instance.infinity_manager,
