@@ -127,7 +127,7 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 			"node_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("worker", "controller", "transcoder"),
+					stringvalidator.OneOf("worker", "controller", "transcoder"), // TODO fix these types
 				},
 				MarkdownDescription: "The type of the Infinity node. Valid values are `worker`, `controller`, or `transcoder`. This determines the role of the node in the Infinity cluster.",
 			},
