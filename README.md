@@ -26,8 +26,8 @@ This Terraform provider enables you to manage [Pexip Infinity](https://www.pexip
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip/pexip"
-      version = "~> 1.0"
+      source  = "pexip.com/pexip/pexip"
+      version = "~> 0.1"
     }
   }
 }
@@ -47,8 +47,8 @@ terraform {
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip/pexip"
-      version = "~> 1.0"
+      source  = "pexip.com/pexip/pexip"
+      version = "~> 0.1"
     }
   }
 }
@@ -79,13 +79,13 @@ data "pexip_infinity_manager_config" "primary" {
 
 # Register worker nodes
 resource "pexip_infinity_node" "worker_01" {
-  name   = "pexip-worker-01"
-  config = data.pexip_infinity_manager_config.primary.rendered
+  name     = "pexip-worker-01"
+  hostname = "pexip-worker-01"
 }
 
 resource "pexip_infinity_node" "worker_02" {
-  name   = "pexip-worker-02"
-  config = data.pexip_infinity_manager_config.primary.rendered
+  name     = "pexip-worker-02"
+  hostname = "pexip-worker-02"
 }
 ```
 
@@ -141,6 +141,14 @@ export PEXIP_ADDRESS="https://manager.example.com"
 export PEXIP_USERNAME="admin"
 export PEXIP_PASSWORD="secure_password"
 ```
+
+### Provider Configuration Reference
+
+| Argument | Description | Required | Environment Variable |
+|----------|-------------|----------|---------------------|
+| `address` | URL of the Pexip Infinity Manager API | Yes | `PEXIP_ADDRESS` |
+| `username` | Username for authentication | Yes | `PEXIP_USERNAME` |
+| `password` | Password for authentication | Yes | `PEXIP_PASSWORD` |
 
 ## Resources and Data Sources
 
@@ -199,22 +207,65 @@ Manages Pexip Infinity worker nodes.
 
 ```hcl
 resource "pexip_infinity_node" "worker" {
-  name   = "worker-node-01"
-  config = data.pexip_infinity_manager_config.primary.rendered
+  name                    = "worker-node-01"
+  hostname                = "worker-node-01"
+  address                 = "192.168.1.101"
+  netmask                 = "255.255.255.0"
+  domain                  = "example.com"
+  gateway                 = "192.168.1.1"
+  password                = var.node_password
+  node_type               = "worker"
+  system_location         = "Data Center 1"
+  maintenance_mode        = false
+  transcoding             = true
 }
 ```
 
 **Arguments:**
-- `name` (Optional) - Node name (auto-generated if not provided)
-- `config` (Required) - Bootstrap configuration
+- `name` (Required) - Node name
+- `hostname` (Required) - Node hostname
+- `address` (Optional) - IP address of the node
+- `netmask` (Optional) - Network mask
+- `domain` (Optional) - DNS domain
+- `gateway` (Optional) - Gateway IP address
+- `password` (Required, Sensitive) - Node password
+- `node_type` (Optional) - Node type (default: "worker")
+- `system_location` (Optional) - Physical location description
+- `maintenance_mode` (Optional) - Enable maintenance mode (default: false)
+- `maintenance_mode_reason` (Optional) - Reason for maintenance mode
+- `transcoding` (Optional) - Enable transcoding (default: true)
+- `vm_cpu_count` (Optional) - Number of CPUs allocated to VM
+- `vm_system_memory` (Optional) - System memory allocated to VM
 
-**Attributes:**
+**Computed Attributes:**
 - `id` - Node ID
+- `config` - Generated node configuration
 
 **Import:**
 
 ```bash
 terraform import pexip_infinity_node.worker 123
+```
+
+## Complete Example
+
+For a comprehensive example that includes Google Cloud Platform infrastructure deployment along with Pexip Infinity resources, see the [`example/`](./example/) directory in this repository. This example demonstrates:
+
+- GCP VM instances for Pexip Infinity Manager and worker nodes
+- Network configuration and firewall rules
+- DNS setup and SSL certificates
+- Service account and IAM permissions
+- Integration between cloud infrastructure and Pexip resources
+
+To run the example:
+
+```bash
+cd example/
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values
+terraform init
+terraform plan
+terraform apply
 ```
 
 ## Advanced Usage
@@ -238,16 +289,20 @@ data "pexip_infinity_manager_config" "dev" {
 
 # Production nodes
 resource "pexip_infinity_node" "prod_workers" {
-  count  = 3
-  name   = "prod-worker-${count.index + 1}"
-  config = data.pexip_infinity_manager_config.prod.rendered
+  count           = 3
+  name            = "prod-worker-${count.index + 1}"
+  hostname        = "prod-worker-${count.index + 1}"
+  node_type       = "worker"
+  system_location = "Production"
 }
 
 # Development nodes
 resource "pexip_infinity_node" "dev_workers" {
-  count  = 1
-  name   = "dev-worker-${count.index + 1}"
-  config = data.pexip_infinity_manager_config.dev.rendered
+  count           = 1
+  name            = "dev-worker-${count.index + 1}"
+  hostname        = "dev-worker-${count.index + 1}"
+  node_type       = "worker"
+  system_location = "Development"
 }
 ```
 
@@ -273,9 +328,11 @@ data "pexip_infinity_manager_config" "config" {
 }
 
 resource "pexip_infinity_node" "workers" {
-  count  = var.node_count
-  name   = "${var.environment}-worker-${count.index + 1}"
-  config = data.pexip_infinity_manager_config.config.rendered
+  count           = var.node_count
+  name            = "${var.environment}-worker-${count.index + 1}"
+  hostname        = "${var.environment}-worker-${count.index + 1}"
+  node_type       = "worker"
+  system_location = var.environment
 }
 ```
 
@@ -396,18 +453,48 @@ terraform plan
 - [Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
 - [GitHub Issues](https://github.com/pexip/terraform-provider-pexip/issues)
 
+## Version Compatibility
+
+| Provider Version | Terraform Version | Pexip Infinity Version | Go Version |
+|------------------|-------------------|------------------------|------------|
+| `~> 0.1` | `>= 1.0` | `>= v37` | `>= 1.21` |
+
+## Known Limitations
+
+- Provider currently supports basic node management operations
+- Advanced Pexip Infinity features may require manual configuration
+- SSL certificate validation is enforced (use proper certificates in production)
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+5. Ensure all tests pass (`make test && make testacc`)
+6. Run linting (`make lint && make fmt`)
+7. Commit your changes (`git commit -m 'Add amazing feature'`)
+8. Push to the branch (`git push origin feature/amazing-feature`)
+9. Submit a pull request
 
+### Development Guidelines
+
+- Follow [Go best practices](https://golang.org/doc/effective_go.html)
+- Use the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
+- Write comprehensive tests for all new features
+- Update documentation for any changes
+- Ensure backward compatibility when possible
+
+## License
+
+For project license see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
 See [Releases](https://github.com/pexip/terraform-provider-pexip/releases) for release notes and version history.
+
+## Security
+
+For security concerns, please email security@pexip.com instead of using the public issue tracker.
