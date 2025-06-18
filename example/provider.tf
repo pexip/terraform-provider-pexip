@@ -28,7 +28,7 @@ provider "google" {
 }
 
 provider "pexip" {
-  address = "https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}"
+  address  = "https://${var.hostname}.${data.google_dns_managed_zone.main.dns_name}"
   username = var.infinity_username
   password = var.infinity_password
 }

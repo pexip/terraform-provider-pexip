@@ -41,9 +41,9 @@ variable "infinity_address" {
 }
 
 variable "infinity_hostname" {
-    type        = string
-    default     = "manager-01"
-    description = "Hostname for Infinity Manager"
+  type        = string
+  default     = "manager-01"
+  description = "Hostname for Infinity Manager"
 }
 
 variable "infinity_username" {
@@ -59,36 +59,36 @@ variable "infinity_password" {
 }
 
 variable "infinity_primary_dns_server" {
-    type        = string
-    default     = "8.8.8.8"
-    description = "Primary DNS server for Infinity Manager"
+  type        = string
+  default     = "8.8.8.8"
+  description = "Primary DNS server for Infinity Manager"
 }
 
 variable "infinity_secondary_dns_server" {
-    type        = string
-    default     = "8.8.4.4"
-    description = "Secondary DNS server for Infinity Manager"
+  type        = string
+  default     = "8.8.4.4"
+  description = "Secondary DNS server for Infinity Manager"
 }
 
 variable "infinity_ntp_server" {
-    type        = string
-    default     = "pool.ntp.org"
-    description = "NTP server for Infinity Manager"
+  type        = string
+  default     = "pool.ntp.org"
+  description = "NTP server for Infinity Manager"
 }
 
 variable "infinity_report_errors" {
-    type        = bool
-    default     = false
-    description = "Enable error reporting for Infinity Manager"
+  type        = bool
+  default     = false
+  description = "Enable error reporting for Infinity Manager"
 }
 
 variable "infinity_enable_analytics" {
-    type        = bool
-    default     = false
-    description = "Enable analytics for Infinity Manager"
+  type        = bool
+  default     = false
+  description = "Enable analytics for Infinity Manager"
 }
 
 variable "infinity_contact_email_address" {
-    type        = string
-    description = "Contact email address for Infinity Manager"
+  type        = string
+  description = "Contact email address for Infinity Manager"
 }

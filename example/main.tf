@@ -70,7 +70,6 @@ resource "google_compute_instance" "infinity_manager" {
   }
 
   service_account {
-    # Google recommends custom service accounts that have cloud-appliance scope and permissions granted via IAM Roles.
     email  = google_service_account.infinity-sa.email
     scopes = ["cloud-platform"]
   }
@@ -85,7 +84,7 @@ resource "null_resource" "wait_for_infinity_manager_http" {
   }
 
   provisioner "local-exec" {
-    command = <<EOT
+    command     = <<EOT
 echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
   status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" \
@@ -107,7 +106,7 @@ EOT
 }
 
 resource "pexip_infinity_node" "infinity-node-01" {
-  name = "infinity-node-01"
+  name     = "infinity-node-01"
   hostname = "infinity-node-01"
 
   depends_on = [
