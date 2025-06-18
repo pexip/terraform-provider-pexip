@@ -21,7 +21,7 @@ resource "google_compute_firewall" "allow_https" {
     ports    = ["443"]
   }
 
-  #source_ranges = ["0.0.0.0/0"] # Allow from anywhere
-  source_ranges = ["35.235.240.0/20"] # Allow SSH from GCP console
+  source_ranges = ["0.0.0.0/0"] # Allow from anywhere TODO temporary enabled this
+  #source_ranges = ["35.235.240.0/20"] # Allow SSH from GCP console TODO temporary disabled this
   target_tags   = ["allow-https-${var.project_id}"]
 }

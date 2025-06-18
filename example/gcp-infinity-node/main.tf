@@ -40,8 +40,9 @@ resource "google_compute_instance" "infinity_worker" {
   min_cpu_platform = var.cpu_platform
 
   metadata = {
-    user-data = pexip_infinity_node.worker.config
-    fqdn      = "${local.hostname}.${local.domain}"
+    conferencing_node_config = pexip_infinity_node.worker.config
+    user-data                = pexip_infinity_node.worker.config
+    fqdn                     = "${local.hostname}.${local.domain}"
   }
 
   boot_disk {

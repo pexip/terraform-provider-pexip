@@ -1,5 +1,5 @@
 locals {
-  domain = data.google_dns_managed_zone.main.dns_name
+  domain = trimsuffix(data.google_dns_managed_zone.main.dns_name, ".")
 }
 
 data "google_dns_managed_zone" "main" {
@@ -7,7 +7,7 @@ data "google_dns_managed_zone" "main" {
 }
 
 resource "google_dns_record_set" "infinity_manager_dns" {
-  name         = "${local.hostname}.${local.domain}"
+  name         = "${local.hostname}.${local.domain}."
   managed_zone = data.google_dns_managed_zone.main.name
   type         = "A"
   ttl          = 60

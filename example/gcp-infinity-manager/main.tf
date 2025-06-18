@@ -39,8 +39,9 @@ resource "google_compute_instance" "infinity_manager" {
   min_cpu_platform = var.cpu_platform
 
   metadata = {
-    user-data = data.pexip_infinity_manager_config.conf.rendered
-    fqdn      = "${local.hostname}.${local.domain}"
+    management_node_config = data.pexip_infinity_manager_config.conf.management_node_config
+    user-data              = data.pexip_infinity_manager_config.conf.rendered
+    fqdn                   = "${local.hostname}.${local.domain}"
   }
 
   boot_disk {

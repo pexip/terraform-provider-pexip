@@ -15,21 +15,22 @@ import (
 )
 
 type InfinityManagerConfigModel struct {
-	ID                  types.String `tfsdk:"id"`
-	Hostname            types.String `tfsdk:"hostname"`
-	Domain              types.String `tfsdk:"domain"`
-	IP                  types.String `tfsdk:"ip"`
-	Mask                types.String `tfsdk:"mask"`
-	GW                  types.String `tfsdk:"gw"`
-	DNS                 types.String `tfsdk:"dns"`
-	NTP                 types.String `tfsdk:"ntp"`
-	User                types.String `tfsdk:"user"`
-	Pass                types.String `tfsdk:"pass"`
-	AdminPassword       types.String `tfsdk:"admin_password"`
-	ErrorReports        types.Bool   `tfsdk:"error_reports"`
-	EnableAnalytics     types.Bool   `tfsdk:"enable_analytics"`
-	ContactEmailAddress types.String `tfsdk:"contact_email_address"`
-	Rendered            types.String `tfsdk:"rendered"`
+	ID                           types.String `tfsdk:"id"`
+	Hostname                     types.String `tfsdk:"hostname"`
+	Domain                       types.String `tfsdk:"domain"`
+	IP                           types.String `tfsdk:"ip"`
+	Mask                         types.String `tfsdk:"mask"`
+	GW                           types.String `tfsdk:"gw"`
+	DNS                          types.String `tfsdk:"dns"`
+	NTP                          types.String `tfsdk:"ntp"`
+	User                         types.String `tfsdk:"user"`
+	Pass                         types.String `tfsdk:"pass"`
+	AdminPassword                types.String `tfsdk:"admin_password"`
+	ErrorReports                 types.Bool   `tfsdk:"error_reports"`
+	EnableAnalytics              types.Bool   `tfsdk:"enable_analytics"`
+	ContactEmailAddress          types.String `tfsdk:"contact_email_address"`
+	Rendered                     types.String `tfsdk:"rendered"`
+	RenderedManagementNodeConfig types.String `tfsdk:"management_node_config"`
 }
 
 type outerInfinityManagerConfig struct {
@@ -214,19 +215,28 @@ func (c *InfinityManagerConfigModel) setDefaults(ctx context.Context) diag.Diagn
 	return diags
 }
 
+func prepareOutput(output []byte) string {
+	return strings.Replace(string(output), "\n", "", -1)
+}
+
 func (c *InfinityManagerConfigModel) update(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	output, err := json.MarshalIndent(c.toOuterConfig(), "", "")
+	fullOutput, err := json.MarshalIndent(c.toOuterConfig(), "", "")
 	if err != nil {
 		diags.AddError("Failed to marshal infinity manager config for output", err.Error())
 		return diags
 	}
 
-	cleanOutput := strings.Replace(string(output), "\n", "", -1)
+	mgmtNodeConfigOutput, err := json.MarshalIndent(c.toOuterConfig().ManagementNodeConfig, "", "")
+	if err != nil {
+		diags.AddError("Failed to marshal infinity manager management node config for output", err.Error())
+		return diags
+	}
 
-	c.ID = types.StringValue(strconv.Itoa(helpers.String(string(cleanOutput))))
-	c.Rendered = types.StringValue(string(cleanOutput))
+	c.ID = types.StringValue(strconv.Itoa(helpers.String(prepareOutput(fullOutput))))
+	c.Rendered = types.StringValue(prepareOutput(fullOutput))
+	c.RenderedManagementNodeConfig = types.StringValue(prepareOutput(mgmtNodeConfigOutput))
 
 	return diags
 }

@@ -126,6 +126,10 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 				MarkdownDescription: "Rendered Pexip Infinity Manager bootstrap configuration.",
 			},
+			"management_node_config": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Rendered Pexip Infinity Manager management node bootstrap configuration.",
+			},
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "[CRC-32](https://pkg.go.dev/hash/crc32) checksum of `rendered` Pexip Infinity bootstrap config.",

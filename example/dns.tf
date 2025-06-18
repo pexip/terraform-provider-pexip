@@ -1,5 +1,5 @@
 locals {
-  domain = data.google_dns_managed_zone.main.dns_name
+  domain = trimsuffix(data.google_dns_managed_zone.main.dns_name, ".")
 }
 
 data "google_dns_managed_zone" "main" {
