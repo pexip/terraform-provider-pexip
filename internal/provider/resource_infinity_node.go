@@ -98,14 +98,14 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 			"netmask": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					validators.Netmask(),
 				},
 				MarkdownDescription: "The netmask for the Infinity node's network interface.",
 			},
 			"domain": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.Domain(),
 				},
 				MarkdownDescription: "The domain name for the Infinity node. This is used for DNS resolution within the Infinity cluster.",
 			},
