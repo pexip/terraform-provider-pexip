@@ -199,7 +199,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		createRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
 	}
 
-	_, createResponse, err := r.InfinityClient.Config.CreateWorkerVMWithResponse(ctx, createRequest)
+	createResponse, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity Node",
