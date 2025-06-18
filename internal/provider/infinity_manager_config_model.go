@@ -55,11 +55,20 @@ type innerInfinityBootstrapConfig struct {
 }
 
 func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
-	// Hash the admin password using Django-compatible PBKDF2
-	hashedAdminPassword, err := helpers.DjangoPassword(c.AdminPassword.ValueString())
+	// Hash the admin password using Sha512Crypt
+	hashedAdminPassword, err := helpers.Sha512Crypt(c.AdminPassword.ValueString())
 	if err != nil {
 		hashedAdminPassword = ""
 		tflog.Error(context.Background(), "Failed to hash admin password", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
+	// Hash the password using Django-compatible PBKDF2
+	hashedPass, err := helpers.DjangoPassword(c.Pass.ValueString())
+	if err != nil {
+		hashedPass = ""
+		tflog.Error(context.Background(), "Failed to hash password", map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
@@ -74,7 +83,7 @@ func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig 
 			DNS:                 c.DNS.ValueString(),
 			NTP:                 c.NTP.ValueString(),
 			User:                c.User.ValueString(),
-			Pass:                c.Pass.ValueString(),
+			Pass:                hashedPass,
 			AdminPassword:       hashedAdminPassword,
 			ErrorReports:        c.ErrorReports.ValueBool(),
 			EnableAnalytics:     c.EnableAnalytics.ValueBool(),

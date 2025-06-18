@@ -34,15 +34,15 @@ func TestInfinityManagerConfig(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "error_reports"),
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "enable_analytics"),
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "contact_email_address"),
-					testCheckAdminPasswordHashed("data.pexip_infinity_manager_config.master"),
+					testCheckPasswordHashed("data.pexip_infinity_manager_config.master"),
 				),
 			},
 		},
 	})
 }
 
-// testCheckAdminPasswordHashed verifies that the admin_password in the rendered JSON is properly hashed
-func testCheckAdminPasswordHashed(resourceName string) resource.TestCheckFunc {
+// testCheckPasswordHashed verifies that the admin_password in the rendered JSON is properly hashed
+func testCheckPasswordHashed(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -65,18 +65,18 @@ func testCheckAdminPasswordHashed(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("management_node_config not found in rendered JSON")
 		}
 
-		adminPassword, ok := mgmtNode["admin_password"].(string)
+		password, ok := mgmtNode["pass"].(string)
 		if !ok {
 			return fmt.Errorf("admin_password not found in management_node_config")
 		}
 
 		// Check if the password is hashed (should start with pbkdf2_sha256$36000$)
-		if !strings.HasPrefix(adminPassword, "pbkdf2_sha256$36000$") {
-			return fmt.Errorf("admin_password is not properly hashed, got: %s", adminPassword)
+		if !strings.HasPrefix(password, "pbkdf2_sha256$36000$") {
+			return fmt.Errorf("admin_password is not properly hashed, got: %s", password)
 		}
 
 		// Verify the hash format: pbkdf2_sha256$36000$salt$hash
-		parts := strings.Split(adminPassword, "$")
+		parts := strings.Split(password, "$")
 		if len(parts) != 4 {
 			return fmt.Errorf("admin_password hash format is incorrect, expected 4 parts, got %d", len(parts))
 		}
