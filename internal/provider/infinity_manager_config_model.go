@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 	"net"
 	"net/mail"
@@ -55,13 +56,12 @@ type innerInfinityBootstrapConfig struct {
 
 func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
 	// Hash the admin password using Django-compatible PBKDF2
-	hashedAdminPassword := c.AdminPassword.ValueString()
-	if hashedAdminPassword != "" {
-		if hashed, err := helpers.DjangoPassword(hashedAdminPassword); err == nil {
-			hashedAdminPassword = hashed
-		}
-		// If hashing fails, we fall back to the original password
-		// This ensures backward compatibility and prevents complete failure
+	hashedAdminPassword, err := helpers.DjangoPassword(c.AdminPassword.ValueString())
+	if err != nil {
+		hashedAdminPassword = ""
+		tflog.Error(context.Background(), "Failed to hash admin password", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return outerInfinityManagerConfig{
