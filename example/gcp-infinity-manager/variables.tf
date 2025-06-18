@@ -67,9 +67,9 @@ variable "dns_zone_name" {
 }
 
 variable "tags" {
-    type        = list(string)
-    default     = []
-    description = "List of tags to apply to the Infinity Manager VM"
+  type        = list(string)
+  default     = []
+  description = "List of tags to apply to the Infinity Manager VM"
 }
 
 variable "dns_server" {

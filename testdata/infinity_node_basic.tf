@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "pexip" {
-  address = "https://infinity.example.com"
+  address  = "https://infinity.example.com"
   username = "admin"
   password = "admin_password"
 }
