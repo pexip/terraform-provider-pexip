@@ -43,7 +43,7 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 			"domain": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(3),
+					validators.Domain(),
 				},
 				MarkdownDescription: "Pexip Infinity Manager domain, e.g. `example.com`",
 			},
@@ -57,7 +57,7 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 			"mask": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					validators.Netmask(),
 				},
 				MarkdownDescription: "Pexip Infinity Manager subnet mask (e.g. 255.255.255.0)",
 			},
@@ -93,7 +93,8 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 				Required:  true,
 				Sensitive: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "Pexip Infinity Manager password for authentication",
 			},
@@ -101,7 +102,8 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 				Required:  true,
 				Sensitive: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "Pexip Infinity Manager admin password for authentication",
 			},
@@ -116,7 +118,7 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 			"contact_email_address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(3),
+					validators.Email(),
 				},
 				MarkdownDescription: "Pexip Infinity Manager contact email address for notifications",
 			},

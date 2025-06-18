@@ -77,21 +77,23 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(3),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "The name of the Infinity node. This should be unique within the Infinity cluster.",
 			},
 			"hostname": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "The hostname of the Infinity node. This should be resolvable within the Infinity cluster.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.IPAddress(),
 				},
 				MarkdownDescription: "The IP address of the Infinity node. This should be reachable within the Infinity cluster.",
 			},
@@ -120,7 +122,8 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 				Required:  true,
 				Sensitive: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(5),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "The password for the Infinity node. This is used for authentication and should be kept secure.",
 			},
@@ -134,7 +137,8 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 			"system_location": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtLeast(2),
+					stringvalidator.LengthAtMost(20),
 				},
 				MarkdownDescription: "The system location for the Infinity node. This is used for geographical identification and should be a valid location string.",
 			},
