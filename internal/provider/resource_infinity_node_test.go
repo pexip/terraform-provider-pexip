@@ -1,3 +1,5 @@
+//go:build integration
+
 package provider
 
 import (
@@ -18,6 +20,11 @@ func TestInfinityNode(t *testing.T) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_node.node", "name"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_node.node", "config"),
 					resource.TestCheckResourceAttr("pexip_infinity_node.node", "name", "test-node-1"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "hostname", "test-node-1"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "node_type", "worker"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "system_location", "Test Location"),
+					resource.TestCheckResourceAttr("pexip_infinity_node.node", "transcoding", "true"),
 				),
 			},
 		},
