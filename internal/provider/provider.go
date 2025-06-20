@@ -120,6 +120,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		},
 		func() resource.Resource { return &InfinitySSHPasswordHashResource{} },
 		func() resource.Resource { return &InfinityWebPasswordHashResource{} },
+		func() resource.Resource { return &InfinityDnsServerResource{} },
 	}
 }
 
