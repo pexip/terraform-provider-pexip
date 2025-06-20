@@ -1,6 +1,6 @@
 resource "google_compute_address" "infinity_manager_public_ip" {
-  name       = "${local.hostname}-public-ip"
-  region     = var.location
+  name   = "${local.hostname}-public-ip"
+  region = var.location
 }
 
 resource "google_compute_address" "infinity_manager_private_ip" {

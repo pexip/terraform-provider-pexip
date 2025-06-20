@@ -14,7 +14,7 @@ module "gcp-infinity-manager" {
   private_network_id    = data.google_compute_network.default.id
   private_subnetwork_id = data.google_compute_subnetwork.default.id
   dns_zone_name         = var.dns_zone_name
-  tags                  = concat(
+  tags = concat(
     tolist(google_compute_firewall.allow_ssh.target_tags),
     tolist(google_compute_firewall.allow_https.target_tags)
   )
