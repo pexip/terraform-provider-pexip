@@ -33,6 +33,11 @@ variable "subnetwork_mask" {
   description = "subnetwork mask ('255.255.255.0' format)"
 }
 
+variable "ip_address" {
+  type        = string
+  description = "IP address"
+}
+
 variable "vm_image_name" {
   type        = string
   description = "Pexip Infinity VM image to use"

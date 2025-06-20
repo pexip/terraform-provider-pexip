@@ -40,6 +40,11 @@ variable "infinity_address" {
   description = "Address of the Infinity Manager"
 }
 
+variable "infinity_ip_address" {
+  type        = string
+  description = "IP address of the Infinity Manager"
+}
+
 variable "infinity_manager_machine_type" {
   type        = string
   default     = "n2d-standard-16"

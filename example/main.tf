@@ -19,6 +19,7 @@ module "gcp-infinity-manager" {
     tolist(google_compute_firewall.allow_https.target_tags)
   )
 
+  ip_address            = var.infinity_ip_address
   gateway               = data.google_compute_subnetwork.default.gateway_address
   subnetwork_mask       = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
   dns_server            = var.infinity_primary_dns_server
