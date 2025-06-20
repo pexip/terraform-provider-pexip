@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,7 +14,9 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
+	"net/http"
 	"sync"
+	"time"
 )
 
 var (
@@ -85,6 +88,15 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		infinity.WithBaseURL(data.Address.ValueString()),
 		infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
 		infinity.WithMaxRetries(2),
+		infinity.WithTransport(&http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // We need this because default certificate is not trusted
+				MinVersion:         tls.VersionTLS12,
+			},
+			MaxIdleConns:        30,
+			MaxIdleConnsPerHost: 5,
+			IdleConnTimeout:     60 * time.Second,
+		}),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError(
