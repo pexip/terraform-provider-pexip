@@ -11,7 +11,7 @@ data "google_compute_image" "pexip-infinity-node-image" {
 resource "pexip_infinity_node" "worker" {
   name                    = local.hostname
   hostname                = local.hostname
-  address                 = google_compute_address.infinity_node_static_ip.address
+  address                 = google_compute_address.infinity_node_private_ip.address
   netmask                 = var.subnetwork_mask
   domain                  = local.domain
   gateway                 = var.gateway
@@ -56,11 +56,12 @@ resource "google_compute_instance" "infinity_worker" {
   tags = var.tags
 
   network_interface {
-    network    = var.network_id
-    subnetwork = var.subnetwork_id
+    network    = var.private_network_id
+    subnetwork = var.private_subnetwork_id
+    network_ip = google_compute_address.infinity_node_private_ip.address
 
     access_config {
-      nat_ip = google_compute_address.infinity_node_static_ip.address
+      nat_ip = google_compute_address.infinity_node_public_ip.address
     }
   }
 
@@ -88,7 +89,7 @@ resource "null_resource" "wait_for_infinity_node_http" {
     command     = <<EOT
 echo "Waiting for Infinity Node (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
-  status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
+  status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
   if [ "$status" -eq 200 ]; then
     echo "Infinity Node is ready (HTTP 200)."

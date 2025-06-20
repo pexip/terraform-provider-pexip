@@ -13,14 +13,14 @@ variable "location" {
   description = "location where resources will be created"
 }
 
-variable "network_id" {
+variable "private_network_id" {
   type        = string
-  description = "ID of the GCP network to use"
+  description = "ID of the GCP private network to use"
 }
 
-variable "subnetwork_id" {
+variable "private_subnetwork_id" {
   type        = string
-  description = "ID of the GCP subnetwork to use"
+  description = "ID of the GCP private subnetwork to use"
 }
 
 variable "gateway" {

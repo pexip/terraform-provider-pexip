@@ -9,7 +9,7 @@ resource "google_compute_firewall" "allow_ssh" {
 
   source_ranges = ["0.0.0.0/0"] # Allow SSH from anywhere TODO temporary enabled this
   #source_ranges = ["35.235.240.0/20"] # Allow SSH from GCP console TODO temporary disabled this
-  target_tags   = ["allow-ssh-${var.project_id}"]
+  target_tags = ["allow-ssh-${var.project_id}"]
 }
 
 resource "google_compute_firewall" "allow_https" {

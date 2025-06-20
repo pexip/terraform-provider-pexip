@@ -1,6 +1,6 @@
 locals {
   hostname         = "${var.environment}-manager"
-  check_status_url = "https://${local.hostname}.${local.domain}/api/admin/configuration/v1/"
+  check_status_url = "https://${local.hostname}.${local.domain}/admin/login/"
 }
 
 data "google_compute_image" "pexip-infinity-manager-image" {
@@ -11,7 +11,7 @@ data "google_compute_image" "pexip-infinity-manager-image" {
 data "pexip_infinity_manager_config" "conf" {
   hostname              = local.hostname
   domain                = local.domain
-  ip                    = google_compute_address.infinity_manager_static_ip.address
+  ip                    = google_compute_address.infinity_manager_private_ip.address
   mask                  = var.subnetwork_mask
   gw                    = var.gateway
   dns                   = var.dns_server
@@ -55,11 +55,12 @@ resource "google_compute_instance" "infinity_manager" {
   tags = var.tags
 
   network_interface {
-    network    = var.network_id
-    subnetwork = var.subnetwork_id
+    network    = var.private_network_id
+    subnetwork = var.private_subnetwork_id
+    network_ip = google_compute_address.infinity_manager_private_ip.address
 
     access_config {
-      nat_ip = google_compute_address.infinity_manager_static_ip.address
+      nat_ip = google_compute_address.infinity_manager_public_ip.address
     }
   }
 
@@ -87,7 +88,7 @@ resource "null_resource" "wait_for_infinity_manager_http" {
     command     = <<EOT
 echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
 for i in $(seq 1 30); do
-  status=$(curl --silent --insecure --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
+  status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
   if [ "$status" -eq 200 ]; then
     echo "Infinity Manager is ready (HTTP 200)."

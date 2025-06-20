@@ -11,10 +11,13 @@ module "gcp-infinity-manager" {
   project_id            = var.project_id
   location              = var.location
   service_account_email = google_service_account.infinity-sa.email
-  network_id            = data.google_compute_network.default.id
-  subnetwork_id         = data.google_compute_subnetwork.default.id
+  private_network_id    = data.google_compute_network.default.id
+  private_subnetwork_id = data.google_compute_subnetwork.default.id
   dns_zone_name         = var.dns_zone_name
-  tags                  = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
+  tags                  = concat(
+    tolist(google_compute_firewall.allow_ssh.target_tags),
+    tolist(google_compute_firewall.allow_https.target_tags)
+  )
 
   gateway               = data.google_compute_subnetwork.default.gateway_address
   subnetwork_mask       = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
@@ -27,7 +30,7 @@ module "gcp-infinity-manager" {
   enable_analytics      = var.infinity_enable_analytics
   contact_email_address = var.infinity_contact_email_address
 }
-#
+
 # module "gcp-infinity-node" {
 #   source                = "./gcp-infinity-node"
 #   count                 = var.infinity_node_count
@@ -39,10 +42,13 @@ module "gcp-infinity-manager" {
 #   project_id            = var.project_id
 #   location              = var.location
 #   service_account_email = google_service_account.infinity-sa.email
-#   network_id            = data.google_compute_network.default.id
-#   subnetwork_id         = data.google_compute_subnetwork.default.id
+#   private_network_id     = data.google_compute_network.default.id
+#   private_subnetwork_id  = data.google_compute_subnetwork.default.id
 #   dns_zone_name         = var.dns_zone_name
-#   tags                  = ["allow-ssh-${var.project_id}", "allow-https-${var.project_id}"]
+#   tags                  = concat(
+#     tolist(google_compute_firewall.allow_ssh.target_tags),
+#     tolist(google_compute_firewall.allow_https.target_tags)
+#   )
 #
 #   gateway         = data.google_compute_subnetwork.default.gateway_address
 #   subnetwork_mask = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
