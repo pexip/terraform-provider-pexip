@@ -27,17 +27,19 @@ func String(s string) int {
 // DjangoPassword generates a Django-compatible PBKDF2 password hash
 // Compatible with Django's default PBKDF2PasswordHasher
 func DjangoPassword(password string) (string, error) {
-	const (
-		rounds     = 36000
-		prefix     = "pbkdf2_sha256"
-		saltLength = 12
-	)
+	const saltLength = 12
+	const rounds = 36000
 
 	// Generate random salt
 	salt, err := GenerateRandomAlphanumeric(saltLength)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
+	return DjangoPasswordWithSalt(password, salt, rounds)
+}
+
+func DjangoPasswordWithSalt(password string, salt string, rounds int) (string, error) {
+	const prefix = "pbkdf2_sha256"
 
 	// Generate PBKDF2 hash
 	hash := pbkdf2.Key([]byte(password), []byte(salt), rounds, sha256.Size, sha256.New)
@@ -68,11 +70,14 @@ func GenerateRandomAlphanumeric(length int) (string, error) {
 // Sha512Crypt generates a SHA512-crypt password hash compatible with Python's sha512_crypt.hash()
 // This implements the Unix crypt(3) SHA-512 algorithm with default rounds (5000)
 func Sha512Crypt(password string) (string, error) {
-	salt, err := GenerateRandomAlphanumeric(16)
+	const saltLength = 16
+	const rounds = 5000
+
+	salt, err := GenerateRandomAlphanumeric(saltLength)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
-	return Sha512CryptWithSalt(password, salt, 5000)
+	return Sha512CryptWithSalt(password, salt, rounds)
 }
 
 // Sha512CryptWithSalt generates a SHA512-crypt password hash with a specific salt and rounds

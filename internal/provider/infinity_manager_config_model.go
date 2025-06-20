@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 	"net"
 	"net/mail"
@@ -55,29 +54,6 @@ type innerInfinityBootstrapConfig struct {
 }
 
 func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
-	salt, err := helpers.GenerateRandomAlphanumeric(16)
-	if err != nil {
-		tflog.Error(context.Background(), "Failed to generate salt", map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-	hashedAdminPassword, err := helpers.Sha512CryptWithSalt(c.AdminPassword.ValueString(), salt, 656000)
-	if err != nil {
-		hashedAdminPassword = ""
-		tflog.Error(context.Background(), "Failed to hash admin password", map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-
-	// Hash the password using Django-compatible PBKDF2
-	hashedPass, err := helpers.DjangoPassword(c.Pass.ValueString())
-	if err != nil {
-		hashedPass = ""
-		tflog.Error(context.Background(), "Failed to hash password", map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-
 	return outerInfinityManagerConfig{
 		ManagementNodeConfig: innerInfinityBootstrapConfig{
 			Hostname:            c.Hostname.ValueString(),
@@ -88,8 +64,8 @@ func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig 
 			DNS:                 c.DNS.ValueString(),
 			NTP:                 c.NTP.ValueString(),
 			User:                c.User.ValueString(),
-			Pass:                hashedPass,
-			AdminPassword:       hashedAdminPassword,
+			Pass:                c.Pass.ValueString(),
+			AdminPassword:       c.AdminPassword.ValueString(),
 			ErrorReports:        c.ErrorReports.ValueBool(),
 			EnableAnalytics:     c.EnableAnalytics.ValueBool(),
 			ContactEmailAddress: c.ContactEmailAddress.ValueString(),

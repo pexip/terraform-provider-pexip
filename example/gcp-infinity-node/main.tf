@@ -8,6 +8,10 @@ data "google_compute_image" "pexip-infinity-node-image" {
   project = var.vm_image_project
 }
 
+resource "pexip_infinity_ssh_password_hash" "default" {
+  password = var.password
+}
+
 resource "pexip_infinity_node" "worker" {
   name                    = local.hostname
   hostname                = local.hostname
@@ -15,7 +19,7 @@ resource "pexip_infinity_node" "worker" {
   netmask                 = var.subnetwork_mask
   domain                  = local.domain
   gateway                 = var.gateway
-  password                = var.password
+  password                = pexip_infinity_ssh_password_hash.default.hash
   node_type               = var.node_type
   system_location         = var.system_location
   maintenance_mode        = var.maintenance_mode

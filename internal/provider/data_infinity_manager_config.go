@@ -140,13 +140,13 @@ func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req dataso
 }
 
 func (d *InfinityManagerConfigDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var model InfinityManagerConfigModel
+	config := &InfinityManagerConfigModel{}
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(model.update(ctx)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+	resp.Diagnostics.Append(config.update(ctx)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }

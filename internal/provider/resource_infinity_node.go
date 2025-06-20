@@ -172,9 +172,9 @@ func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	data := &InfinityNodeResourceModel{}
+	plan := &InfinityNodeResourceModel{}
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -182,21 +182,21 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 	createRequest := &config.WorkerVMCreateRequest{}
 
 	// Set name if provided, otherwise use generated name
-	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-		createRequest.Name = data.Name.ValueString()
-		createRequest.Hostname = data.Hostname.ValueString()
-		createRequest.Address = data.Address.ValueString()
-		createRequest.Netmask = data.Netmask.ValueString()
-		createRequest.Domain = data.Domain.ValueString()
-		createRequest.Gateway = data.Gateway.ValueString()
-		createRequest.Password = data.Password.ValueString()
-		createRequest.NodeType = data.NodeType.ValueString()
-		createRequest.SystemLocation = data.SystemLocation.ValueString()
-		createRequest.MaintenanceMode = data.MaintenanceMode.ValueBool()
-		createRequest.MaintenanceModeReason = data.MaintenanceModeReason.ValueString()
-		createRequest.Transcoding = data.Transcoding.ValueBool()
-		createRequest.VMCPUCount = int(data.VMCPUCount.ValueInt64())
-		createRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		createRequest.Name = plan.Name.ValueString()
+		createRequest.Hostname = plan.Hostname.ValueString()
+		createRequest.Address = plan.Address.ValueString()
+		createRequest.Netmask = plan.Netmask.ValueString()
+		createRequest.Domain = plan.Domain.ValueString()
+		createRequest.Gateway = plan.Gateway.ValueString()
+		createRequest.Password = plan.Password.ValueString()
+		createRequest.NodeType = plan.NodeType.ValueString()
+		createRequest.SystemLocation = plan.SystemLocation.ValueString()
+		createRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
+		createRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
+		createRequest.Transcoding = plan.Transcoding.ValueBool()
+		createRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
+		createRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
 	}
 
 	createResponse, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
@@ -217,11 +217,11 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	data, err = r.read(ctx, resourceID)
-	data.Config = types.StringValue(string(createResponse.Body))
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", data.ID, data.Name))
+	plan, err = r.read(ctx, resourceID)
+	plan.Config = types.StringValue(string(createResponse.Body))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", plan.ID, plan.Name))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *InfinityNodeResource) read(ctx context.Context, resourceID int) (*InfinityNodeResourceModel, error) {
@@ -251,14 +251,14 @@ func (r *InfinityNodeResource) read(ctx context.Context, resourceID int) (*Infin
 }
 
 func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	data := &InfinityNodeResourceModel{}
+	state := &InfinityNodeResourceModel{}
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data, err := r.read(ctx, int(data.ID.ValueInt32()))
+	state, err := r.read(ctx, int(state.ID.ValueInt32()))
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -267,107 +267,107 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 		}
 		resp.Diagnostics.AddError(
 			"Error Reading Infinity Node",
-			fmt.Sprintf("Could not read Infinity node with ID %d: %s", data.ID.ValueInt32(), err),
+			fmt.Sprintf("Could not read Infinity node with ID %d: %s", state.ID.ValueInt32(), err),
 		)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InfinityNodeResourceModel
+	var plan InfinityNodeResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	updateRequest := &config.WorkerVMUpdateRequest{}
 
-	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-		updateRequest.Name = data.Name.ValueString()
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		updateRequest.Name = plan.Name.ValueString()
 	}
-	if !data.Hostname.IsNull() && !data.Hostname.IsUnknown() {
-		updateRequest.Hostname = data.Hostname.ValueString()
+	if !plan.Hostname.IsNull() && !plan.Hostname.IsUnknown() {
+		updateRequest.Hostname = plan.Hostname.ValueString()
 	}
-	if !data.Address.IsNull() && !data.Address.IsUnknown() {
-		updateRequest.Address = data.Address.ValueString()
+	if !plan.Address.IsNull() && !plan.Address.IsUnknown() {
+		updateRequest.Address = plan.Address.ValueString()
 	}
-	if !data.Netmask.IsNull() && !data.Netmask.IsUnknown() {
-		updateRequest.Netmask = data.Netmask.ValueString()
+	if !plan.Netmask.IsNull() && !plan.Netmask.IsUnknown() {
+		updateRequest.Netmask = plan.Netmask.ValueString()
 	}
-	if !data.Domain.IsNull() && !data.Domain.IsUnknown() {
-		updateRequest.Domain = data.Domain.ValueString()
+	if !plan.Domain.IsNull() && !plan.Domain.IsUnknown() {
+		updateRequest.Domain = plan.Domain.ValueString()
 	}
-	if !data.Gateway.IsNull() && !data.Gateway.IsUnknown() {
-		updateRequest.Gateway = data.Gateway.ValueString()
+	if !plan.Gateway.IsNull() && !plan.Gateway.IsUnknown() {
+		updateRequest.Gateway = plan.Gateway.ValueString()
 	}
-	if !data.Password.IsNull() && !data.Password.IsUnknown() {
-		updateRequest.Password = data.Password.ValueString()
+	if !plan.Password.IsNull() && !plan.Password.IsUnknown() {
+		updateRequest.Password = plan.Password.ValueString()
 	}
-	if !data.NodeType.IsNull() && !data.NodeType.IsUnknown() {
-		updateRequest.NodeType = data.NodeType.ValueString()
+	if !plan.NodeType.IsNull() && !plan.NodeType.IsUnknown() {
+		updateRequest.NodeType = plan.NodeType.ValueString()
 	}
-	if !data.SystemLocation.IsNull() && !data.SystemLocation.IsUnknown() {
-		updateRequest.SystemLocation = data.SystemLocation.ValueString()
+	if !plan.SystemLocation.IsNull() && !plan.SystemLocation.IsUnknown() {
+		updateRequest.SystemLocation = plan.SystemLocation.ValueString()
 	}
-	if !data.MaintenanceMode.IsNull() && !data.MaintenanceMode.IsUnknown() {
-		updateRequest.MaintenanceMode = data.MaintenanceMode.ValueBool()
+	if !plan.MaintenanceMode.IsNull() && !plan.MaintenanceMode.IsUnknown() {
+		updateRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
 	}
-	if !data.MaintenanceModeReason.IsNull() && !data.MaintenanceModeReason.IsUnknown() {
-		updateRequest.MaintenanceModeReason = data.MaintenanceModeReason.ValueString()
+	if !plan.MaintenanceModeReason.IsNull() && !plan.MaintenanceModeReason.IsUnknown() {
+		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
 	}
-	if !data.Transcoding.IsNull() && !data.Transcoding.IsUnknown() {
-		updateRequest.Transcoding = data.Transcoding.ValueBool()
+	if !plan.Transcoding.IsNull() && !plan.Transcoding.IsUnknown() {
+		updateRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
-	if !data.VMCPUCount.IsNull() && !data.VMCPUCount.IsUnknown() {
-		updateRequest.VMCPUCount = int(data.VMCPUCount.ValueInt64())
+	if !plan.VMCPUCount.IsNull() && !plan.VMCPUCount.IsUnknown() {
+		updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
 	}
-	if !data.VMSystemMemory.IsNull() && !data.VMSystemMemory.IsUnknown() {
-		updateRequest.VMSystemMemory = int(data.VMSystemMemory.ValueInt64())
+	if !plan.VMSystemMemory.IsNull() && !plan.VMSystemMemory.IsUnknown() {
+		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
 	}
 
-	vm, err := r.InfinityClient.Config.UpdateWorkerVM(ctx, int(data.ID.ValueInt32()), updateRequest)
+	vm, err := r.InfinityClient.Config.UpdateWorkerVM(ctx, int(plan.ID.ValueInt32()), updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity Node",
-			fmt.Sprintf("Could not update Infinity node with ID %d: %s", data.ID.ValueInt32(), err),
+			fmt.Sprintf("Could not update Infinity node with ID %d: %s", plan.ID.ValueInt32(), err),
 		)
 		return
 	}
 
-	data.Name = types.StringValue(vm.Name)
-	data.Hostname = types.StringValue(vm.Hostname)
-	data.Address = types.StringValue(vm.Address)
-	data.Netmask = types.StringValue(vm.Netmask)
-	data.Domain = types.StringValue(vm.Domain)
-	data.Gateway = types.StringValue(vm.Gateway)
-	data.Password = types.StringValue(vm.Password)
-	data.NodeType = types.StringValue(vm.NodeType)
-	data.SystemLocation = types.StringValue(vm.SystemLocation)
-	data.MaintenanceMode = types.BoolValue(vm.MaintenanceMode)
-	data.MaintenanceModeReason = types.StringValue(vm.MaintenanceModeReason)
-	data.Transcoding = types.BoolValue(vm.Transcoding)
-	data.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
-	data.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
+	plan.Name = types.StringValue(vm.Name)
+	plan.Hostname = types.StringValue(vm.Hostname)
+	plan.Address = types.StringValue(vm.Address)
+	plan.Netmask = types.StringValue(vm.Netmask)
+	plan.Domain = types.StringValue(vm.Domain)
+	plan.Gateway = types.StringValue(vm.Gateway)
+	plan.Password = types.StringValue(vm.Password)
+	plan.NodeType = types.StringValue(vm.NodeType)
+	plan.SystemLocation = types.StringValue(vm.SystemLocation)
+	plan.MaintenanceMode = types.BoolValue(vm.MaintenanceMode)
+	plan.MaintenanceModeReason = types.StringValue(vm.MaintenanceModeReason)
+	plan.Transcoding = types.BoolValue(vm.Transcoding)
+	plan.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
+	plan.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *InfinityNodeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data InfinityNodeResourceModel
+	var state InfinityNodeResourceModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.InfinityClient.Config.DeleteWorkerVM(ctx, int(data.ID.ValueInt32()))
+	err := r.InfinityClient.Config.DeleteWorkerVM(ctx, int(state.ID.ValueInt32()))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Infinity Node",
-			fmt.Sprintf("Could not delete Infinity node with ID %d: %s", data.ID.ValueInt32(), err),
+			fmt.Sprintf("Could not delete Infinity node with ID %d: %s", state.ID.ValueInt32(), err),
 		)
 		return
 	}
