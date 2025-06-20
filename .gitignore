@@ -4,5 +4,7 @@ build/
 dist/
 
 .terraform/**
+.terraform/
 .terraform.lock.hcl
 **/terraform.tfvars
+terraform.tfstate**
