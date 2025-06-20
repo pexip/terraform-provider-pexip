@@ -7,6 +7,7 @@ toolchain go1.24.4
 replace github.com/pexip/go-infinity-sdk/v38 => /Users/habakke/Documents/code/pexip/go-inifinity-sdk
 
 require (
+	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.28.0

@@ -55,8 +55,13 @@ type innerInfinityBootstrapConfig struct {
 }
 
 func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig {
-	// Hash the admin password using Sha512Crypt
-	hashedAdminPassword, err := helpers.Sha512Crypt(c.AdminPassword.ValueString())
+	salt, err := helpers.GenerateRandomAlphanumeric(16)
+	if err != nil {
+		tflog.Error(context.Background(), "Failed to generate salt", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+	hashedAdminPassword, err := helpers.Sha512CryptWithSalt(c.AdminPassword.ValueString(), salt, 656000)
 	if err != nil {
 		hashedAdminPassword = ""
 		tflog.Error(context.Background(), "Failed to hash admin password", map[string]interface{}{
