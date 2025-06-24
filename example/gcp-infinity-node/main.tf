@@ -92,10 +92,11 @@ resource "null_resource" "wait_for_infinity_node_http" {
   provisioner "local-exec" {
     command     = <<EOT
 echo "Waiting for Infinity Node (HTTP 200 expected) ..."
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
   if [ "$status" -eq 200 ]; then
+    sleep 10 # Wait for the service to stabilize
     echo "Infinity Node is ready (HTTP 200)."
     exit 0
   fi

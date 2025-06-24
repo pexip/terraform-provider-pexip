@@ -82,6 +82,13 @@ resource "google_compute_instance" "infinity_manager" {
     email  = var.service_account_email
     scopes = ["cloud-platform"]
   }
+
+  lifecycle {
+    ignore_changes = [
+      shielded_instance_config
+    ]
+  }
+
 }
 
 resource "null_resource" "wait_for_infinity_manager_http" {
@@ -95,10 +102,11 @@ resource "null_resource" "wait_for_infinity_manager_http" {
   provisioner "local-exec" {
     command     = <<EOT
 echo "Waiting for Infinity Manager (HTTP 200 expected) ..."
-for i in $(seq 1 36); do
+for i in $(seq 1 60); do
   status=$(curl --silent --show-error --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
   if [ "$status" -eq 200 ]; then
+    sleep 10 # Wait for the service to stabilize
     echo "Infinity Manager is ready (HTTP 200)."
     exit 0
   fi

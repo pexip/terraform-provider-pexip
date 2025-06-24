@@ -8,5 +8,3 @@ dist/
 .terraform.lock.hcl
 **/terraform.tfvars
 terraform.tfstate**
-
-go.mod

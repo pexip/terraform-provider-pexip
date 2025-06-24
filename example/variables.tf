@@ -42,6 +42,7 @@ variable "infinity_address" {
 
 variable "infinity_ip_address" {
   type        = string
+  default     = null
   description = "IP address of the Infinity Manager"
 }
 

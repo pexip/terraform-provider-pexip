@@ -8,5 +8,5 @@ resource "google_compute_address" "infinity_manager_private_ip" {
   subnetwork   = var.private_subnetwork_id
   address_type = "INTERNAL"
   region       = var.location
-  address      = var.ip_address
+  address      = var.ip_address != null ? var.ip_address : null
 }

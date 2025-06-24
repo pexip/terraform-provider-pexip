@@ -26,9 +26,9 @@ type InfinityDnsServerResource struct {
 }
 
 type InfinityDnsServerResourceModel struct {
-	ID                    types.Int32  `tfsdk:"id"`
-	Address               types.String `tfsdk:"address"`
-	Description           types.String `tfsdk:"description"`
+	ID          types.Int32  `tfsdk:"id"`
+	Address     types.String `tfsdk:"address"`
+	Description types.String `tfsdk:"description"`
 }
 
 func (r *InfinityDnsServerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -95,8 +95,6 @@ func (r *InfinityDnsServerResource) Create(ctx context.Context, req resource.Cre
 		createRequest.Description = plan.Description.ValueString()
 	}
 
-	
-
 	createResponse, err := r.InfinityClient.Config.CreateDNSServer(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -116,8 +114,6 @@ func (r *InfinityDnsServerResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	plan, err = r.read(ctx, resourceID)
-	// don't think this is needed
-	//plan.Config = types.StringValue(string(createResponse.Body))
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity DNS server with ID: %d, name: %s", plan.ID, plan.Address))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -190,7 +186,7 @@ func (r *InfinityDnsServerResource) Update(ctx context.Context, req resource.Upd
 
 	plan.Description = types.StringValue(vm.Description)
 	plan.Address = types.StringValue(vm.Address)
-	
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
@@ -202,11 +198,11 @@ func (r *InfinityDnsServerResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err := r.InfinityClient.Config.DeleteWorkerVM(ctx, int(state.ID.ValueInt32()))
+	err := r.InfinityClient.Config.DeleteDNSServer(ctx, int(state.ID.ValueInt32()))
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting Infinity Node",
-			fmt.Sprintf("Could not delete Infinity node with ID %d: %s", state.ID.ValueInt32(), err),
+			"Error Deleting Infinity DNS Server",
+			fmt.Sprintf("Could not delete Infinity DNS Server with ID %d: %s", state.ID.ValueInt32(), err),
 		)
 		return
 	}
@@ -233,12 +229,3 @@ func (r *InfinityDnsServerResource) ImportState(ctx context.Context, req resourc
 
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
-
-// isNotFoundError checks if the error indicates a 404/not found response
-//func isNotFoundError(err error) bool {
-//	// This is a placeholder - you'll need to check the actual error types
-//	// returned by the go-infinity-sdk to determine what constitutes a "not found" error
-//	return strings.Contains(err.Error(), "404") ||
-//		strings.Contains(err.Error(), "not found") ||
-//		strings.Contains(err.Error(), "Not Found")
-//}
