@@ -13,29 +13,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
-	_ resource.ResourceWithImportState = (*InfinityDnsServerResource)(nil)
+	_ resource.ResourceWithImportState = (*InfinityNtpServerResource)(nil)
 )
 
-type InfinityDnsServerResource struct {
+type InfinityNtpServerResource struct {
 	InfinityClient InfinityClient
 }
 
-type InfinityDnsServerResourceModel struct {
+type InfinityNtpServerResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	ResourceID  types.Int32  `tfsdk:"resource_id"`
 	Address     types.String `tfsdk:"address"`
 	Description types.String `tfsdk:"description"`
 }
 
-func (r *InfinityDnsServerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_infinity_dns_server"
+func (r *InfinityNtpServerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_infinity_ntp_server"
 }
 
-func (r *InfinityDnsServerResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *InfinityNtpServerResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -52,55 +51,55 @@ func (r *InfinityDnsServerResource) Configure(ctx context.Context, req resource.
 	r.InfinityClient = p.client
 }
 
-func (r *InfinityDnsServerResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *InfinityNtpServerResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the DNS server in Infinity",
+				MarkdownDescription: "Resource URI for the NTP server in Infinity",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
-				MarkdownDescription: "The resource integer identifier for the DNS server in Infinity",
+				MarkdownDescription: "The resource integer identifier for the NTP server in Infinity",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "A description of the DNS server. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the NTP server. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address of the DNS server.",
+				MarkdownDescription: "The IP address of the NTP server.",
 			},
 		},
-		MarkdownDescription: "Registers a DNS server with the Infinity service.",
+		MarkdownDescription: "Registers a NTP server with the Infinity service.",
 	}
 }
 
-func (r *InfinityDnsServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	plan := &InfinityDnsServerResourceModel{}
+func (r *InfinityNtpServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	plan := &InfinityNtpServerResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	createRequest := &config.DNSServerCreateRequest{
+	createRequest := &config.NTPServerCreateRequest{
 		Address:     plan.Address.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
 
-	createResponse, err := r.InfinityClient.Config().CreateDNSServer(ctx, createRequest)
+	createResponse, err := r.InfinityClient.Config().CreateNTPServer(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity DNS server",
-			fmt.Sprintf("Could not create Infinity DNS server: %s", err),
+			"Error Creating Infinity NTP server",
+			fmt.Sprintf("Could not create Infinity NTP server: %s", err),
 		)
 		return
 	}
@@ -108,8 +107,8 @@ func (r *InfinityDnsServerResource) Create(ctx context.Context, req resource.Cre
 	resourceID, err := createResponse.ResourceID()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Retrieving Infinity DNS server ID",
-			fmt.Sprintf("Could not retrieve ID for created Infinity DNS server: %s", err),
+			"Error Retrieving Infinity NTP server ID",
+			fmt.Sprintf("Could not retrieve ID for created Infinity NTP server: %s", err),
 		)
 		return
 	}
@@ -117,26 +116,26 @@ func (r *InfinityDnsServerResource) Create(ctx context.Context, req resource.Cre
 	plan, err = r.read(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity DNS server",
-			fmt.Sprintf("Could not read created Infinity DNS server with ID %d: %s", resourceID, err),
+			"Error Reading Created Infinity NTP server",
+			fmt.Sprintf("Could not read created Infinity NTP server with ID %d: %s", resourceID, err),
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity DNS server with ID: %s, name: %s", plan.ID, plan.Address))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity NTP server with ID: %s, name: %s", plan.ID, plan.Address))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (r *InfinityDnsServerResource) read(ctx context.Context, resourceID int) (*InfinityDnsServerResourceModel, error) {
-	var data InfinityDnsServerResourceModel
+func (r *InfinityNtpServerResource) read(ctx context.Context, resourceID int) (*InfinityNtpServerResourceModel, error) {
+	var data InfinityNtpServerResourceModel
 
-	srv, err := r.InfinityClient.Config().GetDNSServer(ctx, resourceID)
+	srv, err := r.InfinityClient.Config().GetNTPServer(ctx, resourceID)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(srv.ResourceURI) == 0 {
-		return nil, fmt.Errorf("DNS server with ID %d not found", resourceID)
+		return nil, fmt.Errorf("NTP server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
@@ -147,8 +146,8 @@ func (r *InfinityDnsServerResource) read(ctx context.Context, resourceID int) (*
 	return &data, nil
 }
 
-func (r *InfinityDnsServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &InfinityDnsServerResourceModel{}
+func (r *InfinityNtpServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	state := &InfinityNtpServerResourceModel{}
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -164,8 +163,8 @@ func (r *InfinityDnsServerResource) Read(ctx context.Context, req resource.ReadR
 			return
 		}
 		resp.Diagnostics.AddError(
-			"Error Reading Infinity DNS server",
-			fmt.Sprintf("Could not read Infinity DNS server: %s", err),
+			"Error Reading Infinity NTP server",
+			fmt.Sprintf("Could not read Infinity NTP server: %s", err),
 		)
 		return
 	}
@@ -173,9 +172,9 @@ func (r *InfinityDnsServerResource) Read(ctx context.Context, req resource.ReadR
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func (r *InfinityDnsServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	plan := &InfinityDnsServerResourceModel{}
-	state := &InfinityDnsServerResourceModel{}
+func (r *InfinityNtpServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	plan := &InfinityNtpServerResourceModel{}
+	state := &InfinityNtpServerResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -187,15 +186,15 @@ func (r *InfinityDnsServerResource) Update(ctx context.Context, req resource.Upd
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	// Prepare the update request from the plan
-	updateRequest := &config.DNSServerUpdateRequest{
+	updateRequest := &config.NTPServerUpdateRequest{
 		Address:     plan.Address.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	_, err := r.InfinityClient.Config().UpdateDNSServer(ctx, resourceID, updateRequest)
+	_, err := r.InfinityClient.Config().UpdateNTPServer(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Infinity DNS server",
-			fmt.Sprintf("Could not update Infinity DNS server with ID %s: %s", plan.ID.ValueString(), err),
+			"Error Updating Infinity NTP server",
+			fmt.Sprintf("Could not update Infinity NTP server with ID %s: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
@@ -205,27 +204,27 @@ func (r *InfinityDnsServerResource) Update(ctx context.Context, req resource.Upd
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (r *InfinityDnsServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &InfinityDnsServerResourceModel{}
+func (r *InfinityNtpServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	state := &InfinityNtpServerResourceModel{}
 
-	tflog.Info(ctx, "Deleting Infinity DNS Server")
+	tflog.Info(ctx, "Deleting Infinity NTP server")
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.InfinityClient.Config().DeleteDNSServer(ctx, int(state.ResourceID.ValueInt32()))
+	err := r.InfinityClient.Config().DeleteNTPServer(ctx, int(state.ResourceID.ValueInt32()))
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting Infinity DNS Server",
-			fmt.Sprintf("Could not delete Infinity DNS Server with ID %s: %s", state.ID.ValueString(), err),
+			"Error Deleting Infinity NTP server",
+			fmt.Sprintf("Could not delete Infinity NTP server with ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
 	}
 }
 
-func (r *InfinityDnsServerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *InfinityNtpServerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Validate that the ID is a valid integer
 	id, err := strconv.Atoi(req.ID)
 	if err != nil {
