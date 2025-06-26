@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/pexip/go-infinity-sdk/v38"
 	"os"
 	"testing"
 
@@ -10,12 +11,15 @@ import (
 
 func TestInfinityManagerConfig(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
-	config := test.LoadTestData(t, "data_infinity_manager_config_basic.tf")
+
+	// Create a mock client and set up expectations
+	client := infinity.NewClientMock()
+
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: testProtoV5ProviderFactories,
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: test.LoadTestData(t, "data_infinity_manager_config_basic.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "hostname"),
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "domain"),

@@ -139,8 +139,8 @@ func (r *InfinitySSHPasswordHashResource) Update(ctx context.Context, req resour
 	plan := &InfinitySSHPasswordHashResourceModel{}
 	state := &InfinitySSHPasswordHashResourceModel{}
 
-	req.State.Get(ctx, state)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -155,16 +155,13 @@ func (r *InfinitySSHPasswordHashResource) Update(ctx context.Context, req resour
 			return
 		}
 	}
+
+	plan.ID = state.ID
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *InfinitySSHPasswordHashResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &InfinitySSHPasswordHashResourceModel{}
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 func (r *InfinitySSHPasswordHashResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

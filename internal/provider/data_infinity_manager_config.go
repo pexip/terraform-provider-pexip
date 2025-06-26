@@ -20,9 +20,9 @@ func (d *InfinityManagerConfigDataSource) Metadata(ctx context.Context, req data
 }
 
 func (d *InfinityManagerConfigDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-	var infinityManagerConfig InfinityManagerConfigModel
+	infinityManagerConfig := &InfinityManagerConfigModel{}
 
-	resp.Diagnostics.Append(req.Config.Get(ctx, &infinityManagerConfig)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, infinityManagerConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

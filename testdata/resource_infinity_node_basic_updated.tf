@@ -18,9 +18,9 @@ resource "pexip_infinity_node" "node" {
   hostname                = "test-node-1"
   address                 = "192.168.1.100"
   netmask                 = "255.255.255.0"
-  domain                  = "example.com"
+  domain                  = "pexip.com" # Updated domain from example.com to pexip.com
   gateway                 = "192.168.1.1"
-  password                = "test_password"
+  password                = "password123"
   node_type               = "CONFERENCING"
   system_location         = "Test Location"
   maintenance_mode        = false

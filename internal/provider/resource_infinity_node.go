@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/go-infinity-sdk/v38/config"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"strconv"
@@ -22,7 +21,7 @@ var (
 )
 
 type InfinityNodeResource struct {
-	InfinityClient *infinity.Client
+	InfinityClient InfinityClient
 }
 
 type InfinityNodeResourceModel struct {
@@ -63,7 +62,7 @@ func (r *InfinityNodeResource) Configure(ctx context.Context, req resource.Confi
 		return
 	}
 
-	r.InfinityClient = p.InfinityClient
+	r.InfinityClient = p.client
 }
 
 func (r *InfinityNodeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -179,27 +178,24 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	createRequest := &config.WorkerVMCreateRequest{}
-
-	// Set name if provided, otherwise use generated name
-	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
-		createRequest.Name = plan.Name.ValueString()
-		createRequest.Hostname = plan.Hostname.ValueString()
-		createRequest.Address = plan.Address.ValueString()
-		createRequest.Netmask = plan.Netmask.ValueString()
-		createRequest.Domain = plan.Domain.ValueString()
-		createRequest.Gateway = plan.Gateway.ValueString()
-		createRequest.Password = plan.Password.ValueString()
-		createRequest.NodeType = plan.NodeType.ValueString()
-		createRequest.SystemLocation = plan.SystemLocation.ValueString()
-		createRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
-		createRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
-		createRequest.Transcoding = plan.Transcoding.ValueBool()
-		createRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
-		createRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
+	createRequest := &config.WorkerVMCreateRequest{
+		Name:                  plan.Name.ValueString(),
+		Hostname:              plan.Hostname.ValueString(),
+		Address:               plan.Address.ValueString(),
+		Netmask:               plan.Netmask.ValueString(),
+		Domain:                plan.Domain.ValueString(),
+		Gateway:               plan.Gateway.ValueString(),
+		Password:              plan.Password.ValueString(),
+		NodeType:              plan.NodeType.ValueString(),
+		SystemLocation:        plan.SystemLocation.ValueString(),
+		MaintenanceMode:       plan.MaintenanceMode.ValueBool(),
+		MaintenanceModeReason: plan.MaintenanceModeReason.ValueString(),
+		Transcoding:           plan.Transcoding.ValueBool(),
+		VMCPUCount:            int(plan.VMCPUCount.ValueInt64()),
+		VMSystemMemory:        int(plan.VMSystemMemory.ValueInt64()),
 	}
 
-	createResponse, err := r.InfinityClient.Config.CreateWorkerVM(ctx, createRequest)
+	createResponse, err := r.InfinityClient.Config().CreateWorkerVM(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity Node",
@@ -217,7 +213,7 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	plan, err = r.read(ctx, resourceID)
+	plan.ID = types.Int32Value(int32(resourceID))
 	plan.Config = types.StringValue(string(createResponse.Body))
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity node with ID: %d, name: %s", plan.ID, plan.Name))
 
@@ -227,11 +223,12 @@ func (r *InfinityNodeResource) Create(ctx context.Context, req resource.CreateRe
 func (r *InfinityNodeResource) read(ctx context.Context, resourceID int) (*InfinityNodeResourceModel, error) {
 	var data InfinityNodeResourceModel
 
-	vm, err := r.InfinityClient.Config.GetWorkerVM(ctx, resourceID)
+	vm, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
 	if err != nil {
 		return nil, err
 	}
 
+	data.ID = types.Int32Value(int32(vm.ID))
 	data.Name = types.StringValue(vm.Name)
 	data.Hostname = types.StringValue(vm.Hostname)
 	data.Address = types.StringValue(vm.Address)
@@ -258,7 +255,9 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	state, err := r.read(ctx, int(state.ID.ValueInt32()))
+	resourceID := int(state.ID.ValueInt32())
+	existingConfig := state.Config.ValueString()
+	state, err := r.read(ctx, resourceID)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -272,63 +271,40 @@ func (r *InfinityNodeResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	state.Config = types.StringValue(existingConfig)
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan InfinityNodeResourceModel
+	plan := &InfinityNodeResourceModel{}
+	state := &InfinityNodeResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateRequest := &config.WorkerVMUpdateRequest{}
+	resourceID := int(state.ID.ValueInt32())
 
-	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
-		updateRequest.Name = plan.Name.ValueString()
-	}
-	if !plan.Hostname.IsNull() && !plan.Hostname.IsUnknown() {
-		updateRequest.Hostname = plan.Hostname.ValueString()
-	}
-	if !plan.Address.IsNull() && !plan.Address.IsUnknown() {
-		updateRequest.Address = plan.Address.ValueString()
-	}
-	if !plan.Netmask.IsNull() && !plan.Netmask.IsUnknown() {
-		updateRequest.Netmask = plan.Netmask.ValueString()
-	}
-	if !plan.Domain.IsNull() && !plan.Domain.IsUnknown() {
-		updateRequest.Domain = plan.Domain.ValueString()
-	}
-	if !plan.Gateway.IsNull() && !plan.Gateway.IsUnknown() {
-		updateRequest.Gateway = plan.Gateway.ValueString()
-	}
-	if !plan.Password.IsNull() && !plan.Password.IsUnknown() {
-		updateRequest.Password = plan.Password.ValueString()
-	}
-	if !plan.NodeType.IsNull() && !plan.NodeType.IsUnknown() {
-		updateRequest.NodeType = plan.NodeType.ValueString()
-	}
-	if !plan.SystemLocation.IsNull() && !plan.SystemLocation.IsUnknown() {
-		updateRequest.SystemLocation = plan.SystemLocation.ValueString()
-	}
-	if !plan.MaintenanceMode.IsNull() && !plan.MaintenanceMode.IsUnknown() {
-		updateRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
-	}
-	if !plan.MaintenanceModeReason.IsNull() && !plan.MaintenanceModeReason.IsUnknown() {
-		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
-	}
-	if !plan.Transcoding.IsNull() && !plan.Transcoding.IsUnknown() {
-		updateRequest.Transcoding = plan.Transcoding.ValueBool()
-	}
-	if !plan.VMCPUCount.IsNull() && !plan.VMCPUCount.IsUnknown() {
-		updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
-	}
-	if !plan.VMSystemMemory.IsNull() && !plan.VMSystemMemory.IsUnknown() {
-		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
+	updateRequest := &config.WorkerVMUpdateRequest{
+		Name:                  plan.Name.ValueString(),
+		Hostname:              plan.Hostname.ValueString(),
+		Address:               plan.Address.ValueString(),
+		Netmask:               plan.Netmask.ValueString(),
+		Domain:                plan.Domain.ValueString(),
+		Gateway:               plan.Gateway.ValueString(),
+		Password:              plan.Password.ValueString(),
+		NodeType:              plan.NodeType.ValueString(),
+		SystemLocation:        plan.SystemLocation.ValueString(),
+		MaintenanceMode:       plan.MaintenanceMode.ValueBool(),
+		MaintenanceModeReason: plan.MaintenanceModeReason.ValueString(),
+		Transcoding:           plan.Transcoding.ValueBool(),
+		VMCPUCount:            int(plan.VMCPUCount.ValueInt64()),
+		VMSystemMemory:        int(plan.VMSystemMemory.ValueInt64()),
 	}
 
-	vm, err := r.InfinityClient.Config.UpdateWorkerVM(ctx, int(plan.ID.ValueInt32()), updateRequest)
+	_, err := r.InfinityClient.Config().UpdateWorkerVM(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity Node",
@@ -337,33 +313,21 @@ func (r *InfinityNodeResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	plan.Name = types.StringValue(vm.Name)
-	plan.Hostname = types.StringValue(vm.Hostname)
-	plan.Address = types.StringValue(vm.Address)
-	plan.Netmask = types.StringValue(vm.Netmask)
-	plan.Domain = types.StringValue(vm.Domain)
-	plan.Gateway = types.StringValue(vm.Gateway)
-	plan.Password = types.StringValue(vm.Password)
-	plan.NodeType = types.StringValue(vm.NodeType)
-	plan.SystemLocation = types.StringValue(vm.SystemLocation)
-	plan.MaintenanceMode = types.BoolValue(vm.MaintenanceMode)
-	plan.MaintenanceModeReason = types.StringValue(vm.MaintenanceModeReason)
-	plan.Transcoding = types.BoolValue(vm.Transcoding)
-	plan.VMCPUCount = types.Int64Value(int64(vm.VMCPUCount))
-	plan.VMSystemMemory = types.Int64Value(int64(vm.VMSystemMemory))
-
+	plan.ID = state.ID
+	plan.Config = state.Config
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *InfinityNodeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state InfinityNodeResourceModel
+	state := &InfinityNodeResourceModel{}
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err := r.InfinityClient.Config.DeleteWorkerVM(ctx, int(state.ID.ValueInt32()))
+	resourceID := int(state.ID.ValueInt32())
+	err := r.InfinityClient.Config().DeleteWorkerVM(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting Infinity Node",

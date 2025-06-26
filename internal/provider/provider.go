@@ -12,6 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/pexip/go-infinity-sdk/v38"
+	"github.com/pexip/go-infinity-sdk/v38/command"
+	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/pexip/go-infinity-sdk/v38/history"
+	"github.com/pexip/go-infinity-sdk/v38/interfaces"
+	"github.com/pexip/go-infinity-sdk/v38/status"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
 	"net/http"
@@ -30,13 +35,30 @@ type PexipProviderModel struct {
 }
 
 type PexipProvider struct {
-	Address        string
-	Mutex          *sync.Mutex
-	InfinityClient *infinity.Client
+	Address string
+	Mutex   *sync.Mutex
+	client  InfinityClient
+}
+
+type InfinityClient interface {
+	interfaces.HTTPClient
+	Config() *config.Service
+	Status() *status.Service
+	History() *history.Service
+	Command() *command.Service
 }
 
 func New() provider.Provider {
-	return &PexipProvider{}
+	return &PexipProvider{
+		Mutex: &sync.Mutex{},
+	}
+}
+
+func newTestProvider(client InfinityClient) provider.Provider {
+	return &PexipProvider{
+		Mutex:  &sync.Mutex{},
+		client: client,
+	}
 }
 
 func (p *PexipProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -81,33 +103,33 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
-	p.Address = data.Address.ValueString()
-
-	var err error
-	p.InfinityClient, err = infinity.New(
-		infinity.WithBaseURL(data.Address.ValueString()),
-		infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
-		infinity.WithMaxRetries(2),
-		infinity.WithTransport(&http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // We need this because default certificate is not trusted
-				MinVersion:         tls.VersionTLS12,
-			},
-			MaxIdleConns:        30,
-			MaxIdleConnsPerHost: 5,
-			IdleConnTimeout:     60 * time.Second,
-		}),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to create Infinity SDK client",
-			fmt.Sprintf("Could not create Infinity SDK client: %s", err),
+	if p.client == nil {
+		var err error
+		p.client, err = infinity.New(
+			infinity.WithBaseURL(data.Address.ValueString()),
+			infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
+			infinity.WithMaxRetries(2),
+			infinity.WithTransport(&http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, // We need this because default certificate is not trusted
+					MinVersion:         tls.VersionTLS12,
+				},
+				MaxIdleConns:        30,
+				MaxIdleConnsPerHost: 5,
+				IdleConnTimeout:     60 * time.Second,
+			}),
 		)
-		return
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Failed to create Infinity SDK client",
+				fmt.Sprintf("Could not create Infinity SDK client: %s", err),
+			)
+			return
+		}
 	}
 
-	var mut sync.Mutex
-	p.Mutex = &mut
+	p.Address = data.Address.ValueString()
+	p.Mutex = &sync.Mutex{}
 
 	resp.DataSourceData = p //TODO check if this is correct or if we should use a dedicated structure
 	resp.ResourceData = p   //TODO check if this is correct or if we should use a dedicated structure

@@ -2,12 +2,19 @@ package main
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/pexip/terraform-provider-pexip/internal/log"
-	"github.com/pexip/terraform-provider-pexip/internal/provider"
+	pexipProvider "github.com/pexip/terraform-provider-pexip/internal/provider"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
 	"os"
 )
+
+func createProvider() func() provider.Provider {
+	return func() provider.Provider {
+		return pexipProvider.New()
+	}
+}
 
 func main() {
 	ctx := context.Background()
@@ -20,7 +27,7 @@ func main() {
 	logger.Infof(ctx, "%s", version.Version().String())
 	logger.Infof(ctx, "%s", path)
 
-	err = providerserver.Serve(ctx, provider.New, providerserver.ServeOpts{
+	err = providerserver.Serve(ctx, createProvider(), providerserver.ServeOpts{
 		Address: "pexip.com/pexip/pexip",
 	})
 	if err != nil {
