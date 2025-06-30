@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"sort"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -28,10 +30,35 @@ type InfinitySystemLocationResourceModel struct {
 	ResourceID  types.Int32  `tfsdk:"resource_id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
-	DNSServers  types.String `tfsdk:"dns_servers"`
-	//NTPServers  types.String `tfsdk:"ntp_servers"`
+	DNSServers  types.List   `tfsdk:"dns_servers"`
+	NTPServers  types.List   `tfsdk:"ntp_servers"`
 	MTU         types.Int32  `tfsdk:"mtu"`
+}
 
+func (m *InfinitySystemLocationResourceModel) GetDNSServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var dnsServers []string
+	if !m.DNSServers.IsNull() && !m.DNSServers.IsUnknown() {
+		diags = m.DNSServers.ElementsAs(ctx, &dnsServers, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		sort.Strings(dnsServers)
+	}
+	return dnsServers, diags
+}
+
+func (m *InfinitySystemLocationResourceModel) GetNTPServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var ntpServers []string
+	if !m.NTPServers.IsNull() && !m.NTPServers.IsUnknown() {
+		diags = m.NTPServers.ElementsAs(ctx, &ntpServers, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		sort.Strings(ntpServers)
+	}
+	return ntpServers, diags
 }
 
 func (r *InfinitySystemLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -66,7 +93,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "The resource integer identifier for the system location in Infinity",
 			},
-			
+
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -75,16 +102,20 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				},
 				MarkdownDescription: "A description of the system location. Maximum length: 250 characters.",
 			},
-			"dns_servers": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
-				},
-				MarkdownDescription: "The DNS servers to be used by Conferencing Nodes deployed in this Location.",
+			"dns_servers": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of DNS server resource URIs for this system location.",
+			},
+			"ntp_servers": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of NTP server resource URIs for this system location.",
 			},
 			"mtu": schema.Int32Attribute{
-				Optional: true,
+				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Maximum Transmission Unit - the size of the largest packet that can be transmitted via the network interface for this system location. It depends on your network topology as to whether you may need to specify an MTU value here. Range: 512 to 1500.",
 			},
@@ -108,10 +139,23 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	dnsServers, diags := plan.GetDNSServers(ctx)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	ntpServers, diags := plan.GetNTPServers(ctx)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
 	createRequest := &config.SystemLocationCreateRequest{
 		Description: plan.Description.ValueString(),
-		Name:		 plan.Name.ValueString(),
-		MTU:		 int(plan.MTU.ValueInt32()),
+		Name:        plan.Name.ValueString(),
+		MTU:         int(plan.MTU.ValueInt32()),
+		DNSServers:  dnsServers,
+		NTPServers:  ntpServers,
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateSystemLocation(ctx, createRequest)
@@ -160,9 +204,32 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID))
 	data.Description = types.StringValue(srv.Description)
-	data.DNSServers = 
 	data.MTU = types.Int32Value(int32(srv.MTU))
 	data.Name = types.StringValue(srv.Name)
+
+	// Convert DNS servers from SDK to Terraform format
+	var dnsServers []string
+	for _, dns := range srv.DNSServers {
+		dnsServers = append(dnsServers, fmt.Sprintf("/api/admin/configuration/v1/dns_server/%d/", dns.ID))
+	}
+	sort.Strings(dnsServers)
+	dnsListValue, diags := types.ListValueFrom(ctx, types.StringType, dnsServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting DNS servers: %v", diags)
+	}
+	data.DNSServers = dnsListValue
+
+	// Convert NTP servers from SDK to Terraform format
+	var ntpServers []string
+	for _, ntp := range srv.NTPServers {
+		ntpServers = append(ntpServers, fmt.Sprintf("/api/admin/configuration/v1/ntp_server/%d/", ntp.ID))
+	}
+	sort.Strings(ntpServers)
+	ntpListValue, diags := types.ListValueFrom(ctx, types.StringType, ntpServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting NTP servers: %v", diags)
+	}
+	data.NTPServers = ntpListValue
 
 	return &data, nil
 }
@@ -206,11 +273,24 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	// The resource ID is required for the update API call.
 	resourceID := int(state.ResourceID.ValueInt32())
 
+	dnsServers, diags := plan.GetDNSServers(ctx)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	ntpServers, diags := plan.GetNTPServers(ctx)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
 	// Prepare the update request from the plan
 	updateRequest := &config.SystemLocationUpdateRequest{
 		Description: plan.Description.ValueString(),
-		Name: plan.Name.ValueString(),
-		MTU: int(plan.MTU.ValueInt32()),
+		Name:        plan.Name.ValueString(),
+		MTU:         int(plan.MTU.ValueInt32()),
+		DNSServers:  dnsServers,
+		NTPServers:  ntpServers,
 	}
 	_, err := r.InfinityClient.Config().UpdateSystemLocation(ctx, resourceID, updateRequest)
 	if err != nil {
