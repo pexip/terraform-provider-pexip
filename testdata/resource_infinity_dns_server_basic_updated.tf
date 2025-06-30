@@ -11,6 +11,7 @@ provider "pexip" {
   address  = "https://dev-manager.dev.pexip.network"
   username = "admin"
   password = "admin"
+  insecure = true
 }
 
 resource "pexip_infinity_dns_server" "cloudflare-dns" {

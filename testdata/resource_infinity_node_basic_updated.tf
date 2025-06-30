@@ -11,6 +11,7 @@ provider "pexip" {
   address  = "https://infinity.example.com"
   username = "admin"
   password = "admin_password"
+  insecure = true
 }
 
 resource "pexip_infinity_node" "node" {

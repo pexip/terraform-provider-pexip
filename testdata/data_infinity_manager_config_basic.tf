@@ -11,6 +11,7 @@ provider "pexip" {
   address  = "https://infinity.example.com"
   username = "admin"
   password = "admin_password"
+  insecure = true
 }
 
 data "pexip_infinity_manager_config" "master" {

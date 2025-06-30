@@ -4,6 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -19,9 +23,6 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38/status"
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
-	"net/http"
-	"sync"
-	"time"
 )
 
 var (
@@ -32,6 +33,7 @@ type PexipProviderModel struct {
 	Address  types.String `tfsdk:"address"`
 	Username types.String `tfsdk:"username"`
 	Password types.String `tfsdk:"password"`
+	Insecure types.Bool   `tfsdk:"insecure"`
 }
 
 type PexipProvider struct {
@@ -82,7 +84,7 @@ func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager username for authentication",
+				MarkdownDescription: "Pexip Infinity Manager username for authentication.",
 			},
 			"password": schema.StringAttribute{
 				Required:  true,
@@ -90,7 +92,11 @@ func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager password for authentication",
+				MarkdownDescription: "Pexip Infinity Manager password for authentication.",
+			},
+			"insecure": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Trust self-signed or otherwise invalid certificates. Defaults to `false`.",
 			},
 		},
 	}
@@ -105,13 +111,16 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 	if p.client == nil {
 		var err error
+		userAgent := fmt.Sprintf("terraform-provider-pexip/%s", version.Version().String())
+
 		p.client, err = infinity.New(
 			infinity.WithBaseURL(data.Address.ValueString()),
 			infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
+			infinity.WithUserAgent(userAgent),
 			infinity.WithMaxRetries(2),
 			infinity.WithTransport(&http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // We need this because default certificate is not trusted
+					InsecureSkipVerify: data.Insecure.ValueBool(),
 					MinVersion:         tls.VersionTLS12,
 				},
 				MaxIdleConns:        30,
@@ -128,11 +137,9 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		}
 	}
 
-	p.Address = data.Address.ValueString()
-	p.Mutex = &sync.Mutex{}
-
-	resp.DataSourceData = p //TODO check if this is correct or if we should use a dedicated structure
-	resp.ResourceData = p   //TODO check if this is correct or if we should use a dedicated structure
+	// Pass the configured provider to resources and data sources.
+	resp.DataSourceData = p
+	resp.ResourceData = p
 }
 
 func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resource {

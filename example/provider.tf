@@ -31,4 +31,5 @@ provider "pexip" {
   address  = "https://${local.manager_hostname}.${local.domain}"
   username = var.infinity_username
   password = var.infinity_password
+  insecure = true
 }

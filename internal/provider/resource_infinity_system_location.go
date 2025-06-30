@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -35,32 +34,27 @@ type InfinitySystemLocationResourceModel struct {
 	MTU         types.Int32  `tfsdk:"mtu"`
 }
 
-func (m *InfinitySystemLocationResourceModel) GetDNSServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var dnsServers []string
-	if !m.DNSServers.IsNull() && !m.DNSServers.IsUnknown() {
-		diags = m.DNSServers.ElementsAs(ctx, &dnsServers, false)
-		if diags.HasError() {
-			return nil, diags
-		}
-		sort.Strings(dnsServers)
+// getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
+func getSortedStringList(ctx context.Context, list types.List) ([]string, diag.Diagnostics) {
+	if list.IsNull() || list.IsUnknown() {
+		return nil, nil
 	}
-	return dnsServers, diags
+	var items []string
+	diags := list.ElementsAs(ctx, &items, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+	sort.Strings(items)
+	return items, diags
+}
+
+func (m *InfinitySystemLocationResourceModel) GetDNSServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	return getSortedStringList(ctx, m.DNSServers)
 }
 
 func (m *InfinitySystemLocationResourceModel) GetNTPServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var ntpServers []string
-	if !m.NTPServers.IsNull() && !m.NTPServers.IsUnknown() {
-		diags = m.NTPServers.ElementsAs(ctx, &ntpServers, false)
-		if diags.HasError() {
-			return nil, diags
-		}
-		sort.Strings(ntpServers)
-	}
-	return ntpServers, diags
+	return getSortedStringList(ctx, m.NTPServers)
 }
-
 func (r *InfinitySystemLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_infinity_system_location"
 }
@@ -140,22 +134,25 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	}
 
 	dnsServers, diags := plan.GetDNSServers(ctx)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := plan.GetNTPServers(ctx)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	createRequest := &config.SystemLocationCreateRequest{
-		Description: plan.Description.ValueString(),
-		Name:        plan.Name.ValueString(),
-		MTU:         int(plan.MTU.ValueInt32()),
-		DNSServers:  dnsServers,
-		NTPServers:  ntpServers,
+		Name:       plan.Name.ValueString(),
+		DNSServers: dnsServers,
+		NTPServers: ntpServers,
+	}
+
+	// Only set optional fields if they are not null in the plan
+	if !plan.Description.IsNull() {
+		createRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.MTU.IsNull() {
+		createRequest.MTU = int(plan.MTU.ValueInt32())
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateSystemLocation(ctx, createRequest)
@@ -176,7 +173,8 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	plan, err = r.read(ctx, resourceID)
+	// Read the state from the API to get all computed values
+	model, err := r.read(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity system location",
@@ -184,9 +182,9 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity system location with ID: %s, name: %s", plan.ID, plan.Name))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity system location with ID: %s, name: %s", model.ID, model.Name))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID int) (*InfinitySystemLocationResourceModel, error) {
@@ -270,40 +268,49 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// The resource ID is required for the update API call.
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	dnsServers, diags := plan.GetDNSServers(ctx)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := plan.GetNTPServers(ctx)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Prepare the update request from the plan
 	updateRequest := &config.SystemLocationUpdateRequest{
-		Description: plan.Description.ValueString(),
-		Name:        plan.Name.ValueString(),
-		MTU:         int(plan.MTU.ValueInt32()),
-		DNSServers:  dnsServers,
-		NTPServers:  ntpServers,
+		Name:       plan.Name.ValueString(),
+		DNSServers: dnsServers,
+		NTPServers: ntpServers,
 	}
+
+	if !plan.Description.IsNull() {
+		updateRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.MTU.IsNull() {
+		updateRequest.MTU = int(plan.MTU.ValueInt32())
+	}
+
 	_, err := r.InfinityClient.Config().UpdateSystemLocation(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity system location",
-			fmt.Sprintf("Could not update Infinity system location with ID %s: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not update Infinity system location with ID %d: %s", resourceID, err),
 		)
 		return
 	}
 
-	plan.ID = state.ID
-	plan.ResourceID = state.ResourceID
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, resourceID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity system location",
+			fmt.Sprintf("Could not read updated Infinity system location with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinitySystemLocationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -317,7 +324,9 @@ func (r *InfinitySystemLocationResource) Delete(ctx context.Context, req resourc
 	}
 
 	err := r.InfinityClient.Config().DeleteSystemLocation(ctx, int(state.ResourceID.ValueInt32()))
-	if err != nil {
+
+	// Ignore 404 Not Found and Lookup errors on delete
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
 			"Error Deleting Infinity system location",
 			fmt.Sprintf("Could not delete Infinity system location with ID %s: %s", state.ID.ValueString(), err),
@@ -327,23 +336,35 @@ func (r *InfinitySystemLocationResource) Delete(ctx context.Context, req resourc
 }
 
 func (r *InfinitySystemLocationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Validate that the ID is a valid integer
-	id, err := strconv.Atoi(req.ID)
+	resourceID, err := strconv.Atoi(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
-			fmt.Sprintf("Import ID must be a valid integer, got: %s", req.ID),
+			fmt.Sprintf("Import ID must be a valid integer for the resource ID. Got: %s", req.ID),
 		)
 		return
 	}
 
-	if id <= 0 {
+	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity system location with resource ID: %d", resourceID))
+
+	// Read the resource from the API
+	model, err := r.read(ctx, resourceID)
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Infinity System Location Not Found",
+				fmt.Sprintf("Infinity system location with resource ID %d not found.", resourceID),
+			)
+			return
+		}
 		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Import ID must be a positive integer, got: %d", id),
+			"Error Importing Infinity System Location",
+			fmt.Sprintf("Could not import Infinity system location with resource ID %d: %s", resourceID, err),
 		)
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Set the state from the imported resource
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }

@@ -361,9 +361,11 @@ func (r *InfinityNodeResource) ImportState(ctx context.Context, req resource.Imp
 
 // isNotFoundError checks if the error indicates a 404/not found response
 func isNotFoundError(err error) bool {
-	// This is a placeholder - you'll need to check the actual error types
-	// returned by the go-infinity-sdk to determine what constitutes a "not found" error
 	return strings.Contains(err.Error(), "404") ||
 		strings.Contains(err.Error(), "not found") ||
 		strings.Contains(err.Error(), "Not Found")
+}
+
+func isLookupError(err error) bool {
+	return strings.Contains(err.Error(), "lookup")
 }

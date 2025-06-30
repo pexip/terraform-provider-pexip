@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -91,8 +90,12 @@ func (r *InfinityNtpServerResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	createRequest := &config.NTPServerCreateRequest{
-		Address:     plan.Address.ValueString(),
-		Description: plan.Description.ValueString(),
+		Address: plan.Address.ValueString(),
+	}
+
+	// Only set optional fields if they are not null in the plan
+	if !plan.Description.IsNull() {
+		createRequest.Description = plan.Description.ValueString()
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateNTPServer(ctx, createRequest)
@@ -113,7 +116,8 @@ func (r *InfinityNtpServerResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	plan, err = r.read(ctx, resourceID)
+	// Read the state from the API to get all computed values
+	model, err := r.read(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity NTP server",
@@ -121,9 +125,9 @@ func (r *InfinityNtpServerResource) Create(ctx context.Context, req resource.Cre
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity NTP server with ID: %s, name: %s", plan.ID, plan.Address))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity NTP server with ID: %s, address: %s", model.ID, model.Address))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *InfinityNtpServerResource) read(ctx context.Context, resourceID int) (*InfinityNtpServerResourceModel, error) {
@@ -182,26 +186,39 @@ func (r *InfinityNtpServerResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// The resource ID is required for the update API call.
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	// Prepare the update request from the plan
 	updateRequest := &config.NTPServerUpdateRequest{
-		Address:     plan.Address.ValueString(),
-		Description: plan.Description.ValueString(),
+		Address: plan.Address.ValueString(),
 	}
+
+	// Only set optional fields if they are not null in the plan
+	if !plan.Description.IsNull() {
+		updateRequest.Description = plan.Description.ValueString()
+	} else {
+		updateRequest.Description = ""
+	}
+
 	_, err := r.InfinityClient.Config().UpdateNTPServer(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity NTP server",
-			fmt.Sprintf("Could not update Infinity NTP server with ID %s: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not update Infinity NTP server with ID %d: %s", resourceID, err),
 		)
 		return
 	}
 
-	plan.ID = state.ID
-	plan.ResourceID = state.ResourceID
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	// Re-read the resource to get the latest state from the API
+	updatedModel, err := r.read(ctx, resourceID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity NTP server",
+			fmt.Sprintf("Could not read updated Infinity NTP server with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityNtpServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -214,34 +231,49 @@ func (r *InfinityNtpServerResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err := r.InfinityClient.Config().DeleteNTPServer(ctx, int(state.ResourceID.ValueInt32()))
-	if err != nil {
+	resourceID := int(state.ResourceID.ValueInt32())
+	err := r.InfinityClient.Config().DeleteNTPServer(ctx, resourceID)
+
+	// Ignore 404 Not Found errors and lookup on delete, as this means the resource is already gone.
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
 			"Error Deleting Infinity NTP server",
-			fmt.Sprintf("Could not delete Infinity NTP server with ID %s: %s", state.ID.ValueString(), err),
+			fmt.Sprintf("Could not delete Infinity NTP server with ID %d: %s", resourceID, err),
 		)
 		return
 	}
 }
 
 func (r *InfinityNtpServerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Validate that the ID is a valid integer
-	id, err := strconv.Atoi(req.ID)
+	resourceID, err := strconv.Atoi(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
-			fmt.Sprintf("Import ID must be a valid integer, got: %s", req.ID),
+			fmt.Sprintf("Import ID must be a valid integer for the resource ID. Got: %s", req.ID),
 		)
 		return
 	}
 
-	if id <= 0 {
+	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity NTP server with resource ID: %d", resourceID))
+
+	// Read the resource from the API
+	model, err := r.read(ctx, resourceID)
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Infinity NTP Server Not Found",
+				fmt.Sprintf("Infinity NTP server with resource ID %d not found.", resourceID),
+			)
+			return
+		}
 		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			fmt.Sprintf("Import ID must be a positive integer, got: %d", id),
+			"Error Importing Infinity NTP Server",
+			fmt.Sprintf("Could not import Infinity NTP server with resource ID %d: %s", resourceID, err),
 		)
 		return
 	}
 
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Set the state from the imported resource
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
