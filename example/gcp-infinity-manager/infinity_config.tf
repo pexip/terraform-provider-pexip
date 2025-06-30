@@ -19,9 +19,9 @@ resource "pexip_infinity_ntp_server" "ntp1" {
 }
 
 resource "pexip_infinity_system_location" "AMS" {
-  name     = "AMS"
+  name        = "AMS"
   description = "AMS always on"
-  mtu = 1460
+  mtu         = 1460
   dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id]
   ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
 
