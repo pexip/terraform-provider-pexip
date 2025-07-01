@@ -67,6 +67,10 @@ func TestInfinityDNSServer(t *testing.T) {
 		return path == "configuration/v1/dns_server/123/"
 	}), mock.Anything).Return(nil)
 
+	testInfinityDNSServer(t, client)
+}
+
+func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{

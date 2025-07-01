@@ -1,14 +1,14 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/go-infinity-sdk/v38/config"
 	"github.com/pexip/go-infinity-sdk/v38/types"
-	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -103,6 +103,10 @@ func TestInfinityNode(t *testing.T) {
 		return path == "configuration/v1/worker_vm/123/"
 	}), mock.Anything).Return(nil)
 
+	testInfinityNode(t, client)
+}
+
+func testInfinityNode(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{

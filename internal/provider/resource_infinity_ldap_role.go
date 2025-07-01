@@ -1,0 +1,304 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/pexip/go-infinity-sdk/v38/config"
+)
+
+var (
+	_ resource.ResourceWithImportState = (*InfinityLdapRoleResource)(nil)
+)
+
+type InfinityLdapRoleResource struct {
+	InfinityClient InfinityClient
+}
+
+type InfinityLdapRoleResourceModel struct {
+	ID          types.String `tfsdk:"id"`
+	ResourceID  types.Int32  `tfsdk:"resource_id"`
+	Name        types.String `tfsdk:"name"`
+	LdapGroupDN types.String `tfsdk:"ldap_group_dn"`
+	Roles       types.List   `tfsdk:"roles"`
+}
+
+func (r *InfinityLdapRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_infinity_ldap_role"
+}
+
+func (r *InfinityLdapRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	p, ok := req.ProviderData.(*PexipProvider)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *PexipProvider, got: %T. Please report this issue to the provider developers", req.ProviderData),
+		)
+		return
+	}
+
+	r.InfinityClient = p.client
+}
+
+func (r *InfinityLdapRoleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Resource URI for the LDAP role in Infinity",
+			},
+			"resource_id": schema.Int32Attribute{
+				Computed:            true,
+				MarkdownDescription: "The resource integer identifier for the LDAP role in Infinity",
+			},
+			"name": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtMost(250),
+				},
+				MarkdownDescription: "The name of the LDAP role. Maximum length: 250 characters.",
+			},
+			"ldap_group_dn": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+				MarkdownDescription: "The distinguished name (DN) of the LDAP group.",
+			},
+			"roles": schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "List of role URIs associated with this LDAP role mapping.",
+			},
+		},
+		MarkdownDescription: "Manages an LDAP role with the Infinity service. LDAP roles map LDAP groups to Pexip roles for authentication and authorization management.",
+	}
+}
+
+func (r *InfinityLdapRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	plan := &InfinityLdapRoleResourceModel{}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	createRequest := &config.LdapRoleCreateRequest{
+		Name:        plan.Name.ValueString(),
+		LdapGroupDN: plan.LdapGroupDN.ValueString(),
+	}
+
+	// Handle list field
+	if !plan.Roles.IsNull() {
+		var roles []string
+		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		createRequest.Roles = roles
+	}
+
+	createResponse, err := r.InfinityClient.Config().CreateLdapRole(ctx, createRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating Infinity LDAP role",
+			fmt.Sprintf("Could not create Infinity LDAP role: %s", err),
+		)
+		return
+	}
+
+	resourceID, err := createResponse.ResourceID()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Retrieving Infinity LDAP role ID",
+			fmt.Sprintf("Could not retrieve ID for created Infinity LDAP role: %s", err),
+		)
+		return
+	}
+
+	// Read the state from the API to get all computed values
+	model, err := r.read(ctx, resourceID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Created Infinity LDAP role",
+			fmt.Sprintf("Could not read created Infinity LDAP role with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity LDAP role with ID: %s, name: %s", model.ID, model.Name))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+func (r *InfinityLdapRoleResource) read(ctx context.Context, resourceID int) (*InfinityLdapRoleResourceModel, error) {
+	var data InfinityLdapRoleResourceModel
+
+	srv, err := r.InfinityClient.Config().GetLdapRole(ctx, resourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(srv.ResourceURI) == 0 {
+		return nil, fmt.Errorf("LDAP role with ID %d not found", resourceID)
+	}
+
+	data.ID = types.StringValue(srv.ResourceURI)
+	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.Name = types.StringValue(srv.Name)
+	data.LdapGroupDN = types.StringValue(srv.LdapGroupDN)
+
+	// Handle list field
+	if srv.Roles != nil {
+		rolesList, diags := types.ListValueFrom(ctx, types.StringType, srv.Roles)
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to convert roles: %s", diags.Errors())
+		}
+		data.Roles = rolesList
+	} else {
+		data.Roles = types.ListNull(types.StringType)
+	}
+
+	return &data, nil
+}
+
+func (r *InfinityLdapRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	state := &InfinityLdapRoleResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resourceID := int(state.ResourceID.ValueInt32())
+	state, err := r.read(ctx, resourceID)
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Error Reading Infinity LDAP role",
+			fmt.Sprintf("Could not read Infinity LDAP role: %s", err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func (r *InfinityLdapRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	plan := &InfinityLdapRoleResourceModel{}
+	state := &InfinityLdapRoleResourceModel{}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateRequest := &config.LdapRoleUpdateRequest{
+		Name:        plan.Name.ValueString(),
+		LdapGroupDN: plan.LdapGroupDN.ValueString(),
+	}
+
+	// Handle list field
+	if !plan.Roles.IsNull() {
+		var roles []string
+		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		updateRequest.Roles = roles
+	}
+
+	resourceID := int(state.ResourceID.ValueInt32())
+	_, err := r.InfinityClient.Config().UpdateLdapRole(ctx, resourceID, updateRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Infinity LDAP role",
+			fmt.Sprintf("Could not update Infinity LDAP role: %s", err),
+		)
+		return
+	}
+
+	// Read the state from the API to get all computed values
+	model, err := r.read(ctx, resourceID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity LDAP role",
+			fmt.Sprintf("Could not read updated Infinity LDAP role with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+func (r *InfinityLdapRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	state := &InfinityLdapRoleResourceModel{}
+
+	tflog.Info(ctx, "Deleting Infinity LDAP role")
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := r.InfinityClient.Config().DeleteLdapRole(ctx, int(state.ResourceID.ValueInt32()))
+
+	// Ignore 404 Not Found and Lookup errors on delete
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
+		resp.Diagnostics.AddError(
+			"Error Deleting Infinity LDAP role",
+			fmt.Sprintf("Could not delete Infinity LDAP role with ID %s: %s", state.ID.ValueString(), err),
+		)
+		return
+	}
+}
+
+func (r *InfinityLdapRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resourceID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Import ID must be a valid integer for the resource ID. Got: %s", req.ID),
+		)
+		return
+	}
+
+	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity LDAP role with resource ID: %d", resourceID))
+
+	// Read the resource from the API
+	model, err := r.read(ctx, resourceID)
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Infinity LDAP Role Not Found",
+				fmt.Sprintf("Infinity LDAP role with resource ID %d not found.", resourceID),
+			)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Error Importing Infinity LDAP Role",
+			fmt.Sprintf("Could not import Infinity LDAP role with resource ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	// Set the state from the imported resource
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}

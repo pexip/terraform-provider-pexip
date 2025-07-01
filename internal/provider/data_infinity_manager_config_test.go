@@ -1,12 +1,11 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"os"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
 func TestInfinityManagerConfig(t *testing.T) {
@@ -15,6 +14,10 @@ func TestInfinityManagerConfig(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	testInfinityManagerConfig(t, client)
+}
+
+func testInfinityManagerConfig(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
