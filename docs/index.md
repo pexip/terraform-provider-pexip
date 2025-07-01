@@ -32,6 +32,7 @@ provider "pexip" {
   address  = "https://manager.example.com"  # Required
   username = "admin"                        # Required
   password = "secure_password"              # Required, use variables
+  insecure = true
 }
 ```
 
@@ -72,6 +73,7 @@ provider "pexip" {
   address  = "https://manager.example.com"
   username = var.pexip_username
   password = var.pexip_password
+  insecure = true  # Set to false in production with valid SSL
 }
 
 # Generate bootstrap configuration for Infinity Manager

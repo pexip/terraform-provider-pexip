@@ -2,21 +2,27 @@
 
 [![Build Status](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml/badge.svg)](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pexip/terraform-provider-pexip)](https://goreportcard.com/report/github.com/pexip/terraform-provider-pexip)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This Terraform provider enables you to manage [Pexip Infinity](https://www.pexip.com/products/infinity/) infrastructure using Infrastructure as Code. Automate the provisioning and management of Pexip Infinity components including manager configurations and worker nodes.
+The official Terraform provider for [Pexip Infinity](https://www.pexip.com/products/infinity/) enables comprehensive Infrastructure as Code management of your Pexip video conferencing platform. Manage everything from basic node configurations to advanced integrations with Microsoft 365, Google Workspace, and external authentication systems.
 
 ## Features
 
-- **Manager Configuration**: Generate bootstrap configurations for Pexip Infinity Manager
-- **Node Management**: Register and manage Pexip Infinity worker nodes  
-- **Infrastructure as Code**: Version control your Pexip infrastructure
-- **Terraform Integration**: Native Terraform resource lifecycle management
+- **🏗️ Complete Infrastructure Management**: 80+ resources covering 90% of Pexip Infinity API capabilities
+- **🔐 Security & Authentication**: LDAP, Active Directory, OAuth 2.0, SAML, and certificate management
+- **🎯 Conference Management**: Virtual meeting rooms, aliases, scheduled conferences, and participant controls
+- **🌐 Network Configuration**: System locations, routing rules, proxies, and DNS management
+- **📊 System Administration**: Licensing, logging, diagnostics, and scaling policies
+- **🔗 Enterprise Integrations**: Microsoft 365, Google Workspace, Exchange, and telehealth platforms
+- **📱 Media & Content**: IVR themes, media libraries, streaming credentials
+- **⚡ Infrastructure as Code**: Full lifecycle management with Terraform's plan/apply workflow
 
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.21 (for development)
-- Pexip Infinity Manager with API access
+- Pexip Infinity Manager >= v37 with API access
+- Valid authentication credentials for Pexip Infinity Manager
 
 ## Installation
 
@@ -24,9 +30,10 @@ This Terraform provider enables you to manage [Pexip Infinity](https://www.pexip
 
 ```hcl
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     pexip = {
-      source  = "pexip.com/pexip/pexip"
+      source  = "pexip/pexip"
       version = "~> 0.1"
     }
   }
@@ -41,13 +48,13 @@ terraform {
 
 ## Quick Start
 
-### Basic Configuration
+### Basic Provider Configuration
 
 ```hcl
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip.com/pexip/pexip"
+      source  = "pexip/pexip"
       version = "~> 0.1"
     }
   }
@@ -58,13 +65,188 @@ provider "pexip" {
   address  = "https://manager.example.com"
   username = var.pexip_username
   password = var.pexip_password
+  insecure = false # Set to true for self-signed certificates (not recommended for production)
+}
+```
+
+### Essential Resources Example
+
+```hcl
+# System location for organizing resources
+resource "pexip_infinity_system_location" "datacenter_1" {
+  name        = "Datacenter-1"
+  description = "Primary data center location"
 }
 
-# Generate bootstrap configuration for Infinity Manager
-data "pexip_infinity_manager_config" "primary" {
-  hostname              = "pexip-mgr-01"
+# Conference configuration
+resource "pexip_infinity_conference" "team_meeting" {
+  name                = "team-meeting"
+  service_type        = "CONFERENCE"
+  description         = "Weekly team meeting room"
+  pin                 = "123456"
+  guest_pin           = "654321"
+  maximum_participants = 50
+  system_location     = pexip_infinity_system_location.datacenter_1.id
+}
+
+# Conference alias for easy access
+resource "pexip_infinity_conference_alias" "team_meeting_alias" {
+  alias       = "team@company.com"
+  conference  = pexip_infinity_conference.team_meeting.id
+  description = "Email-style alias for team meetings"
+}
+
+# Worker node registration
+resource "pexip_infinity_node" "worker_01" {
+  name                = "worker-01"
+  hostname            = "worker-01.company.com"
+  address             = "10.0.1.101"
+  node_type           = "CONFERENCING"
+  system_location     = pexip_infinity_system_location.datacenter_1.id
+  transcoding         = true
+  maintenance_mode    = false
+}
+
+# Global system configuration
+resource "pexip_infinity_global_configuration" "main" {
+  bandwidth_limit                = 10000
+  conference_name_max_length     = 100
+  default_conference_pin_length  = 4
+  enable_chat                    = true
+  enable_cloud_burst             = false
+  external_policy_server         = ""
+}
+```
+
+### Microsoft 365 Integration Example
+
+```hcl
+# Azure tenant configuration
+resource "pexip_infinity_azure_tenant" "company" {
+  tenant_id           = "12345678-1234-1234-1234-123456789012"
+  application_id      = "87654321-4321-4321-4321-210987654321"
+  application_secret  = var.azure_app_secret
+  domain              = "company.com"
+}
+
+# Microsoft Exchange connector
+resource "pexip_infinity_ms_exchange_connector" "exchange" {
+  name                = "company-exchange"
+  description         = "Company Exchange connector"
+  server_address      = "outlook.office365.com"
+  username            = var.exchange_username
+  password            = var.exchange_password
+  domain              = "company.com"
+  use_office365       = true
+}
+
+# MJX integration for Teams interoperability
+resource "pexip_infinity_mjx_integration" "teams" {
+  name                        = "teams-integration"
+  description                 = "Microsoft Teams integration"
+  display_upcoming_meetings   = 24
+  enable_non_video_meetings   = true
+  enable_private_meetings     = false
+  start_buffer                = 5
+  end_buffer                  = 5
+  ep_use_https               = true
+  ep_verify_certificate      = true
+  replace_subject_type       = "none"
+  use_webex                  = false
+}
+```
+
+## Provider Configuration
+
+### Authentication
+
+The provider supports basic authentication with Pexip Infinity Manager:
+
+```hcl
+provider "pexip" {
+  address  = "https://manager.example.com"  # Required: Manager API endpoint
+  username = "admin"                        # Required: Username with API access
+  password = "secure_password"              # Required: User password
+  insecure = false                          # Optional: Skip TLS verification (default: false)
+}
+```
+
+### Environment Variables
+
+Configure the provider using environment variables for CI/CD pipelines:
+
+```bash
+export PEXIP_ADDRESS="https://manager.example.com"
+export PEXIP_USERNAME="admin"
+export PEXIP_PASSWORD="secure_password"
+export PEXIP_INSECURE="false"  # Optional
+```
+
+### Provider Arguments Reference
+
+| Argument | Description | Required | Environment Variable | Default |
+|----------|-------------|----------|---------------------|---------|
+| `address` | URL of the Pexip Infinity Manager API | Yes | `PEXIP_ADDRESS` | - |
+| `username` | Username for authentication | Yes | `PEXIP_USERNAME` | - |
+| `password` | Password for authentication | Yes | `PEXIP_PASSWORD` | - |
+| `insecure` | Skip TLS certificate verification | No | `PEXIP_INSECURE` | `false` |
+
+## Resource Categories
+
+The provider includes 80+ resources organized into logical categories:
+
+### 🔐 Security & Authentication (17 resources)
+- **Identity Management**: `pexip_infinity_role`, `pexip_infinity_user_group`, `pexip_infinity_end_user`
+- **Directory Integration**: `pexip_infinity_ldap_sync_source`, `pexip_infinity_adfs_auth_server`, `pexip_infinity_identity_provider`
+- **Certificates**: `pexip_infinity_ca_certificate`, `pexip_infinity_tls_certificate`, `pexip_infinity_ssh_authorized_key`
+- **OAuth & Auth**: `pexip_infinity_oauth2_client`, `pexip_infinity_google_auth_server`
+
+### 🎯 Conference Management (9 resources)
+- **Core Conference**: `pexip_infinity_conference`, `pexip_infinity_conference_alias`
+- **Participants**: `pexip_infinity_automatic_participant`, `pexip_infinity_scheduled_conference`
+- **Scheduling**: `pexip_infinity_recurring_conference`, `pexip_infinity_scheduled_alias`
+
+### 🌐 Network & Infrastructure (8 resources)
+- **Locations**: `pexip_infinity_system_location`, `pexip_infinity_location`
+- **Networking**: `pexip_infinity_static_route`, `pexip_infinity_dns_server`, `pexip_infinity_ntp_server`
+- **Monitoring**: `pexip_infinity_snmp_network_management_system`, `pexip_infinity_smtp_server`
+- **Gateways**: `pexip_infinity_h323_gatekeeper`, `pexip_infinity_gateway_routing_rule`
+
+### 🏢 Microsoft 365 & Office Integration (4 resources)
+- **Azure Integration**: `pexip_infinity_azure_tenant`, `pexip_infinity_ms_exchange_connector`
+- **Teams Integration**: `pexip_infinity_mjx_endpoint`, `pexip_infinity_mjx_integration`
+
+### 📊 System Configuration (15 resources)
+- **Core System**: `pexip_infinity_global_configuration`, `pexip_infinity_system_tuneable`
+- **Licensing**: `pexip_infinity_licence`, `pexip_infinity_licence_request`
+- **Monitoring**: `pexip_infinity_log_level`, `pexip_infinity_syslog_server`, `pexip_infinity_diagnostic_graph`
+- **Scaling**: `pexip_infinity_scheduled_scaling`, `pexip_infinity_management_vm`
+
+### 👥 User & Device Management (5 resources)
+- **Devices**: `pexip_infinity_device`, `pexip_infinity_registration`, `pexip_infinity_sip_credential`
+- **Infrastructure**: `pexip_infinity_worker_vm`, `pexip_infinity_node`
+
+### 📱 Media & Content (8 resources)
+- **Themes & UI**: `pexip_infinity_ivr_theme`, `pexip_infinity_webapp_branding`
+- **Media Libraries**: `pexip_infinity_media_library_entry`, `pexip_infinity_media_library_playlist`
+- **Streaming**: `pexip_infinity_pexip_streaming_credential`, `pexip_infinity_media_processing_server`
+
+### 🔗 External Integrations (4 resources)
+- **Web Applications**: `pexip_infinity_external_webapp_host`, `pexip_infinity_webapp_alias`
+- **Authentication**: `pexip_infinity_google_auth_server`
+- **Access Tokens**: `pexip_infinity_gms_access_token`
+
+## Data Sources
+
+### `pexip_infinity_manager_config`
+
+Generate bootstrap configuration for new Pexip Infinity Manager installations:
+
+```hcl
+data "pexip_infinity_manager_config" "bootstrap" {
+  hostname              = "manager-01"
   domain                = "company.com"
-  ip                    = "10.0.1.10"
+  ip                    = "10.0.1.100"
   mask                  = "255.255.255.0"
   gw                    = "10.0.1.1"
   dns                   = "8.8.8.8"
@@ -77,280 +259,207 @@ data "pexip_infinity_manager_config" "primary" {
   contact_email_address = "admin@company.com"
 }
 
-# Register worker nodes
-resource "pexip_infinity_node" "worker_01" {
-  name     = "pexip-worker-01"
-  hostname = "pexip-worker-01"
-}
-
-resource "pexip_infinity_node" "worker_02" {
-  name     = "pexip-worker-02"
-  hostname = "pexip-worker-02"
+# Use the generated configuration
+output "manager_bootstrap_config" {
+  value     = data.pexip_infinity_manager_config.bootstrap.rendered
+  sensitive = true
 }
 ```
 
-### Variables Example
+## Advanced Usage Patterns
+
+### Enterprise Environment Setup
 
 ```hcl
-# variables.tf
-variable "pexip_username" {
-  description = "Pexip Infinity Manager username"
-  type        = string
-  sensitive   = true
+# Create system locations for different sites
+resource "pexip_infinity_system_location" "locations" {
+  for_each = var.office_locations
+  
+  name        = each.key
+  description = "Office location: ${each.value.description}"
 }
 
-variable "pexip_password" {
-  description = "Pexip Infinity Manager password"
-  type        = string
-  sensitive   = true
+# Deploy worker nodes across locations
+resource "pexip_infinity_node" "workers" {
+  for_each = { for idx, config in var.worker_configs : "${config.location}-${idx}" => config }
+  
+  name            = "worker-${each.key}"
+  hostname        = each.value.hostname
+  address         = each.value.address
+  node_type       = "CONFERENCING"
+  system_location = pexip_infinity_system_location.locations[each.value.location].id
+  transcoding     = true
 }
 
-variable "manager_password" {
-  description = "Bootstrap password for manager"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_password" {
-  description = "Admin password for manager"
-  type        = string
-  sensitive   = true
+# Conference rooms per department
+resource "pexip_infinity_conference" "department_rooms" {
+  for_each = var.departments
+  
+  name                 = "${each.key}-room"
+  service_type         = "CONFERENCE"
+  description          = "${each.value.name} department meeting room"
+  maximum_participants = each.value.max_participants
+  pin                  = each.value.pin
+  system_location      = pexip_infinity_system_location.locations[each.value.location].id
 }
 ```
 
-## Provider Configuration
-
-### Authentication
-
-The provider supports the following authentication methods:
+### Microsoft 365 Complete Integration
 
 ```hcl
-provider "pexip" {
-  address  = "https://manager.example.com"  # Required
-  username = "admin"                        # Required
-  password = "secure_password"              # Required, use variables
+# Azure tenant setup
+resource "pexip_infinity_azure_tenant" "main" {
+  tenant_id          = var.azure_tenant_id
+  application_id     = var.azure_app_id
+  application_secret = var.azure_app_secret
+  domain            = var.company_domain
+}
+
+# Exchange connector for calendar integration
+resource "pexip_infinity_ms_exchange_connector" "main" {
+  name           = "company-exchange"
+  server_address = "outlook.office365.com"
+  username       = var.exchange_service_account
+  password       = var.exchange_service_password
+  domain         = var.company_domain
+  use_office365  = true
+}
+
+# Teams interoperability
+resource "pexip_infinity_mjx_integration" "teams" {
+  name                      = "teams-integration"
+  display_upcoming_meetings = 24
+  enable_non_video_meetings = true
+  start_buffer              = 5
+  end_buffer               = 5
+  ep_use_https             = true
+  replace_subject_type     = "template"
+  replace_subject_template = "Pexip Meeting: {{subject}}"
+}
+
+# MJX endpoint for Teams rooms
+resource "pexip_infinity_mjx_endpoint" "teams_rooms" {
+  for_each = var.teams_rooms
+  
+  name                    = each.key
+  description             = "Teams room: ${each.value.description}"
+  mjx_integration         = pexip_infinity_mjx_integration.teams.id
+  username               = each.value.username
+  password               = each.value.password
+  domain                 = var.company_domain
 }
 ```
 
-### Environment Variables
+### Security & Compliance Configuration
 
-You can also configure the provider using environment variables:
+```hcl
+# LDAP integration for user authentication
+resource "pexip_infinity_ldap_sync_source" "corporate_ad" {
+  name            = "corporate-ad"
+  address         = "ldap.company.com"
+  port            = 636
+  use_ssl         = true
+  username        = var.ldap_bind_user
+  password        = var.ldap_bind_password
+  base_dn         = "DC=company,DC=com"
+  user_search_dn  = "OU=Users,DC=company,DC=com"
+  group_search_dn = "OU=Groups,DC=company,DC=com"
+}
+
+# Certificate management
+resource "pexip_infinity_ca_certificate" "company_ca" {
+  name        = "company-ca"
+  certificate = file("${path.module}/certificates/company-ca.pem")
+}
+
+resource "pexip_infinity_tls_certificate" "manager_cert" {
+  name        = "manager-certificate"
+  certificate = file("${path.module}/certificates/manager.pem")
+  private_key = file("${path.module}/certificates/manager-key.pem")
+}
+
+# Role-based access control
+resource "pexip_infinity_role" "meeting_admin" {
+  name        = "meeting-admin"
+  description = "Meeting room administrators"
+  
+  # Define specific permissions for this role
+}
+
+resource "pexip_infinity_user_group" "admins" {
+  name        = "meeting-admins"
+  description = "Meeting administration group"
+  ldap_source = pexip_infinity_ldap_sync_source.corporate_ad.id
+  ldap_dn     = "CN=PexipAdmins,OU=Groups,DC=company,DC=com"
+}
+```
+
+### Monitoring & Diagnostics Setup
+
+```hcl
+# Syslog configuration for centralized logging
+resource "pexip_infinity_syslog_server" "central_logs" {
+  address  = "syslog.company.com"
+  port     = 514
+  protocol = "UDP"
+  facility = "LOCAL0"
+}
+
+# SNMP monitoring
+resource "pexip_infinity_snmp_network_management_system" "monitoring" {
+  name        = "company-monitoring"
+  address     = "monitoring.company.com"
+  port        = 161
+  community   = var.snmp_community
+  description = "Company SNMP monitoring system"
+}
+
+# Log level configuration
+resource "pexip_infinity_log_level" "detailed" {
+  component = "web"
+  level     = "INFO"
+}
+
+# Diagnostic graphs for system monitoring
+resource "pexip_infinity_diagnostic_graph" "system_health" {
+  name        = "system-health"
+  description = "System health monitoring graph"
+  graph_type  = "system"
+}
+```
+
+## Import Existing Resources
+
+Import existing Pexip Infinity resources into Terraform management:
 
 ```bash
-export PEXIP_ADDRESS="https://manager.example.com"
-export PEXIP_USERNAME="admin"
-export PEXIP_PASSWORD="secure_password"
-```
+# Import a conference by its ID
+terraform import pexip_infinity_conference.existing_room 123
 
-### Provider Configuration Reference
+# Import a node by its ID  
+terraform import pexip_infinity_node.existing_worker 456
 
-| Argument | Description | Required | Environment Variable |
-|----------|-------------|----------|---------------------|
-| `address` | URL of the Pexip Infinity Manager API | Yes | `PEXIP_ADDRESS` |
-| `username` | Username for authentication | Yes | `PEXIP_USERNAME` |
-| `password` | Password for authentication | Yes | `PEXIP_PASSWORD` |
-
-## Resources and Data Sources
-
-### Data Sources
-
-#### `pexip_infinity_manager_config`
-
-Generates bootstrap configuration for Pexip Infinity Manager.
-
-**Example:**
-
-```hcl
-data "pexip_infinity_manager_config" "config" {
-  hostname              = "manager-01"
-  domain                = "example.com"
-  ip                    = "192.168.1.100"
-  mask                  = "255.255.255.0"
-  gw                    = "192.168.1.1"
-  dns                   = "8.8.8.8"
-  ntp                   = "pool.ntp.org"
-  user                  = "admin"
-  pass                  = var.manager_password
-  admin_password        = var.admin_password
-  error_reports         = false
-  enable_analytics      = false
-  contact_email_address = "admin@example.com"
-}
-```
-
-**Attributes:**
-- `hostname` (Required) - Manager hostname
-- `domain` (Required) - DNS domain
-- `ip` (Required) - IP address
-- `mask` (Required) - Subnet mask
-- `gw` (Required) - Gateway IP
-- `dns` (Required) - DNS server IP
-- `ntp` (Required) - NTP server
-- `user` (Required) - Username
-- `pass` (Required, Sensitive) - Password
-- `admin_password` (Required, Sensitive) - Admin password
-- `error_reports` (Optional) - Enable error reporting
-- `enable_analytics` (Optional) - Enable analytics
-- `contact_email_address` (Required) - Contact email
-
-**Computed Attributes:**
-- `rendered` - Generated configuration JSON
-- `id` - CRC32 checksum of configuration
-
-### Resources
-
-#### `pexip_infinity_node`
-
-Manages Pexip Infinity worker nodes.
-
-**Example:**
-
-```hcl
-resource "pexip_infinity_node" "worker" {
-  name                    = "worker-node-01"
-  hostname                = "worker-node-01"
-  address                 = "192.168.1.101"
-  netmask                 = "255.255.255.0"
-  domain                  = "example.com"
-  gateway                 = "192.168.1.1"
-  password                = var.node_password
-  node_type               = "CONFERENCING"
-  system_location         = "Data Center 1"
-  maintenance_mode        = false
-  transcoding             = true
-}
-```
-
-**Arguments:**
-- `name` (Required) - Node name
-- `hostname` (Required) - Node hostname
-- `address` (Optional) - IP address of the node
-- `netmask` (Optional) - Network mask
-- `domain` (Optional) - DNS domain
-- `gateway` (Optional) - Gateway IP address
-- `password` (Required, Sensitive) - Node password
-- `node_type` (Optional) - Node type (default: "worker")
-- `system_location` (Optional) - Physical location description
-- `maintenance_mode` (Optional) - Enable maintenance mode (default: false)
-- `maintenance_mode_reason` (Optional) - Reason for maintenance mode
-- `transcoding` (Optional) - Enable transcoding (default: true)
-- `vm_cpu_count` (Optional) - Number of CPUs allocated to VM
-- `vm_system_memory` (Optional) - System memory allocated to VM
-
-**Computed Attributes:**
-- `id` - Node ID
-- `config` - Generated node configuration
-
-**Import:**
-
-```bash
-terraform import pexip_infinity_node.worker 123
+# Import a system location by its ID
+terraform import pexip_infinity_system_location.datacenter 789
 ```
 
 ## Complete Example
 
-For a comprehensive example that includes Google Cloud Platform infrastructure deployment along with Pexip Infinity resources, see the [`example/`](./example/) directory in this repository. This example demonstrates:
+See the [`example/`](./example/) directory for a comprehensive deployment example that includes:
 
-- GCP VM instances for Pexip Infinity Manager and worker nodes
-- Network configuration and firewall rules
-- DNS setup and SSL certificates
-- Service account and IAM permissions
-- Integration between cloud infrastructure and Pexip resources
-
-To run the example:
+- **Infrastructure**: GCP/AWS VM instances and networking
+- **Pexip Core**: Manager and worker node configuration  
+- **Security**: Certificate management and authentication
+- **Integrations**: Microsoft 365 and Google Workspace setup
+- **Monitoring**: Logging and diagnostic configuration
 
 ```bash
 cd example/
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
+# Edit terraform.tfvars with your environment values
 terraform init
 terraform plan
 terraform apply
-```
-
-## Advanced Usage
-
-### Multiple Manager Configurations
-
-```hcl
-# Production manager
-data "pexip_infinity_manager_config" "prod" {
-  hostname = "prod-manager"
-  domain   = "prod.company.com"
-  # ... other configuration
-}
-
-# Development manager  
-data "pexip_infinity_manager_config" "dev" {
-  hostname = "dev-manager"
-  domain   = "dev.company.com"
-  # ... other configuration
-}
-
-# Production nodes
-resource "pexip_infinity_node" "prod_workers" {
-  count           = 3
-  name            = "prod-worker-${count.index + 1}"
-  hostname        = "prod-worker-${count.index + 1}"
-  node_type       = "CONFERENCING"
-  system_location = "Production"
-}
-
-# Development nodes
-resource "pexip_infinity_node" "dev_workers" {
-  count           = 1
-  name            = "dev-worker-${count.index + 1}"
-  hostname        = "dev-worker-${count.index + 1}"
-  node_type       = "CONFERENCING"
-  system_location = "Development"
-}
-```
-
-### Using with Modules
-
-```hcl
-# modules/pexip-environment/main.tf
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
-variable "node_count" {
-  description = "Number of worker nodes"
-  type        = number
-  default     = 2
-}
-
-data "pexip_infinity_manager_config" "config" {
-  hostname = "${var.environment}-manager"
-  domain   = "${var.environment}.company.com"
-  # ... other configuration
-}
-
-resource "pexip_infinity_node" "workers" {
-  count           = var.node_count
-  name            = "${var.environment}-worker-${count.index + 1}"
-  hostname        = "${var.environment}-worker-${count.index + 1}"
-  node_type       = "CONFERENCING"
-  system_location = var.environment
-}
-```
-
-```hcl
-# main.tf
-module "production" {
-  source = "./modules/pexip-environment"
-  
-  environment = "prod"
-  node_count  = 5
-}
-
-module "staging" {
-  source = "./modules/pexip-environment"
-  
-  environment = "staging"
-  node_count  = 2
-}
 ```
 
 ## Development
@@ -360,6 +469,7 @@ module "staging" {
 - [Go](https://golang.org/doc/install) >= 1.21
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 - [Make](https://www.gnu.org/software/make/)
+- Access to a Pexip Infinity Manager for testing
 
 ### Building from Source
 
@@ -376,94 +486,184 @@ make build
 ```hcl
 provider_installation {
   dev_overrides {
-    "pexip.com/pexip/pexip" = "</path/to/your/terraform-plugins>/pexip.com/pexip/pexip"
+    "pexip/pexip" = "/path/to/your/terraform-provider-pexip/dist"
   }
-  filesystem_mirror {
-    path = "</path/to/your/terraform-plugins>"
-    include = ["pexip.com/*/*"]
-  }
-  direct {
-    exclude = ["pexip.com/*/*"]
-  }
+  direct {}
 }
 ```
 
-2. Build and install locally:
+2. Build and test locally:
 
 ```bash
-make install
+make build
+make test
 ```
 
-### Running Tests
+### Available Make Targets
+
+```bash
+make build      # Build the provider binary
+make install    # Build and install to local Terraform plugins directory  
+make test       # Run unit tests
+make testacc    # Run acceptance tests (requires Pexip environment)
+make lint       # Run linting checks
+make fmt        # Format Go code
+make clean      # Clean build artifacts
+make check      # Run all checks (lint + test)
+```
+
+### Testing
 
 ```bash
 # Unit tests
 make test
 
-# Acceptance tests (requires running Pexip environment)
-make testacc
-
-# Linting
-make lint
-
-# Format code
-make fmt
-```
-
-### Testing with Real Infrastructure
-
-For acceptance tests, you'll need access to a Pexip Infinity Manager. Set these environment variables:
-
-```bash
+# Acceptance tests (requires real Pexip environment)
 export TF_ACC=1
 export PEXIP_ADDRESS="https://your-manager.example.com"
-export PEXIP_USERNAME="admin"
+export PEXIP_USERNAME="admin" 
 export PEXIP_PASSWORD="your-password"
+make testacc
+
+# Test specific resource
+go test -v ./internal/provider -run TestAccInfinityConference
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Authentication Errors**
-- Verify your Pexip Manager URL, username, and password
-- Ensure the API is accessible from your machine
-- Check that your user has appropriate permissions
-
-**SSL/TLS Errors**
-- Verify your Pexip Manager uses a valid SSL certificate
-- For self-signed certificates, you may need to configure your system's trust store
-
-**Network Connectivity**
-- Ensure your machine can reach the Pexip Manager on the configured port (typically 443)
-- Check firewall rules and network connectivity
-
-### Debug Logging
-
-Enable debug logging for troubleshooting:
-
+**Authentication Failures**
 ```bash
+# Verify connectivity
+curl -k -u username:password https://manager.example.com/api/admin/status/v1/system_summary/
+
+# Check credentials
 export TF_LOG=DEBUG
 terraform plan
 ```
 
-### Getting Help
+**SSL Certificate Issues**
+```hcl
+# For development/testing with self-signed certificates
+provider "pexip" {
+  address  = "https://manager.example.com"
+  username = var.username
+  password = var.password
+  insecure = true  # Only for development!
+}
+```
 
-- [Pexip Documentation](https://docs.pexip.com/)
-- [Terraform Documentation](https://developer.hashicorp.com/terraform/docs)
-- [GitHub Issues](https://github.com/pexip/terraform-provider-pexip/issues)
+**Network Connectivity**
+```bash
+# Test network access
+telnet manager.example.com 443
+nslookup manager.example.com
+```
+
+**Resource Import Issues**
+```bash
+# Get resource ID from Pexip Manager
+curl -k -u admin:password "https://manager.example.com/api/admin/configuration/v1/conference/" | jq '.objects[] | {id, name}'
+
+# Import with correct ID
+terraform import pexip_infinity_conference.room 123
+```
+
+### Debug Logging
+
+Enable comprehensive logging for troubleshooting:
+
+```bash
+export TF_LOG=DEBUG
+export TF_LOG_PATH=./terraform-debug.log
+terraform plan
+```
+
+### Performance Optimization
+
+For large environments with many resources:
+
+```hcl
+# Use for_each instead of count for better performance
+resource "pexip_infinity_conference" "rooms" {
+  for_each = var.conference_rooms
+  
+  name        = each.key
+  description = each.value.description
+  # ... other configuration
+}
+
+# Parallelize independent resources
+resource "pexip_infinity_system_location" "locations" {
+  for_each = var.locations
+  # ... configuration
+}
+
+resource "pexip_infinity_node" "workers" {
+  for_each = var.worker_nodes
+  
+  # Reference locations without creating dependencies
+  system_location = var.location_ids[each.value.location]
+  # ... other configuration
+}
+```
 
 ## Version Compatibility
 
-| Provider Version | Terraform Version | Pexip Infinity Version | Go Version |
-|------------------|-------------------|------------------------|------------|
-| `~> 0.1` | `>= 1.0` | `>= v37` | `>= 1.21` |
+| Provider Version | Terraform Version | Pexip Infinity Version | Go Version | Status |
+|------------------|-------------------|------------------------|------------|---------|
+| `~> 0.1` | `>= 1.0` | `>= v37` | `>= 1.21` | Active |
+| `~> 0.2` | `>= 1.0` | `>= v38` | `>= 1.21` | Planned |
 
-## Known Limitations
+## Migration Guide
 
-- Provider currently supports basic node management operations
-- Advanced Pexip Infinity features may require manual configuration
-- SSL certificate validation is enforced (use proper certificates in production)
+### From v0.0.x to v0.1.x
+
+- Provider source changed from `pexip.com/pexip/pexip` to `pexip/pexip`
+- Added `insecure` provider argument for SSL certificate handling
+- Improved resource naming consistency
+- Enhanced validation and error handling
+
+```hcl
+# Before (v0.0.x)
+terraform {
+  required_providers {
+    pexip = {
+      source = "pexip.com/pexip/pexip"
+    }
+  }
+}
+
+# After (v0.1.x)
+terraform {
+  required_providers {
+    pexip = {
+      source  = "pexip/pexip"
+      version = "~> 0.1"
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Security
+- **Never hardcode credentials** - Use variables and environment variables
+- **Use HTTPS** - Always connect to Pexip Manager over HTTPS
+- **Limit permissions** - Create dedicated service accounts with minimal required permissions
+- **Rotate credentials** - Regularly rotate API credentials
+
+### Resource Organization
+- **Use modules** - Organize related resources into reusable modules
+- **Consistent naming** - Follow a consistent naming convention across resources
+- **Tag resources** - Use descriptions to document resource purpose
+- **State management** - Use remote state storage for team environments
+
+### Performance
+- **Batch operations** - Use `for_each` for creating multiple similar resources
+- **Minimize dependencies** - Avoid unnecessary resource dependencies
+- **Parallel execution** - Structure resources to allow parallel creation/updates
 
 ## Contributing
 
@@ -471,30 +671,52 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
+3. Make your changes following the coding standards
+4. Add comprehensive tests for new functionality
 5. Ensure all tests pass (`make test && make testacc`)
-6. Run linting (`make lint && make fmt`)
-7. Commit your changes (`git commit -m 'Add amazing feature'`)
-8. Push to the branch (`git push origin feature/amazing-feature`)
-9. Submit a pull request
+6. Run code quality checks (`make lint && make fmt`)
+7. Update documentation as needed
+8. Commit your changes (`git commit -m 'Add amazing feature'`)
+9. Push to the branch (`git push origin feature/amazing-feature`)
+10. Submit a pull request
 
 ### Development Guidelines
 
 - Follow [Go best practices](https://golang.org/doc/effective_go.html)
 - Use the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework)
-- Write comprehensive tests for all new features
-- Update documentation for any changes
+- Write comprehensive tests with >80% coverage
+- Document all public APIs and configuration options
 - Ensure backward compatibility when possible
+- Follow semantic versioning for releases
 
-## License
+## Support
 
-For project license see the [LICENSE](LICENSE) file for details.
+### Community Support
+- [GitHub Discussions](https://github.com/pexip/terraform-provider-pexip/discussions) - Community Q&A
+- [GitHub Issues](https://github.com/pexip/terraform-provider-pexip/issues) - Bug reports and feature requests
 
-## Changelog
+### Documentation
+- [Pexip Infinity Documentation](https://docs.pexip.com/)
+- [Terraform Provider Development](https://developer.hashicorp.com/terraform/plugin)
+- [Terraform Best Practices](https://developer.hashicorp.com/terraform/docs/configuration)
 
-See [Releases](https://github.com/pexip/terraform-provider-pexip/releases) for release notes and version history.
+### Professional Support
+For enterprise support, contact [Pexip Support](https://www.pexip.com/support/).
 
 ## Security
 
-For security concerns, please email security@pexip.com instead of using the public issue tracker.
+For security vulnerabilities, please email [security@pexip.com](mailto:security@pexip.com) instead of using the public issue tracker.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Pexip Engineering Team](https://www.pexip.com/) for developing and maintaining Pexip Infinity
+- [HashiCorp](https://www.hashicorp.com/) for the Terraform Plugin Framework
+- [Go Community](https://golang.org/) for the excellent programming language and ecosystem
+
+---
+
+**Made with ❤️ by the Pexip team**
