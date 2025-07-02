@@ -160,7 +160,6 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityTURNServerResource{} },
 		func() resource.Resource { return &InfinityHTTPProxyResource{} },
 		func() resource.Resource { return &InfinityMSSIPProxyResource{} },
-		func() resource.Resource { return &InfinityTLSCertificateResource{} },
 		func() resource.Resource { return &InfinityRoleResource{} },
 		func() resource.Resource { return &InfinityUserGroupResource{} },
 		func() resource.Resource { return &InfinityEndUserResource{} },
