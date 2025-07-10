@@ -4,6 +4,7 @@ package provider
 
 import (
 	"crypto/tls"
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
@@ -17,8 +18,8 @@ func TestInfinitySystemLocationIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(
-		infinity.WithBaseURL("https://dev-manager.dev.pexip.network"),
-		infinity.WithBasicAuth("admin", "admin"),
+		infinity.WithBaseURL(test.INFINITY_BASE_URL),
+		infinity.WithBasicAuth(test.INFINITY_USERNAME, test.INFINITY_PASSWORD),
 		infinity.WithMaxRetries(2),
 		infinity.WithTransport(&http.Transport{
 			TLSClientConfig: &tls.Config{

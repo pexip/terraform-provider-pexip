@@ -97,7 +97,7 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestData(t, "resource_infinity_system_location_basic.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_system_location_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "resource_id"),
@@ -109,7 +109,7 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.1", "/api/admin/configuration/v1/dns_server/2/")),
 			},
 			{
-				Config: test.LoadTestData(t, "resource_infinity_system_location_basic_updated.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_system_location_basic_updated"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "resource_id"),

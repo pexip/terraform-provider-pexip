@@ -22,7 +22,7 @@ func testInfinityManagerConfig(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestData(t, "data_infinity_manager_config_basic.tf"),
+				Config: test.LoadTestFolder(t, "data_infinity_manager_config_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "hostname"),
 					resource.TestCheckResourceAttrSet("data.pexip_infinity_manager_config.master", "domain"),

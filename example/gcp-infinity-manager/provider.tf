@@ -3,7 +3,7 @@ terraform {
   required_providers {
     pexip = {
       source  = "pexip.com/pexip/pexip"
-      version = ">= 1.0"
+      version = ">= 0.0.1"
     }
     google = {
       source  = "hashicorp/google"
@@ -12,6 +12,10 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = ">= 3.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0.0"
     }
     null = {
       source  = "hashicorp/null"

@@ -1,25 +1,9 @@
-terraform {
-  required_providers {
-    pexip = {
-      source  = "pexip"
-      version = ">= 1.0.0"
-    }
-  }
-}
-
-provider "pexip" {
-  address  = "https://infinity.example.com"
-  username = "admin"
-  password = "admin_password"
-  insecure = true
-}
-
 resource "pexip_infinity_node" "node" {
   name                    = "test-node-1"
   hostname                = "test-node-1"
   address                 = "192.168.1.100"
   netmask                 = "255.255.255.0"
-  domain                  = "example.com"
+  domain                  = "pexip.com" # Updated domain from example.com to pexip.com
   gateway                 = "192.168.1.1"
   password                = "password123"
   node_type               = "CONFERENCING"

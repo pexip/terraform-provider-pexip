@@ -14,8 +14,11 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38"
 )
 
-func TestInfinityDNSServerIntegration(t *testing.T) {
+func TestInfinityTLSCertificateIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
+
+	tlsCertificate := test.LoadTestFile(t, "tls_certificate.pem")
+	tlsPrivateKey := test.LoadTestFile(t, "tls_private_key.pem")
 
 	client, err := infinity.New(
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),
@@ -33,5 +36,5 @@ func TestInfinityDNSServerIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityDNSServer(t, client)
+	testInfinityTLSCertificate(t, client, tlsPrivateKey, tlsCertificate)
 }

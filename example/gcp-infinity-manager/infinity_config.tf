@@ -40,3 +40,8 @@ resource "pexip_infinity_system_location" "AMS" {
     null_resource.wait_for_infinity_manager_http
   ]
 }
+
+resource "pexip_infinity_tls_certificate" "tls-cert-test" {
+  certificate = tls_self_signed_cert.manager_cert.cert_pem
+  private_key = tls_private_key.manager_private_key.private_key_pem
+}

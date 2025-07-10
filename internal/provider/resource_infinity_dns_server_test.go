@@ -75,7 +75,7 @@ func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestData(t, "resource_infinity_dns_server_basic.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
@@ -84,7 +84,7 @@ func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 				),
 			},
 			{
-				Config: test.LoadTestData(t, "resource_infinity_dns_server_basic_updated.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_basic_updated"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
