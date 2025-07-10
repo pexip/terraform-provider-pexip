@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -100,17 +101,21 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The port number for the TURN server. Range: 1 to 65535.",
 			},
 			"server_type": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("standard", "shared_secret"),
+					stringvalidator.OneOf("namepsw", "coturn_shared"),
 				},
+				Default:             stringdefault.StaticString("namepsw"),
 				MarkdownDescription: "The type of TURN server. Valid values: standard, shared_secret.",
 			},
 			"transport_type": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("udp", "tcp", "tls"),
 				},
+				Default:             stringdefault.StaticString("udp"),
 				MarkdownDescription: "The transport type for the TURN server. Valid values: udp, tcp, tls.",
 			},
 			"username": schema.StringAttribute{
@@ -196,7 +201,7 @@ func (r *InfinityTURNServerResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString(), plan.SecretKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity TURN server",
@@ -209,7 +214,7 @@ func (r *InfinityTURNServerResource) Create(ctx context.Context, req resource.Cr
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int) (*InfinityTURNServerResourceModel, error) {
+func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, password string, secretKey string) (*InfinityTURNServerResourceModel, error) {
 	var data InfinityTURNServerResourceModel
 
 	srv, err := r.InfinityClient.Config().GetTURNServer(ctx, resourceID)
@@ -229,8 +234,8 @@ func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int) (
 	data.ServerType = types.StringValue(srv.ServerType)
 	data.TransportType = types.StringValue(srv.TransportType)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
-	data.SecretKey = types.StringValue(srv.SecretKey)
+	data.Password = types.StringValue(password)   // The server does not return the password, so we use the provided one
+	data.SecretKey = types.StringValue(secretKey) // The server does not return the secret key, so we use the provided one
 
 	if srv.Port != nil {
 		data.Port = types.Int32Value(int32(*srv.Port))
@@ -250,7 +255,7 @@ func (r *InfinityTURNServerResource) Read(ctx context.Context, req resource.Read
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Password.ValueString(), state.SecretKey.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -313,7 +318,7 @@ func (r *InfinityTURNServerResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString(), plan.SecretKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity TURN server",
@@ -360,7 +365,7 @@ func (r *InfinityTURNServerResource) ImportState(ctx context.Context, req resour
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity TURN server with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "", "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
