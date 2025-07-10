@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -108,18 +110,24 @@ func (r *InfinityEventSinkResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Password for authentication to the event sink. Maximum length: 100 characters.",
 			},
 			"bulk_support": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether the event sink supports bulk operations.",
 			},
 			"verify_tls_certificate": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to verify TLS certificates when connecting to the event sink.",
 			},
 			"version": schema.Int32Attribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.AtLeast(1),
 				},
+				Default:             int32default.StaticInt32(1),
 				MarkdownDescription: "The version of the event sink API. Must be at least 1.",
 			},
 		},
@@ -176,7 +184,7 @@ func (r *InfinityEventSinkResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity event sink",
@@ -189,7 +197,7 @@ func (r *InfinityEventSinkResource) Create(ctx context.Context, req resource.Cre
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityEventSinkResource) read(ctx context.Context, resourceID int) (*InfinityEventSinkResourceModel, error) {
+func (r *InfinityEventSinkResource) read(ctx context.Context, resourceID int, password string) (*InfinityEventSinkResourceModel, error) {
 	var data InfinityEventSinkResourceModel
 
 	srv, err := r.InfinityClient.Config().GetEventSink(ctx, resourceID)
@@ -208,6 +216,7 @@ func (r *InfinityEventSinkResource) read(ctx context.Context, resourceID int) (*
 	data.BulkSupport = types.BoolValue(srv.BulkSupport)
 	data.VerifyTLSCertificate = types.BoolValue(srv.VerifyTLSCertificate)
 	data.Version = types.Int32Value(int32(srv.Version))
+	data.Password = types.StringValue(password)
 
 	if srv.Description != nil {
 		data.Description = types.StringValue(*srv.Description)
@@ -219,12 +228,6 @@ func (r *InfinityEventSinkResource) read(ctx context.Context, resourceID int) (*
 		data.Username = types.StringValue(*srv.Username)
 	} else {
 		data.Username = types.StringNull()
-	}
-
-	if srv.Password != nil {
-		data.Password = types.StringValue(*srv.Password)
-	} else {
-		data.Password = types.StringNull()
 	}
 
 	return &data, nil
@@ -239,7 +242,7 @@ func (r *InfinityEventSinkResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -302,7 +305,7 @@ func (r *InfinityEventSinkResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity event sink",
@@ -349,7 +352,7 @@ func (r *InfinityEventSinkResource) ImportState(ctx context.Context, req resourc
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity event sink with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
