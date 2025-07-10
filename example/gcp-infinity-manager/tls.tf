@@ -11,7 +11,7 @@ resource "tls_self_signed_cert" "manager_cert" {
     organization = "Pexip AS"
   }
 
-  validity_period_hours = 8760  # 1 year
+  validity_period_hours = 8760 # 1 year
   allowed_uses = [
     "key_encipherment",
     "digital_signature",
