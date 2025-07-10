@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -123,6 +124,7 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			"notifications_enabled": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Whether notifications are enabled for the Teams proxy.",
 			},
 			"notifications_queue": schema.StringAttribute{
