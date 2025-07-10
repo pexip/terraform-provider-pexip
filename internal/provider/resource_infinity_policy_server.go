@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -121,43 +122,63 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Password for authentication to the policy server. Maximum length: 100 characters.",
 			},
 			"enable_service_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable service lookup on this policy server.",
 			},
 			"enable_participant_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable participant lookup on this policy server.",
 			},
 			"enable_registration_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable registration lookup on this policy server.",
 			},
 			"enable_directory_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable directory lookup on this policy server.",
 			},
 			"enable_avatar_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable avatar lookup on this policy server.",
 			},
 			"enable_media_location_lookup": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable media location lookup on this policy server.",
 			},
 			"enable_internal_service_policy": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable internal service policy on this policy server.",
 			},
 			"enable_internal_participant_policy": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable internal participant policy on this policy server.",
 			},
 			"enable_internal_media_location_policy": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to enable internal media location policy on this policy server.",
 			},
 			"prefer_local_avatar_configuration": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to prefer local avatar configuration over policy server configuration.",
 			},
 			"service_configuration_template": schema.StringAttribute{
@@ -277,7 +298,7 @@ func (r *InfinityPolicyServerResource) Create(ctx context.Context, req resource.
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity policy server",
@@ -290,7 +311,7 @@ func (r *InfinityPolicyServerResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityPolicyServerResource) read(ctx context.Context, resourceID int) (*InfinityPolicyServerResourceModel, error) {
+func (r *InfinityPolicyServerResource) read(ctx context.Context, resourceID int, password string) (*InfinityPolicyServerResourceModel, error) {
 	var data InfinityPolicyServerResourceModel
 
 	srv, err := r.InfinityClient.Config().GetPolicyServer(ctx, resourceID)
@@ -308,7 +329,7 @@ func (r *InfinityPolicyServerResource) read(ctx context.Context, resourceID int)
 	data.Description = types.StringValue(srv.Description)
 	data.URL = types.StringValue(srv.URL)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	data.Password = types.StringValue(password) // The password property of the policy server is returned in hashed format, so we need to ignore it by setting it to the input string
 	data.EnableServiceLookup = types.BoolValue(srv.EnableServiceLookup)
 	data.EnableParticipantLookup = types.BoolValue(srv.EnableParticipantLookup)
 	data.EnableRegistrationLookup = types.BoolValue(srv.EnableRegistrationLookup)
@@ -338,7 +359,7 @@ func (r *InfinityPolicyServerResource) Read(ctx context.Context, req resource.Re
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -425,7 +446,7 @@ func (r *InfinityPolicyServerResource) Update(ctx context.Context, req resource.
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity policy server",
@@ -472,7 +493,7 @@ func (r *InfinityPolicyServerResource) ImportState(ctx context.Context, req reso
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity policy server with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
