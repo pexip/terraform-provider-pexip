@@ -148,7 +148,7 @@ func (r *InfinityLicenceResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "The server chain for the licence.",
 			},
 			"offline_mode": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
 				MarkdownDescription: "Whether the licence should be activated in offline mode.",
 			},
 		},
