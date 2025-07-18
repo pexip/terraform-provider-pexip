@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
@@ -84,9 +83,9 @@ func (r *InfinitySnmpNetworkManagementSystemResource) Schema(ctx context.Context
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address of the SNMP network management system.",
+				MarkdownDescription: "The IP address or FQDN of the SNMP Network Management System. Maximum length: 255 characters.",
 			},
 			"port": schema.Int64Attribute{
 				Required: true,
