@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
@@ -83,9 +82,9 @@ func (r *InfinityH323GatekeeperResource) Schema(ctx context.Context, req resourc
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address of the H.323 gatekeeper.",
+				MarkdownDescription: "The IPv4 address or hostname of the H.323 gatekeeper. Maximum length: 255 characters.",
 			},
 			"port": schema.Int64Attribute{
 				Optional: true,
