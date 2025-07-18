@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
@@ -71,9 +71,9 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					validators.IPAddress(),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address of the syslog server.",
+				MarkdownDescription: "The IP address or FQDN of the remote syslog server. Maximum length: 255 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -97,15 +97,21 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Transport protocol for syslog. Valid values: udp, tcp, tls.",
 			},
 			"audit_log": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to send audit logs to this syslog server.",
 			},
 			"support_log": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to send support logs to this syslog server.",
 			},
 			"web_log": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to send web logs to this syslog server.",
 			},
 		},
