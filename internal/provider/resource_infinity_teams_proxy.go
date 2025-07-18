@@ -124,12 +124,13 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			"notifications_enabled": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether notifications are enabled for the Teams proxy.",
 			},
 			"notifications_queue": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
