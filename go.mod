@@ -4,7 +4,7 @@ go 1.24.3
 
 toolchain go1.24.4
 
-replace github.com/pexip/go-infinity-sdk/v38 => /Users/habakke/Documents/code/pexip/go-inifinity-sdk
+replace github.com/pexip/go-infinity-sdk/v38 => /Users/mikeassel/Documents/github/go-infinity-sdk
 
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
