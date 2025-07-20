@@ -33,7 +33,10 @@ resource "pexip_infinity_system_location" "AMS" {
   description = "AMS always on"
   mtu         = 1460
   dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
-  ntp_servers = [pexip_infinity_ntp_server.ntp1.id]  
+  ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
+  syslog_servers = [
+    pexip_infinity_syslog_server.syslog-server-test.id
+  ]
 
   depends_on = [
     google_compute_instance.infinity_manager,

@@ -32,6 +32,7 @@ type InfinitySystemLocationResourceModel struct {
 	DNSServers  types.List   `tfsdk:"dns_servers"`
 	NTPServers  types.List   `tfsdk:"ntp_servers"`
 	MTU         types.Int32  `tfsdk:"mtu"`
+	SyslogServers types.List `tfsdk:"syslog_servers"`
 }
 
 // getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
@@ -55,6 +56,11 @@ func (m *InfinitySystemLocationResourceModel) GetDNSServers(ctx context.Context)
 func (m *InfinitySystemLocationResourceModel) GetNTPServers(ctx context.Context) ([]string, diag.Diagnostics) {
 	return getSortedStringList(ctx, m.NTPServers)
 }
+
+func (m *InfinitySystemLocationResourceModel) GetSyslogServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	return getSortedStringList(ctx, m.SyslogServers)
+}
+
 func (r *InfinitySystemLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_infinity_system_location"
 }
@@ -87,7 +93,6 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "The resource integer identifier for the system location in Infinity",
 			},
-
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -120,6 +125,12 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				},
 				MarkdownDescription: "The name used to refer to this system location. Maximum length: 250 characters.",
 			},
+			"syslog_servers": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The Syslog servers to be used by Conferencing Nodes deployed in this Location.",
+			},
 		},
 		MarkdownDescription: "Registers a system location with the Infinity service.",
 	}
@@ -137,6 +148,8 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := plan.GetNTPServers(ctx)
 	resp.Diagnostics.Append(diags...)
+	syslogServers, diags := plan.GetSyslogServers(ctx)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -145,6 +158,7 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		Name:       plan.Name.ValueString(),
 		DNSServers: dnsServers,
 		NTPServers: ntpServers,
+		SyslogServers: syslogServers,
 	}
 
 	// Only set optional fields if they are not null in the plan
@@ -229,6 +243,18 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	}
 	data.NTPServers = ntpListValue
 
+	// Convert Syslog servers from SDK to Terraform format
+	var syslogServers []string
+	for _, syslog := range srv.SyslogServers {
+		syslogServers = append(syslogServers, fmt.Sprintf("/api/admin/configuration/v1/syslog_server/%d/", syslog.ID))
+	}
+	sort.Strings(syslogServers)
+	syslogListValue, diags := types.ListValueFrom(ctx, types.StringType, syslogServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting Syslog servers: %v", diags)
+	}
+	data.SyslogServers = syslogListValue
+
 	return &data, nil
 }
 
@@ -274,6 +300,8 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := plan.GetNTPServers(ctx)
 	resp.Diagnostics.Append(diags...)
+	syslogServers, diags := plan.GetSyslogServers(ctx)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -282,6 +310,7 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		Name:       plan.Name.ValueString(),
 		DNSServers: dnsServers,
 		NTPServers: ntpServers,
+		SyslogServers: syslogServers,
 	}
 
 	if !plan.Description.IsNull() {
