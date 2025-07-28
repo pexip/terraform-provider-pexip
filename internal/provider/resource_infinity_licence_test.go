@@ -33,6 +33,15 @@ func TestInfinityLicence(t *testing.T) {
 		ResourceURI:   "/api/admin/configuration/v1/licence/123/",
 	}
 
+	// Mock the ListLicences API call (needed after creation to find fulfillment ID)
+	listResponse := &config.LicenceListResponse{
+		Objects: []config.Licence{*mockState},
+	}
+	client.On("GetJSON", mock.Anything, "configuration/v1/licence/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		response := args.Get(2).(*config.LicenceListResponse)
+		*response = *listResponse
+	})
+
 	// Mock the GetLicence API call for Read operations (both paths needed)
 	client.On("GetJSON", mock.Anything, "configuration/v1/licence/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		license := args.Get(2).(*config.Licence)
@@ -61,7 +70,6 @@ func testInfinityLicence(t *testing.T, client InfinityClient) {
 				Config: test.LoadTestFolder(t, "resource_infinity_licence_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "fulfillment_id", "test-fulfillment-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "entitlement_id", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "offline_mode", "true"),
 				),

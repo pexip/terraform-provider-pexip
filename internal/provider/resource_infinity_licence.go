@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -148,7 +150,9 @@ func (r *InfinityLicenceResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "The server chain for the licence.",
 			},
 			"offline_mode": schema.BoolAttribute{
+				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether the licence should be activated in offline mode.",
 			},
 		},
@@ -169,7 +173,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 		OfflineMode:   plan.OfflineMode.ValueBool(),
 	}
 
-	createResponse, err := r.InfinityClient.Config().CreateLicence(ctx, createRequest)
+	_, err := r.InfinityClient.Config().CreateLicence(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity licence",
@@ -178,26 +182,36 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// For licence resources, we need to extract the fulfillment ID from the response
-	// The CreateLicence response should contain the fulfillment ID
-	fulfillmentID, err := createResponse.ResourceID()
+	listResponse, err := r.InfinityClient.Config().ListLicences(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Retrieving Infinity licence fulfillment ID",
-			fmt.Sprintf("Could not retrieve fulfillment ID for created Infinity licence: %s", err),
+			"Error Listing Infinity licences",
+			fmt.Sprintf("Could not list Infinity licences after creation: %s", err),
 		)
 		return
 	}
 
-	// Convert the resource ID to string since fulfillment ID is a string
-	fulfillmentIDStr := fmt.Sprintf("%d", fulfillmentID)
+	fulfillmentID := ""
+	for _, licence := range listResponse.Objects {
+		if licence.EntitlementID == strings.Replace(plan.EntitlementID.ValueString(), " ", "", -1) {
+			fulfillmentID = licence.FulfillmentID
+			break
+		}
+	}
+	if fulfillmentID == "" {
+		resp.Diagnostics.AddError(
+			"Fulfillment ID Not Found",
+			fmt.Sprintf("Could not find fulfillment ID for entitlement ID %s after creation", plan.EntitlementID.ValueString()),
+		)
+		return
+	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, fulfillmentIDStr)
+	model, err := r.read(ctx, fulfillmentID, plan.EntitlementID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity licence",
-			fmt.Sprintf("Could not read created Infinity licence with fulfillment ID %s: %s", fulfillmentIDStr, err),
+			fmt.Sprintf("Could not read created Infinity licence with fulfillment ID %s: %s", fulfillmentID, err),
 		)
 		return
 	}
@@ -206,7 +220,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID string) (*InfinityLicenceResourceModel, error) {
+func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID string, entitlementID string) (*InfinityLicenceResourceModel, error) {
 	var data InfinityLicenceResourceModel
 
 	srv, err := r.InfinityClient.Config().GetLicence(ctx, fulfillmentID)
@@ -218,9 +232,14 @@ func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID string
 		return nil, fmt.Errorf("licence with fulfillment ID %s not found", fulfillmentID)
 	}
 
+	if len(entitlementID) > 0 {
+		data.EntitlementID = types.StringValue(entitlementID)
+	} else {
+		data.EntitlementID = types.StringValue(srv.EntitlementID)
+	}
+
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.FulfillmentID = types.StringValue(srv.FulfillmentID)
-	data.EntitlementID = types.StringValue(srv.EntitlementID)
 	data.FulfillmentType = types.StringValue(srv.FulfillmentType)
 	data.ProductID = types.StringValue(srv.ProductID)
 	data.LicenseType = types.StringValue(srv.LicenseType)
@@ -251,7 +270,7 @@ func (r *InfinityLicenceResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	fulfillmentID := state.FulfillmentID.ValueString()
-	state, err := r.read(ctx, fulfillmentID)
+	state, err := r.read(ctx, fulfillmentID, state.EntitlementID.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -306,7 +325,7 @@ func (r *InfinityLicenceResource) ImportState(ctx context.Context, req resource.
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity licence with fulfillment ID: %s", fulfillmentID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, fulfillmentID)
+	model, err := r.read(ctx, fulfillmentID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

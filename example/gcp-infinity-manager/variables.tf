@@ -49,6 +49,12 @@ variable "vm_image_project" {
   description = "Project ID where the VM image is located"
 }
 
+variable "license_key" {
+  type        = string
+  sensitive   = true
+  description = "Pexip Infinity license key"
+}
+
 variable "machine_type" {
   type        = string
   default     = "n2d-standard-16"

@@ -34,6 +34,12 @@ variable "vm_image_node_name" {
   description = "VM image to use"
 }
 
+variable "infinity_license_key" {
+  type        = string
+  sensitive   = true
+  description = "License key for Infinity"
+}
+
 variable "infinity_address" {
   type        = string
   default     = "https://manager.example.com"

@@ -4,6 +4,7 @@ locals {
 
 module "gcp-infinity-manager" {
   source                = "./gcp-infinity-manager"
+  license_key           = var.infinity_license_key
   vm_image_name         = var.vm_image_manager_name
   machine_type          = var.infinity_manager_machine_type
   cpu_platform          = var.infinity_manager_cpu_platform
