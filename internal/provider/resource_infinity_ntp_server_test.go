@@ -71,7 +71,7 @@ func TestInfinityNTPServer(t *testing.T) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestData(t, "resource_infinity_ntp_server_basic.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "resource_id"),
@@ -80,7 +80,7 @@ func TestInfinityNTPServer(t *testing.T) {
 				),
 			},
 			{
-				Config: test.LoadTestData(t, "resource_infinity_ntp_server_basic_updated.tf"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_basic_updated"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "resource_id"),

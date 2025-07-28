@@ -111,7 +111,7 @@ func (r *InfinityUserGroupResource) Create(ctx context.Context, req resource.Cre
 	if !plan.Description.IsNull() {
 		createRequest.Description = plan.Description.ValueString()
 	}
-	if !plan.Users.IsNull() {
+	if !plan.Users.IsNull() && !plan.Users.IsUnknown() {
 		var users []string
 		resp.Diagnostics.Append(plan.Users.ElementsAs(ctx, &users, false)...)
 		if resp.Diagnostics.HasError() {
@@ -119,7 +119,7 @@ func (r *InfinityUserGroupResource) Create(ctx context.Context, req resource.Cre
 		}
 		createRequest.Users = users
 	}
-	if !plan.UserGroupEntityMappings.IsNull() {
+	if !plan.UserGroupEntityMappings.IsNull() && !plan.UserGroupEntityMappings.IsUnknown() {
 		var mappings []string
 		resp.Diagnostics.Append(plan.UserGroupEntityMappings.ElementsAs(ctx, &mappings, false)...)
 		if resp.Diagnostics.HasError() {
@@ -239,7 +239,7 @@ func (r *InfinityUserGroupResource) Update(ctx context.Context, req resource.Upd
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
 	}
-	if !plan.Users.IsNull() {
+	if !plan.Users.IsNull() && !plan.Users.IsUnknown() {
 		var users []string
 		resp.Diagnostics.Append(plan.Users.ElementsAs(ctx, &users, false)...)
 		if resp.Diagnostics.HasError() {
@@ -247,7 +247,7 @@ func (r *InfinityUserGroupResource) Update(ctx context.Context, req resource.Upd
 		}
 		updateRequest.Users = users
 	}
-	if !plan.UserGroupEntityMappings.IsNull() {
+	if !plan.UserGroupEntityMappings.IsNull() && !plan.UserGroupEntityMappings.IsUnknown() {
 		var mappings []string
 		resp.Diagnostics.Append(plan.UserGroupEntityMappings.ElementsAs(ctx, &mappings, false)...)
 		if resp.Diagnostics.HasError() {

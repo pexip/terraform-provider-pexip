@@ -79,6 +79,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -86,6 +87,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"adaptive_max_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -93,6 +95,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"maximum_min_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -100,6 +103,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -107,6 +111,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -114,6 +119,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"natted_max_refresh": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(30, 3600),
 				},
@@ -243,12 +249,38 @@ func (r *InfinityRegistrationResource) read(ctx context.Context) (*InfinityRegis
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.Enable = types.BoolValue(srv.Enable)
 	data.RefreshStrategy = types.StringValue(srv.RefreshStrategy)
-	data.AdaptiveMinRefresh = types.Int64Value(int64(srv.AdaptiveMinRefresh))
-	data.AdaptiveMaxRefresh = types.Int64Value(int64(srv.AdaptiveMaxRefresh))
-	data.MaximumMinRefresh = types.Int64Value(int64(srv.MaximumMinRefresh))
-	data.MaximumMaxRefresh = types.Int64Value(int64(srv.MaximumMaxRefresh))
-	data.NattedMinRefresh = types.Int64Value(int64(srv.NattedMinRefresh))
-	data.NattedMaxRefresh = types.Int64Value(int64(srv.NattedMaxRefresh))
+
+	// Set refresh values based on strategy, null for unused strategies
+	if srv.RefreshStrategy == "adaptive" {
+		data.AdaptiveMinRefresh = types.Int64Value(int64(srv.AdaptiveMinRefresh))
+		data.AdaptiveMaxRefresh = types.Int64Value(int64(srv.AdaptiveMaxRefresh))
+		data.MaximumMinRefresh = types.Int64Null()
+		data.MaximumMaxRefresh = types.Int64Null()
+	} else if srv.RefreshStrategy == "maximum" {
+		data.MaximumMinRefresh = types.Int64Value(int64(srv.MaximumMinRefresh))
+		data.MaximumMaxRefresh = types.Int64Value(int64(srv.MaximumMaxRefresh))
+		data.AdaptiveMinRefresh = types.Int64Null()
+		data.AdaptiveMaxRefresh = types.Int64Null()
+	} else {
+		// For other strategies or when not set, all strategy-specific fields are null
+		data.AdaptiveMinRefresh = types.Int64Null()
+		data.AdaptiveMaxRefresh = types.Int64Null()
+		data.MaximumMinRefresh = types.Int64Null()
+		data.MaximumMaxRefresh = types.Int64Null()
+	}
+
+	// Natted fields are strategy-independent but may be null if not configured
+	if srv.NattedMinRefresh > 0 {
+		data.NattedMinRefresh = types.Int64Value(int64(srv.NattedMinRefresh))
+	} else {
+		data.NattedMinRefresh = types.Int64Null()
+	}
+	if srv.NattedMaxRefresh > 0 {
+		data.NattedMaxRefresh = types.Int64Value(int64(srv.NattedMaxRefresh))
+	} else {
+		data.NattedMaxRefresh = types.Int64Null()
+	}
+
 	data.RouteViaRegistrar = types.BoolValue(srv.RouteViaRegistrar)
 	data.EnablePushNotifications = types.BoolValue(srv.EnablePushNotifications)
 	data.EnableGoogleCloudMessaging = types.BoolValue(srv.EnableGoogleCloudMessaging)

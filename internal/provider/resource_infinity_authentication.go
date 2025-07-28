@@ -3,6 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -104,147 +107,212 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			},
 			"api_oauth2_disable_basic": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to disable basic authentication for OAuth2 API access.",
 			},
 			"api_oauth2_allow_all_perms": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to allow all permissions for OAuth2 API access.",
 			},
 			"api_oauth2_expiration": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.AtLeast(60),
 				},
+				Default:             int64default.StaticInt64(3600),
 				MarkdownDescription: "OAuth2 token expiration time in seconds. Minimum: 60 seconds.",
 			},
 			"ldap_server": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					validators.URL(false),
 				},
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP server URL (ldap:// or ldaps://).",
 			},
 			"ldap_base_dn": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP base distinguished name for searches.",
 			},
 			"ldap_bind_username": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP bind username for authentication.",
 			},
 			"ldap_bind_password": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				Sensitive:           true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP bind password for authentication. This field is sensitive.",
 			},
 			"ldap_user_search_dn": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP distinguished name for user searches.",
 			},
 			"ldap_user_filter": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("(&(objectclass=person)(!(objectclass=computer)))"),
 				MarkdownDescription: "LDAP filter for user searches.",
 			},
 			"ldap_user_search_filter": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("(|(uid={username})(sAMAccountName={username}))"),
 				MarkdownDescription: "LDAP search filter for users.",
 			},
 			"ldap_user_group_attributes": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("memberOf"),
 				MarkdownDescription: "LDAP attributes to use for user group membership.",
 			},
 			"ldap_group_search_dn": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "LDAP distinguished name for group searches.",
 			},
 			"ldap_group_filter": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup))"),
 				MarkdownDescription: "LDAP filter for group searches.",
 			},
 			"ldap_group_membership_filter": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("(|(member={userdn})(uniquemember={userdn})(memberuid={useruid}))"),
 				MarkdownDescription: "LDAP filter for group membership queries.",
 			},
 			"ldap_use_global_catalog": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to use LDAP global catalog.",
 			},
 			"ldap_permit_no_tls": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Whether to permit LDAP connections without TLS.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"oidc_metadata_url": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					validators.URL(true),
 				},
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect metadata URL.",
 			},
 			"oidc_metadata": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{}"),
 				MarkdownDescription: "OpenID Connect metadata as JSON string.",
 			},
 			"oidc_client_id": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect client ID.",
 			},
 			"oidc_client_secret": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				Sensitive:           true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect client secret. This field is sensitive.",
 			},
 			"oidc_private_key": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				Sensitive:           true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect private key for JWT signing. This field is sensitive.",
 			},
 			"oidc_auth_method": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("client_secret_basic", "client_secret_post", "private_key_jwt"),
 				},
+				Default:             stringdefault.StaticString("client_secret"),
 				MarkdownDescription: "OpenID Connect authentication method. Valid values: client_secret_basic, client_secret_post, private_key_jwt.",
 			},
 			"oidc_scope": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("openid profile email"),
 				MarkdownDescription: "OpenID Connect scope for authentication requests.",
 			},
 			"oidc_authorize_url": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					validators.URL(true),
 				},
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect authorization URL.",
 			},
 			"oidc_token_endpoint_url": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					validators.URL(true),
 				},
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect token endpoint URL.",
 			},
 			"oidc_username_field": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("preferred_username"),
 				MarkdownDescription: "OpenID Connect claim field for username.",
 			},
 			"oidc_groups_field": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("groups"),
 				MarkdownDescription: "OpenID Connect claim field for groups.",
 			},
 			"oidc_required_key": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect required claim key for access control.",
 			},
 			"oidc_required_value": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect required claim value for access control.",
 			},
 			"oidc_domain_hint": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OpenID Connect domain hint for login.",
 			},
 			"oidc_login_button": schema.StringAttribute{
-				Optional:            true,
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(128),
+				},
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Text for the OpenID Connect login button.",
 			},
 		},

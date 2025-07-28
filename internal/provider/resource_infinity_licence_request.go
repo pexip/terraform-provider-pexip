@@ -206,10 +206,7 @@ func (r *InfinityLicenceRequestResource) Update(ctx context.Context, req resourc
 }
 
 func (r *InfinityLicenceRequestResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	resp.Diagnostics.AddError(
-		"Delete Not Supported",
-		"Licence request resources cannot be deleted. Licence requests are permanent records for license management.",
-	)
+	resp.State.RemoveResource(ctx)
 }
 
 func (r *InfinityLicenceRequestResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

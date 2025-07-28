@@ -144,9 +144,6 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		func() resource.Resource {
-			return &InfinityNodeResource{}
-		},
 		func() resource.Resource { return &InfinitySSHPasswordHashResource{} },
 		func() resource.Resource { return &InfinityWebPasswordHashResource{} },
 		func() resource.Resource { return &InfinityDnsServerResource{} },

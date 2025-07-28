@@ -76,7 +76,7 @@ resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
     google_compute_instance.infinity_manager,
     null_resource.wait_for_infinity_manager_http,
     //pexip_infinity_licence.lic-test
-  ]  
+  ]
 }
 
 resource "pexip_infinity_event_sink" "event-sink-test" {

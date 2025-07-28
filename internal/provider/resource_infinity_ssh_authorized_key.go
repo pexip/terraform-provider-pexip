@@ -113,7 +113,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Create(ctx context.Context, req resou
 	if !plan.Comment.IsNull() {
 		createRequest.Comment = plan.Comment.ValueString()
 	}
-	if !plan.Nodes.IsNull() {
+	if !plan.Nodes.IsNull() && !plan.Nodes.IsUnknown() {
 		var nodes []string
 		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
 		if resp.Diagnostics.HasError() {
@@ -233,7 +233,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Update(ctx context.Context, req resou
 	if !plan.Comment.IsNull() {
 		updateRequest.Comment = plan.Comment.ValueString()
 	}
-	if !plan.Nodes.IsNull() {
+	if !plan.Nodes.IsNull() && !plan.Nodes.IsUnknown() {
 		var nodes []string
 		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
 		if resp.Diagnostics.HasError() {

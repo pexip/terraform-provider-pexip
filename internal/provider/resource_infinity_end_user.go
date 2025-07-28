@@ -225,7 +225,7 @@ func (r *InfinityEndUserResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Set user groups if provided
-	if !plan.UserGroups.IsNull() {
+	if !plan.UserGroups.IsNull() && !plan.UserGroups.IsUnknown() {
 		var userGroups []string
 		resp.Diagnostics.Append(plan.UserGroups.ElementsAs(ctx, &userGroups, false)...)
 		if resp.Diagnostics.HasError() {
@@ -396,7 +396,7 @@ func (r *InfinityEndUserResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Set user groups if provided
-	if !plan.UserGroups.IsNull() {
+	if !plan.UserGroups.IsNull() && !plan.UserGroups.IsUnknown() {
 		var userGroups []string
 		resp.Diagnostics.Append(plan.UserGroups.ElementsAs(ctx, &userGroups, false)...)
 		if resp.Diagnostics.HasError() {

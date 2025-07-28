@@ -12,7 +12,7 @@ resource "pexip_infinity_ssh_password_hash" "default" {
   password = var.password
 }
 
-resource "pexip_infinity_node" "worker" {
+resource "pexip_infinity_worker_vm" "worker" {
   name                    = local.hostname
   hostname                = local.hostname
   address                 = google_compute_address.infinity_node_private_ip.address

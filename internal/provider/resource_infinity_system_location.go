@@ -25,14 +25,14 @@ type InfinitySystemLocationResource struct {
 }
 
 type InfinitySystemLocationResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	ResourceID  types.Int32  `tfsdk:"resource_id"`
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	DNSServers  types.List   `tfsdk:"dns_servers"`
-	NTPServers  types.List   `tfsdk:"ntp_servers"`
-	MTU         types.Int32  `tfsdk:"mtu"`
-	SyslogServers types.List `tfsdk:"syslog_servers"`
+	ID            types.String `tfsdk:"id"`
+	ResourceID    types.Int32  `tfsdk:"resource_id"`
+	Name          types.String `tfsdk:"name"`
+	Description   types.String `tfsdk:"description"`
+	DNSServers    types.List   `tfsdk:"dns_servers"`
+	NTPServers    types.List   `tfsdk:"ntp_servers"`
+	MTU           types.Int32  `tfsdk:"mtu"`
+	SyslogServers types.List   `tfsdk:"syslog_servers"`
 }
 
 // getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
@@ -155,9 +155,9 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	}
 
 	createRequest := &config.SystemLocationCreateRequest{
-		Name:       plan.Name.ValueString(),
-		DNSServers: dnsServers,
-		NTPServers: ntpServers,
+		Name:          plan.Name.ValueString(),
+		DNSServers:    dnsServers,
+		NTPServers:    ntpServers,
 		SyslogServers: syslogServers,
 	}
 
@@ -307,9 +307,9 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	}
 
 	updateRequest := &config.SystemLocationUpdateRequest{
-		Name:       plan.Name.ValueString(),
-		DNSServers: dnsServers,
-		NTPServers: ntpServers,
+		Name:          plan.Name.ValueString(),
+		DNSServers:    dnsServers,
+		NTPServers:    ntpServers,
 		SyslogServers: syslogServers,
 	}
 

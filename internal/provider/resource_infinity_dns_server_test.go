@@ -25,41 +25,35 @@ func TestInfinityDNSServer(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Track state to return different values before and after update
-	updated := false
+	// Shared state for mocking
+	mockState := &config.DNSServer{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
+		Address:     "192.168.1.50",
+		Description: "Cloudflare DNS",
+	}
 
 	// Mock the GetDNSServer API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/dns_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		dns := args.Get(2).(*config.DNSServer)
-		if updated {
-			*dns = config.DNSServer{
-				ID:          123,
-				Address:     "1.1.1.1",
-				Description: "Cloudflare DNS - updated",
-				ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
-			}
-		} else {
-			*dns = config.DNSServer{
-				ID:          123,
-				Address:     "1.1.1.1",
-				Description: "Cloudflare DNS",
-				ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
-			}
-		}
-	}).Maybe() // Called multiple times for reads
+		dns_server := args.Get(2).(*config.DNSServer)
+		*dns_server = *mockState
+	}).Maybe()
 
-	// Mock the UpdateDNSServer API call - use mock.MatchedBy to match dynamic ID
-	client.On("PutJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/dns_server/123/"
-	}), mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updated = true // Mark as updated for subsequent reads
-		dns := args.Get(3).(*config.DNSServer)
-		*dns = config.DNSServer{
-			ID:          123,
-			Address:     "1.1.1.1",
-			Description: "Cloudflare DNS - updated",
-			ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
+	// Mock the UpdateDNSServer API call
+	client.On("PutJSON", mock.Anything, "configuration/v1/dns_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		updateRequest := args.Get(2).(*config.DNSServerUpdateRequest)
+		dns_server := args.Get(3).(*config.DNSServer)
+
+		// Update mock state based on request
+		if updateRequest.Address != "" {
+			mockState.Address = updateRequest.Address
 		}
+		if updateRequest.Description != "" {
+			mockState.Description = updateRequest.Description
+		}
+
+		// Return updated state
+		*dns_server = *mockState
 	}).Maybe()
 
 	// Mock the DeleteDNSServer API call - use mock.MatchedBy to match dynamic ID
@@ -79,7 +73,7 @@ func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "1.1.1.1"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "192.168.1.50"),
 					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "description", "Cloudflare DNS"),
 				),
 			},
@@ -88,7 +82,7 @@ func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "1.1.1.1"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "192.168.1.50"),
 					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "description", "Cloudflare DNS - updated"),
 				),
 			},

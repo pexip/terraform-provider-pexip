@@ -34,7 +34,7 @@ func TestInfinityTLSCertificate(t *testing.T) {
 		ResourceURI: "/api/admin/configuration/v1/tls_certificate/123/",
 		Certificate: string(tlsCertificate),
 		PrivateKey:  string(tlsPrivateKey),
-		Nodes:       nil, // Start with nil (null in Terraform)
+		Nodes:       []string{}, // Start with empty slice (empty list in Terraform)
 	}
 
 	// Mock the GetTLSCertificate API call for Read operations
@@ -44,14 +44,20 @@ func TestInfinityTLSCertificate(t *testing.T) {
 	}).Maybe()
 
 	// Mock the UpdateTLSCertificate API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/tls_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PatchJSON", mock.Anything, "configuration/v1/tls_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.TLSCertificateUpdateRequest)
 		tlsCert := args.Get(3).(*config.TLSCertificate)
 
 		// Update mock state
-		mockState.Certificate = updateRequest.Certificate
-		mockState.PrivateKey = updateRequest.PrivateKey
-		mockState.Nodes = updateRequest.Nodes
+		if updateRequest.Certificate != "" {
+			mockState.Certificate = updateRequest.Certificate
+		}
+		if updateRequest.PrivateKey != "" {
+			mockState.PrivateKey = updateRequest.PrivateKey
+		}
+		if updateRequest.Nodes != nil {
+			mockState.Nodes = updateRequest.Nodes
+		}
 
 		// Return updated state
 		*tlsCert = *mockState

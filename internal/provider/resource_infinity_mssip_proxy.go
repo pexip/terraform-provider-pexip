@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -96,11 +97,13 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The port number for the MSSIP proxy. Range: 1 to 65535.",
 			},
 			"transport": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("tcp", "udp", "tls"),
+					stringvalidator.OneOf("tcp", "tls"),
 				},
-				MarkdownDescription: "The transport protocol for the MSSIP proxy. Valid values: tcp, udp, tls.",
+				Default:             stringdefault.StaticString("tls"),
+				MarkdownDescription: "The transport protocol for the MSSIP proxy. Valid values: tcp, tls.",
 			},
 		},
 		MarkdownDescription: "Manages an MSSIP proxy configuration with the Infinity service.",

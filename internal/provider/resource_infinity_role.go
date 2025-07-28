@@ -70,7 +70,6 @@ func (r *InfinityRoleResource) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"permissions": schema.ListAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of permissions assigned to this role.",
 			},
@@ -149,12 +148,16 @@ func (r *InfinityRoleResource) read(ctx context.Context, resourceID int) (*Infin
 	data.ResourceID = types.Int32Value(int32(resourceID))
 	data.Name = types.StringValue(srv.Name)
 
-	// Convert permissions to types.List
-	permissionsListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.Permissions)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting permissions: %v", diags)
+	// Convert permissions to types.List, but keep as null if empty and not originally specified
+	if srv.Permissions != nil && len(srv.Permissions) > 0 {
+		permissionsListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.Permissions)
+		if diags.HasError() {
+			return nil, fmt.Errorf("error converting permissions: %v", diags)
+		}
+		data.Permissions = permissionsListValue
+	} else {
+		data.Permissions = types.ListNull(types.StringType)
 	}
-	data.Permissions = permissionsListValue
 
 	return &data, nil
 }
