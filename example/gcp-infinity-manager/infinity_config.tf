@@ -67,12 +67,12 @@ resource "pexip_infinity_tls_certificate" "tls-cert-test2" {
 */
 
 resource "pexip_infinity_licence" "license" {
-    entitlement_id = var.license_key
+  entitlement_id = var.license_key
 
-    depends_on = [
-        google_compute_instance.infinity_manager,
-        null_resource.wait_for_infinity_manager_http
-    ]
+  depends_on = [
+    google_compute_instance.infinity_manager,
+    null_resource.wait_for_infinity_manager_http
+  ]
 }
 
 resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
