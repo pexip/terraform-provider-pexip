@@ -44,8 +44,8 @@ resource "google_compute_instance" "infinity_worker" {
   min_cpu_platform = var.cpu_platform
 
   metadata = {
-    conferencing_node_config = pexip_infinity_node.worker.config
-    user-data                = pexip_infinity_node.worker.config
+    conferencing_node_config = pexip_infinity_worker_vm.worker.config
+    user-data                = pexip_infinity_worker_vm.worker.config
     fqdn                     = "${local.hostname}.${local.domain}"
   }
 
@@ -79,34 +79,40 @@ resource "google_compute_instance" "infinity_worker" {
     email  = var.service_account_email
     scopes = ["cloud-platform"]
   }
-}
 
-resource "null_resource" "wait_for_infinity_node_http" {
-  depends_on = [google_compute_instance.infinity_worker]
-
-  # Re‑run this null_resource whenever the instance is replaced
-  triggers = {
-    instance_id = google_compute_instance.infinity_worker.id
-  }
-
-  provisioner "local-exec" {
-    command     = <<EOT
-echo "Waiting for Infinity Node (HTTP 200 expected) ..."
-for i in $(seq 1 60); do
-  status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
-
-  if [ "$status" -eq 200 ]; then
-    sleep 10 # Wait for the service to stabilize
-    echo "Infinity Node is ready (HTTP 200)."
-    exit 0
-  fi
-
-  sleep 10
-done
-
-echo "Timed out: Infinity Node did not return HTTP 200" >&2
-exit 1
-EOT
-    interpreter = ["/bin/bash", "-c"]
+  lifecycle {
+    ignore_changes = [
+      shielded_instance_config
+    ]
   }
 }
+
+# resource "null_resource" "wait_for_infinity_node_http" {
+#   depends_on = [google_compute_instance.infinity_worker]
+#
+#   # Re‑run this null_resource whenever the instance is replaced
+#   triggers = {
+#     instance_id = google_compute_instance.infinity_worker.id
+#   }
+#
+#   provisioner "local-exec" {
+#     command     = <<EOT
+# echo "Waiting for Infinity Node (HTTP 200 expected) ..."
+# for i in $(seq 1 60); do
+#   status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
+#
+#   if [ "$status" -eq 200 ]; then
+#     sleep 10 # Wait for the service to stabilize
+#     echo "Infinity Node is ready (HTTP 200)."
+#     exit 0
+#   fi
+#
+#   sleep 10
+# done
+#
+# echo "Timed out: Infinity Node did not return HTTP 200" >&2
+# exit 1
+# EOT
+#     interpreter = ["/bin/bash", "-c"]
+#   }
+# }

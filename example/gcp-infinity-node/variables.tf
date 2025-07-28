@@ -112,7 +112,7 @@ variable "maintenance_mode_reason" {
 
 variable "transcoding" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable transcoding for the Infinity Node"
 }
 
@@ -124,7 +124,7 @@ variable "vm_cpu_count" {
 
 variable "vm_system_memory" {
   type        = number
-  default     = 65536
+  default     = 4096
   description = "Amount of system memory (in MB) for the Infinity Node VM"
 }
 

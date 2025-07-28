@@ -88,7 +88,6 @@ resource "google_compute_instance" "infinity_manager" {
       shielded_instance_config
     ]
   }
-
 }
 
 resource "null_resource" "wait_for_infinity_manager_http" {

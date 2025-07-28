@@ -128,3 +128,7 @@ variable "contact_email_address" {
   description = "Contact email address for Infinity Manager notifications"
 }
 
+variable "snmp_trap_host" {
+  type        = string
+  description = "SNMP trap host IP address"
+}

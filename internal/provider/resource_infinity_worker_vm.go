@@ -73,6 +73,8 @@ type InfinityWorkerVMResourceModel struct {
 	StaticNATAddress           types.String `tfsdk:"static_nat_address"`
 	StaticRoutes               types.List   `tfsdk:"static_routes"`
 	TLSCertificate             types.String `tfsdk:"tls_certificate"`
+
+	Config types.String `tfsdk:"config"`
 }
 
 func (r *InfinityWorkerVMResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -240,11 +242,11 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"node_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("conferencing"),
+				Default:  stringdefault.StaticString("CONFERENCING"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("conferencing", "proxying"),
+					stringvalidator.OneOf("CONFERENCING", "PROXYING"),
 				},
-				MarkdownDescription: "The role of this Conferencing Node. Valid choices: conferencing, proxying. Defaults to conferencing.",
+				MarkdownDescription: "The role of this Conferencing Node. Valid choices: CONFERENCING, PROXYING. Defaults to CONFERENCING.",
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
@@ -423,6 +425,10 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The amount of RAM (in megabytes) to assign to this Conferencing Node. Range: 2000 to 64000. Default: 4096.",
 			},
+			"config": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Bootstrap configuration for the Infinity Node.",
+			},
 		},
 		MarkdownDescription: "Manages a worker VM configuration with the Infinity service.",
 	}
@@ -496,7 +502,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, string(createResponse.Body), plan.Password.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity worker VM",
@@ -509,7 +515,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, config string, password string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -523,6 +529,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int) (*I
 
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.Config = types.StringValue(config)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
@@ -539,11 +546,11 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int) (*I
 	} else {
 		data.IPv6Gateway = types.StringNull()
 	}
-	data.VMCPUCount = types.Int64Value(int64(srv.VMCPUCount))
-	data.VMSystemMemory = types.Int64Value(int64(srv.VMSystemMemory))
+	data.VMCPUCount = types.Int64Value(vm_cpu_count)
+	data.VMSystemMemory = types.Int64Value(vm_system_memory)
 	data.NodeType = types.StringValue(srv.NodeType)
 	data.Transcoding = types.BoolValue(srv.Transcoding)
-	data.Password = types.StringValue(srv.Password)
+	data.Password = types.StringValue(password)
 	data.MaintenanceMode = types.BoolValue(srv.MaintenanceMode)
 	data.MaintenanceModeReason = types.StringValue(srv.MaintenanceModeReason)
 	data.SystemLocation = types.StringValue(srv.SystemLocation)
@@ -589,7 +596,7 @@ func (r *InfinityWorkerVMResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Config.ValueString(), state.Password.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -669,7 +676,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, state.Config.ValueString(), state.Password.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity worker VM",
@@ -716,7 +723,7 @@ func (r *InfinityWorkerVMResource) ImportState(ctx context.Context, req resource
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity worker VM with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "", "", 0, 0)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
