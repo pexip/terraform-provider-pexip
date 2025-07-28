@@ -33,7 +33,7 @@ terraform {
   required_version = ">= 1.0"
   required_providers {
     pexip = {
-      source  = "pexip/pexip"
+      source  = "registry.terraform.io/pexip/pexip"
       version = "~> 0.1"
     }
   }
@@ -54,7 +54,7 @@ terraform {
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip/pexip"
+      source  = "registry.terraform.io/pexip/pexip"
       version = "~> 0.1"
     }
   }
@@ -62,49 +62,51 @@ terraform {
 
 # Configure the Pexip Provider
 provider "pexip" {
-  address  = "https://manager.example.com"
-  username = var.pexip_username
-  password = var.pexip_password
-  insecure = false # Set to true for self-signed certificates (not recommended for production)
+  address  = "https://manager.example.com"  # Required, must be valid URL
+  username = var.pexip_username             # Required, min 4 characters
+  password = var.pexip_password             # Required, min 4 characters
+  insecure = false                          # Optional, defaults to false
 }
 ```
 
 ### Essential Resources Example
 
 ```hcl
-# System location for organizing resources
-resource "pexip_infinity_system_location" "datacenter_1" {
+# Location for organizing resources (required for worker VMs)
+resource "pexip_infinity_location" "datacenter_1" {
   name        = "Datacenter-1"
   description = "Primary data center location"
 }
 
 # Conference configuration
 resource "pexip_infinity_conference" "team_meeting" {
-  name                = "team-meeting"
-  service_type        = "CONFERENCE"
-  description         = "Weekly team meeting room"
-  pin                 = "123456"
-  guest_pin           = "654321"
-  maximum_participants = 50
-  system_location     = pexip_infinity_system_location.datacenter_1.id
+  name         = "team-meeting"
+  service_type = "conference"
+  description  = "Weekly team meeting room"
+  pin          = "123456"
+  guest_pin    = "654321"
+  allow_guests = true
 }
 
 # Conference alias for easy access
 resource "pexip_infinity_conference_alias" "team_meeting_alias" {
   alias       = "team@company.com"
-  conference  = pexip_infinity_conference.team_meeting.id
+  conference  = pexip_infinity_conference.team_meeting.name
   description = "Email-style alias for team meetings"
 }
 
-# Worker node registration
-resource "pexip_infinity_node" "worker_01" {
-  name                = "worker-01"
-  hostname            = "worker-01.company.com"
-  address             = "10.0.1.101"
-  node_type           = "CONFERENCING"
-  system_location     = pexip_infinity_system_location.datacenter_1.id
-  transcoding         = true
-  maintenance_mode    = false
+# Worker VM registration
+resource "pexip_infinity_worker_vm" "worker_01" {
+  name            = "worker-01"
+  hostname        = "worker-01"
+  domain          = "company.com"
+  address         = "10.0.1.101"
+  netmask         = "255.255.255.0"
+  gateway         = "10.0.1.1"
+  node_type       = "conferencing"
+  system_location = "Datacenter-1"
+  transcoding     = true
+  maintenance_mode = false
 }
 
 # Global system configuration
@@ -165,9 +167,9 @@ The provider supports basic authentication with Pexip Infinity Manager:
 ```hcl
 provider "pexip" {
   address  = "https://manager.example.com"  # Required: Manager API endpoint
-  username = "admin"                        # Required: Username with API access
-  password = "secure_password"              # Required: User password
-  insecure = false                          # Optional: Skip TLS verification (default: false)
+  username = "admin"                        # Required: Username with API access (min 4 chars)
+  password = "secure_password"              # Required: User password (min 4 chars)
+  insecure = false                          # Optional: Trust self-signed certs (default: false)
 }
 ```
 
@@ -186,10 +188,10 @@ export PEXIP_INSECURE="false"  # Optional
 
 | Argument | Description | Required | Environment Variable | Default |
 |----------|-------------|----------|---------------------|---------|
-| `address` | URL of the Pexip Infinity Manager API | Yes | `PEXIP_ADDRESS` | - |
-| `username` | Username for authentication | Yes | `PEXIP_USERNAME` | - |
-| `password` | Password for authentication | Yes | `PEXIP_PASSWORD` | - |
-| `insecure` | Skip TLS certificate verification | No | `PEXIP_INSECURE` | `false` |
+| `address` | URL of the Pexip Infinity Manager API (must be valid URL) | Yes | `PEXIP_ADDRESS` | - |
+| `username` | Username for authentication (minimum 4 characters) | Yes | `PEXIP_USERNAME` | - |
+| `password` | Password for authentication (minimum 4 characters) | Yes | `PEXIP_PASSWORD` | - |
+| `insecure` | Trust self-signed or invalid certificates | No | `PEXIP_INSECURE` | `false` |
 
 ## Resource Categories
 
@@ -224,7 +226,7 @@ The provider includes 80+ resources organized into logical categories:
 
 ### 👥 User & Device Management (5 resources)
 - **Devices**: `pexip_infinity_device`, `pexip_infinity_registration`, `pexip_infinity_sip_credential`
-- **Infrastructure**: `pexip_infinity_worker_vm`, `pexip_infinity_node`
+- **Infrastructure**: `pexip_infinity_worker_vm`, `pexip_infinity_management_vm`
 
 ### 📱 Media & Content (8 resources)
 - **Themes & UI**: `pexip_infinity_ivr_theme`, `pexip_infinity_webapp_branding`
@@ -271,36 +273,40 @@ output "manager_bootstrap_config" {
 ### Enterprise Environment Setup
 
 ```hcl
-# Create system locations for different sites
-resource "pexip_infinity_system_location" "locations" {
+# Create locations for different sites
+resource "pexip_infinity_location" "locations" {
   for_each = var.office_locations
   
   name        = each.key
   description = "Office location: ${each.value.description}"
 }
 
-# Deploy worker nodes across locations
-resource "pexip_infinity_node" "workers" {
+# Deploy worker VMs across locations
+resource "pexip_infinity_worker_vm" "workers" {
   for_each = { for idx, config in var.worker_configs : "${config.location}-${idx}" => config }
   
   name            = "worker-${each.key}"
   hostname        = each.value.hostname
+  domain          = "company.com"
   address         = each.value.address
-  node_type       = "CONFERENCING"
-  system_location = pexip_infinity_system_location.locations[each.value.location].id
+  netmask         = each.value.netmask
+  gateway         = each.value.gateway
+  node_type       = "conferencing"
+  system_location = each.value.location
   transcoding     = true
+  
+  depends_on = [pexip_infinity_location.locations]
 }
 
 # Conference rooms per department
 resource "pexip_infinity_conference" "department_rooms" {
   for_each = var.departments
   
-  name                 = "${each.key}-room"
-  service_type         = "CONFERENCE"
-  description          = "${each.value.name} department meeting room"
-  maximum_participants = each.value.max_participants
-  pin                  = each.value.pin
-  system_location      = pexip_infinity_system_location.locations[each.value.location].id
+  name         = "${each.key}-room"
+  service_type = "conference"
+  description  = "${each.value.name} department meeting room"
+  pin          = each.value.pin
+  allow_guests = each.value.allow_guests
 }
 ```
 
@@ -436,11 +442,11 @@ Import existing Pexip Infinity resources into Terraform management:
 # Import a conference by its ID
 terraform import pexip_infinity_conference.existing_room 123
 
-# Import a node by its ID  
-terraform import pexip_infinity_node.existing_worker 456
+# Import a worker VM by its ID  
+terraform import pexip_infinity_worker_vm.existing_worker 456
 
-# Import a system location by its ID
-terraform import pexip_infinity_system_location.datacenter 789
+# Import a location by its ID
+terraform import pexip_infinity_location.datacenter 789
 ```
 
 ## Complete Example
@@ -600,11 +606,16 @@ resource "pexip_infinity_system_location" "locations" {
   # ... configuration
 }
 
-resource "pexip_infinity_node" "workers" {
+resource "pexip_infinity_worker_vm" "workers" {
   for_each = var.worker_nodes
   
-  # Reference locations without creating dependencies
-  system_location = var.location_ids[each.value.location]
+  name            = each.key
+  hostname        = each.value.hostname
+  domain          = each.value.domain
+  address         = each.value.address
+  netmask         = each.value.netmask
+  gateway         = each.value.gateway
+  system_location = each.value.location
   # ... other configuration
 }
 ```
@@ -639,7 +650,7 @@ terraform {
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip/pexip"
+      source  = "registry.terraform.io/pexip/pexip"
       version = "~> 0.1"
     }
   }
