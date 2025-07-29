@@ -22,7 +22,7 @@ module "gcp-infinity-manager" {
 
   ip_address            = var.infinity_ip_address
   gateway               = data.google_compute_subnetwork.default.gateway_address
-  subnetwork_mask       = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
+  subnetwork_mask       = "255.255.255.255" // Use /32 for single IP address for GCP
   dns_server            = var.infinity_primary_dns_server
   ntp_server            = var.infinity_ntp_server
   username              = var.infinity_username
@@ -54,7 +54,7 @@ module "gcp-infinity-node" {
   )
 
   gateway         = data.google_compute_subnetwork.default.gateway_address
-  subnetwork_mask = cidrnetmask(data.google_compute_subnetwork.default.ip_cidr_range)
+  subnetwork_mask = "255.255.255.255" // Use /32 for single IP address for GCP
   password        = var.infinity_password
   node_type       = "CONFERENCING"
   system_location = pexip_infinity_system_location.AMS.id

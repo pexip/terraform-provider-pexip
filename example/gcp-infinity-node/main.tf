@@ -45,8 +45,6 @@ resource "google_compute_instance" "infinity_worker" {
 
   metadata = {
     conferencing_node_config = pexip_infinity_worker_vm.worker.config
-    user-data                = pexip_infinity_worker_vm.worker.config
-    fqdn                     = "${local.hostname}.${local.domain}"
   }
 
   boot_disk {
