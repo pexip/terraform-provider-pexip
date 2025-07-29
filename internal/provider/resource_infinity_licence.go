@@ -215,7 +215,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity licence with ID: %s, entitlement: %s", model.ID, model.EntitlementID))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity licence with ID: %s, entitlement: %s, fulfillment: %s", model.ID, model.EntitlementID, model.FulfillmentID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
@@ -299,14 +299,13 @@ func (r *InfinityLicenceResource) Update(ctx context.Context, req resource.Updat
 func (r *InfinityLicenceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	state := &InfinityLicenceResourceModel{}
 
-	tflog.Info(ctx, "Deleting Infinity licence")
-
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	fulfillmentID := state.FulfillmentID.ValueString()
+	tflog.Info(ctx, "Deleting Infinity licence", map[string]interface{}{"entitlement_id": state.EntitlementID.ValueString(), "fulfillment_id": fulfillmentID})
 	err := r.InfinityClient.Config().DeleteLicence(ctx, fulfillmentID)
 
 	// Ignore 404 Not Found and Lookup errors on delete
