@@ -162,7 +162,7 @@ func (r *InfinityHTTPProxyResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity HTTP proxy",
@@ -175,7 +175,7 @@ func (r *InfinityHTTPProxyResource) Create(ctx context.Context, req resource.Cre
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int) (*InfinityHTTPProxyResourceModel, error) {
+func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int, password string) (*InfinityHTTPProxyResourceModel, error) {
 	var data InfinityHTTPProxyResourceModel
 
 	srv, err := r.InfinityClient.Config().GetHTTPProxy(ctx, resourceID)
@@ -193,7 +193,7 @@ func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int) (*
 	data.Address = types.StringValue(srv.Address)
 	data.Protocol = types.StringValue(srv.Protocol)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	data.Password = types.StringValue(password)   // The server does not return the password, so we use the provided one
 
 	if srv.Port != nil {
 		data.Port = types.Int32Value(int32(*srv.Port))
@@ -213,7 +213,7 @@ func (r *InfinityHTTPProxyResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -269,7 +269,7 @@ func (r *InfinityHTTPProxyResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity HTTP proxy",
@@ -316,7 +316,7 @@ func (r *InfinityHTTPProxyResource) ImportState(ctx context.Context, req resourc
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity HTTP proxy with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

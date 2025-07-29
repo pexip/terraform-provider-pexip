@@ -137,8 +137,8 @@ resource "pexip_infinity_http_proxy" "http-proxy-test" {
   port     = 8080
   name     = "HTTP Proxy Test"
   protocol = "http"
-  // password causes an error in the provider
-  //password    = "supersecretpassword"
+  username = "testuser"
+  password = "supersecretpassword"
 
   depends_on = [
     module.gcp-infinity-manager,
