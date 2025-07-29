@@ -192,7 +192,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.NotificationsQueue.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity Teams proxy",
@@ -205,7 +205,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int) (*InfinityTeamsProxyResourceModel, error) {
+func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int, notificationsQueue string) (*InfinityTeamsProxyResourceModel, error) {
 	var data InfinityTeamsProxyResourceModel
 
 	srv, err := r.InfinityClient.Config().GetTeamsProxy(ctx, resourceID)
@@ -231,11 +231,7 @@ func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int) (
 	}
 	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances))
 	data.NotificationsEnabled = types.BoolValue(srv.NotificationsEnabled)
-	if srv.NotificationsQueue != nil {
-		data.NotificationsQueue = types.StringValue(*srv.NotificationsQueue)
-	} else {
-		data.NotificationsQueue = types.StringNull()
-	}
+	data.NotificationsQueue = types.StringValue(notificationsQueue)   // The server does not return the notifications queue, so we use the provided one
 
 	return &data, nil
 }
@@ -249,7 +245,7 @@ func (r *InfinityTeamsProxyResource) Read(ctx context.Context, req resource.Read
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.NotificationsQueue.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -314,7 +310,7 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.NotificationsQueue.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity Teams proxy",
@@ -361,7 +357,7 @@ func (r *InfinityTeamsProxyResource) ImportState(ctx context.Context, req resour
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity Teams proxy with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

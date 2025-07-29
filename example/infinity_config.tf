@@ -170,6 +170,22 @@ resource "pexip_infinity_teams_proxy" "teams-proxy-test-no-queue" {
   ]
 }
 
+resource "pexip_infinity_teams_proxy" "teams-proxy-test-with-queue" {
+  azure_tenant = pexip_infinity_azure_tenant.azure-tenant-test.id
+  address     = "teams-test-proxy.local"
+  port        = 443
+  name        = "Teams Proxy Test with queue"
+  description = "Test Teams Proxy"
+  min_number_of_instances = 1
+  //notifications_queue should be a secret
+  notifications_enabled = true
+  notifications_queue = "Endpoint=sb://test-fooboo-ehn.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Y7cFX/7z5jzDpWBHkeJsrXZ+CqzleL9D4PjsR/CfaRQ="
+
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+}
+
 resource "pexip_infinity_event_sink" "event-sink-test" {
   name        = "Event Sink Test"
   description = "Test Event Sink"
@@ -189,24 +205,3 @@ resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
     module.gcp-infinity-manager,
   ]
 }
-
-// This is an example of a Teams Proxy with a queue, currently causes an error in the provider
-/*
-resource "pexip_infinity_teams_proxy" "teams-proxy-test-with-queue" {
-  azure_tenant = pexip_infinity_azure_tenant.azure-tenant-test.id
-  address     = "teams-test-proxy.local"
-  port        = 443
-  name        = "Teams Proxy Test with queue"
-  description = "Test Teams Proxy"
-  min_number_of_instances = 1
-  //notifications_queue should be a secret
-  notifications_enabled = true
-  notifications_queue = "Endpoint=sb://test-fooboo-ehn.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Y7cFX/7z5jzDpWBHkeJsrXZ+CqzleL9D4PjsR/CfaRQ="
-
-  depends_on = [
-    module.gcp-infinity-manager,
-  ]
-
-}
-*/
-
