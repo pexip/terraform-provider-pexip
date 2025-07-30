@@ -14,7 +14,7 @@ GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
 GO_LINT_CHECKS     := govet ineffassign staticcheck deadcode unused
 
-.PHONY: prepare lint check sec build-dev build install test testacc fmt release-test release clean
+.PHONY: prepare lint check build-dev build install test testacc fmt clean
 
 all: testacc build
 
@@ -25,10 +25,6 @@ lint:
 	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run --disable-all $(foreach check,$(GO_LINT_CHECKS), -E $(check)) $(foreach issue,$(GO_LINT_EXCLUDE_ISSUES), -e $(issue)) $(GO_LINT_TRAIL)
 
 check: lint test
-
-sec:
-	go get -u github.com/securego/gosec/v2/cmd/gosec
-	$(shell go list -f {{.Target}} github.com/securego/gosec/v2/cmd/gosec) -fmt=golint ./...
 
 build-dev:
 	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o ~/.terraform.d/plugins/$(NAME)_$(VERSION) .
@@ -50,15 +46,6 @@ testacc: prepare
 
 fmt:
 	go fmt ./...
-
-release-test: export GITHUB_SHA=$(GITSHA)
-release-test: export GPG_FINGERPRINT=0000
-release-test: testacc
-	goreleaser release --skip-publish --snapshot --rm-dist --skip-sign
-
-release: export GITHUB_SHA=$(GITSHA)
-release: release-test
-	git tag -a v$(VERSION) -m "Release" && git push origin v$(VERSION)
 
 clean:
 	rm -rf $(BUILD_DIR)
