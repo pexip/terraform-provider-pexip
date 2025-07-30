@@ -80,6 +80,7 @@ resource "google_compute_instance" "infinity_worker" {
 
   lifecycle {
     ignore_changes = [
+      metadata,
       shielded_instance_config
     ]
   }
@@ -95,22 +96,35 @@ resource "google_compute_instance" "infinity_worker" {
 #
 #   provisioner "local-exec" {
 #     command     = <<EOT
-# echo "Waiting for Infinity Node (HTTP 200 expected) ..."
-# for i in $(seq 1 60); do
-#   status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
+#       echo "Waiting for Infinity Node (HTTP 200 expected) ..."
+#       for i in $(seq 1 60); do
+#         status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 #
-#   if [ "$status" -eq 200 ]; then
-#     sleep 10 # Wait for the service to stabilize
-#     echo "Infinity Node is ready (HTTP 200)."
-#     exit 0
-#   fi
+#         if [ "$status" -eq 200 ]; then
+#           sleep 10 # Wait for the service to stabilize
+#           echo "Infinity Node is ready (HTTP 200)."
+#           exit 0
+#         fi
 #
-#   sleep 10
-# done
+#         sleep 10
+#       done
 #
-# echo "Timed out: Infinity Node did not return HTTP 200" >&2
-# exit 1
-# EOT
+#       echo "Timed out: Infinity Node did not return HTTP 200" >&2
+#       exit 1
+#     EOT
 #     interpreter = ["/bin/bash", "-c"]
+#   }
+# }
+
+# resource "null_resource" "remove_metadata_key" {
+#   depends_on = [null_resource.wait_for_infinity_node_http]
+#
+#   provisioner "local-exec" {
+#     command = <<EOT
+#       gcloud compute instances remove-metadata ${google_compute_instance.infinity_worker.name} \
+#         --project ${var.project_id} \
+#         --zone ${google_compute_instance.infinity_worker.zone} \
+#         --keys conferencing_node_config
+#     EOT
 #   }
 # }
