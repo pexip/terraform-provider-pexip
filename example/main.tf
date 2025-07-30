@@ -17,7 +17,8 @@ module "gcp-infinity-manager" {
   dns_zone_name         = var.dns_zone_name
   tags = concat(
     tolist(google_compute_firewall.allow_ssh.target_tags),
-    tolist(google_compute_firewall.allow_https.target_tags)
+    tolist(google_compute_firewall.allow_https.target_tags),
+    tolist(google_compute_firewall.allow_inter_node.target_tags),
   )
 
   ip_address            = var.infinity_ip_address
@@ -50,7 +51,8 @@ module "gcp-infinity-node" {
   dns_zone_name         = var.dns_zone_name
   tags = concat(
     tolist(google_compute_firewall.allow_ssh.target_tags),
-    tolist(google_compute_firewall.allow_https.target_tags)
+    tolist(google_compute_firewall.allow_https.target_tags),
+    tolist(google_compute_firewall.allow_inter_node.target_tags)
   )
 
   gateway         = data.google_compute_subnetwork.default.gateway_address
