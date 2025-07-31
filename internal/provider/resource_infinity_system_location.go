@@ -184,6 +184,10 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		DNSServers:    dnsServers,
 		NTPServers:    ntpServers,
 		SyslogServers: syslogServers,
+		Name:          plan.Name.ValueString(),
+		DNSServers:    dnsServers,
+		NTPServers:    ntpServers,
+		SyslogServers: syslogServers,
 	}
 
 	// Only set optional fields if they are not null in the plan
@@ -280,6 +284,67 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	}
 	data.SyslogServers = syslogListValue
 
+	// The following fields are set if available in srv, otherwise set to Null
+	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
+	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
+	data.SIPProxy = types.StringPointerValue(srv.SIPProxy)
+	data.HTTPProxy = types.StringPointerValue(srv.HTTPProxy)
+	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
+	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
+	data.TURNServer = types.StringPointerValue(srv.TURNServer)
+	data.STUNServer = types.StringPointerValue(srv.STUNServer)
+
+	// Client TURN Servers
+	var clientTurnServers []string
+	for _, turn := range srv.ClientTURNServers {
+		clientTurnServers = append(clientTurnServers, turn)
+	}
+	clientTurnList, diags := types.ListValueFrom(ctx, types.StringType, clientTurnServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting client TURN servers: %v", diags)
+	}
+	data.ClientTURNServers = clientTurnList
+
+	// Client STUN Servers
+	var clientStunServers []string
+	for _, stun := range srv.ClientSTUNServers {
+		clientStunServers = append(clientStunServers, stun)
+	}
+	clientStunList, diags := types.ListValueFrom(ctx, types.StringType, clientStunServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting client STUN servers: %v", diags)
+	}
+	data.ClientSTUNServers = clientStunList
+
+	// Booleans and Ints
+	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
+	data.MediaQoS = types.Int32Value(int32(*srv.MediaQoS))
+	data.SignallingQoS = types.Int32Value(int32(*srv.SignallingQoS))
+
+	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
+	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
+	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
+	data.LocalMSSIPDomain = types.StringValue(srv.LocalMSSIPDomain)
+	data.PolicyServer = types.StringPointerValue(srv.PolicyServer)
+
+	// Event Sinks
+	var eventSinks []string
+	for _, sink := range srv.EventSinks {
+		eventSinks = append(eventSinks, sink)
+	}
+	eventSinksList, diags := types.ListValueFrom(ctx, types.StringType, eventSinks)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting event sinks: %v", diags)
+	}
+	data.EventSinks = eventSinksList
+
+	data.BDPMPinChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
+	data.BDPMScanQuarantineEnabled = types.StringValue(srv.BDPMScanQuarantineEnabled)
+
+	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
+	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
+	data.LiveCaptionsDialOut3 = types.StringPointerValue(srv.LiveCaptionsDialOut3)
+
 	return &data, nil
 }
 
@@ -332,6 +397,10 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	}
 
 	updateRequest := &config.SystemLocationUpdateRequest{
+		Name:          plan.Name.ValueString(),
+		DNSServers:    dnsServers,
+		NTPServers:    ntpServers,
+		SyslogServers: syslogServers,
 		Name:          plan.Name.ValueString(),
 		DNSServers:    dnsServers,
 		NTPServers:    ntpServers,

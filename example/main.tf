@@ -35,6 +35,7 @@ module "gcp-infinity-manager" {
   snmp_trap_host        = "${var.environment}-snmp-trap.local"
 }
 
+/*
 module "gcp-infinity-node" {
   source                = "./gcp-infinity-node"
   count                 = var.infinity_node_count
@@ -65,3 +66,4 @@ module "gcp-infinity-node" {
     module.gcp-infinity-manager
   ]
 }
+*/
