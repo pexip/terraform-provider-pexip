@@ -224,7 +224,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	for _, dns := range srv.DNSServers {
 		dnsServers = append(dnsServers, fmt.Sprintf("/api/admin/configuration/v1/dns_server/%d/", dns.ID))
 	}
-	//sort.Strings(dnsServers)
+	sort.Strings(dnsServers)
 	dnsListValue, diags := types.ListValueFrom(ctx, types.StringType, dnsServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting DNS servers: %v", diags)
@@ -236,7 +236,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	for _, ntp := range srv.NTPServers {
 		ntpServers = append(ntpServers, fmt.Sprintf("/api/admin/configuration/v1/ntp_server/%d/", ntp.ID))
 	}
-	//sort.Strings(ntpServers)
+	sort.Strings(ntpServers)
 	ntpListValue, diags := types.ListValueFrom(ctx, types.StringType, ntpServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting NTP servers: %v", diags)

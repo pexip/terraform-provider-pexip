@@ -22,6 +22,7 @@ resource "pexip_infinity_worker_vm" "worker" {
   password                = pexip_infinity_ssh_password_hash.default.hash
   node_type               = var.node_type
   system_location         = var.system_location
+
   maintenance_mode        = var.maintenance_mode
   maintenance_mode_reason = var.maintenance_mode_reason
   transcoding             = var.transcoding
@@ -86,45 +87,45 @@ resource "google_compute_instance" "infinity_worker" {
   }
 }
 
-# resource "null_resource" "wait_for_infinity_node_http" {
-#   depends_on = [google_compute_instance.infinity_worker]
-#
-#   # Re‑run this null_resource whenever the instance is replaced
-#   triggers = {
-#     instance_id = google_compute_instance.infinity_worker.id
-#   }
-#
-#   provisioner "local-exec" {
-#     command     = <<EOT
-#       echo "Waiting for Infinity Node (HTTP 200 expected) ..."
-#       for i in $(seq 1 60); do
-#         status=$(curl --silent --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
-#
-#         if [ "$status" -eq 200 ]; then
-#           sleep 10 # Wait for the service to stabilize
-#           echo "Infinity Node is ready (HTTP 200)."
-#           exit 0
-#         fi
-#
-#         sleep 10
-#       done
-#
-#       echo "Timed out: Infinity Node did not return HTTP 200" >&2
-#       exit 1
-#     EOT
-#     interpreter = ["/bin/bash", "-c"]
-#   }
-# }
+resource "null_resource" "wait_for_infinity_node_http" {
+  depends_on = [google_compute_instance.infinity_worker]
 
-# resource "null_resource" "remove_metadata_key" {
-#   depends_on = [null_resource.wait_for_infinity_node_http]
-#
-#   provisioner "local-exec" {
-#     command = <<EOT
-#       gcloud compute instances remove-metadata ${google_compute_instance.infinity_worker.name} \
-#         --project ${var.project_id} \
-#         --zone ${google_compute_instance.infinity_worker.zone} \
-#         --keys conferencing_node_config
-#     EOT
-#   }
-# }
+  # Re‑run this null_resource whenever the instance is replaced
+  triggers = {
+    instance_id = google_compute_instance.infinity_worker.id
+  }
+
+  provisioner "local-exec" {
+    command     = <<EOT
+      echo "Waiting for Infinity Node (HTTP 200 expected) ..."
+      for i in $(seq 1 60); do
+        status=$(curl --silent --show-error --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
+
+        if [ "$status" -eq 200 ]; then
+          sleep 10 # Wait for the service to stabilize
+          echo "Infinity Node is ready (HTTP 200)."
+          exit 0
+        fi
+
+        sleep 10
+      done
+
+      echo "Timed out: Infinity Node did not return HTTP 200" >&2
+      exit 1
+    EOT
+    interpreter = ["/bin/bash", "-c"]
+  }
+}
+
+resource "null_resource" "remove_metadata_key" {
+  depends_on = [null_resource.wait_for_infinity_node_http]
+
+  provisioner "local-exec" {
+    command = <<EOT
+      gcloud compute instances remove-metadata ${google_compute_instance.infinity_worker.name} \
+        --project ${var.project_id} \
+        --zone ${google_compute_instance.infinity_worker.zone} \
+        --keys conferencing_node_config
+    EOT
+  }
+}

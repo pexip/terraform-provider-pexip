@@ -105,8 +105,8 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "description", "Main location for Pexip Infinity System"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "mtu", "1460"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.#", "2"),
-					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.0", "/api/admin/configuration/v1/dns_server/1/"),
-					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.1", "/api/admin/configuration/v1/dns_server/2/")),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.0", "/api/admin/configuration/v1/dns_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.1", "/api/admin/configuration/v1/dns_server/1/")),
 			},
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_system_location_basic_updated"),
