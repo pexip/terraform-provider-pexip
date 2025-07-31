@@ -3,9 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"sort"
 	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -25,14 +26,38 @@ type InfinitySystemLocationResource struct {
 }
 
 type InfinitySystemLocationResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	ResourceID    types.Int32  `tfsdk:"resource_id"`
-	Name          types.String `tfsdk:"name"`
-	Description   types.String `tfsdk:"description"`
-	DNSServers    types.List   `tfsdk:"dns_servers"`
-	NTPServers    types.List   `tfsdk:"ntp_servers"`
-	MTU           types.Int32  `tfsdk:"mtu"`
-	SyslogServers types.List   `tfsdk:"syslog_servers"`
+	ID                          types.String `tfsdk:"id"`
+	ResourceID                  types.Int32  `tfsdk:"resource_id"`
+	Name                        types.String `tfsdk:"name"`
+	Description                 types.String `tfsdk:"description"`
+	DNSServers                  types.List   `tfsdk:"dns_servers"`
+	NTPServers                  types.List   `tfsdk:"ntp_servers"`
+	MTU                         types.Int32  `tfsdk:"mtu"`
+	SyslogServers               types.List   `tfsdk:"syslog_servers"`
+	H323GateKeeper              types.String `tfsdk:"h323_gatekeeper"`
+	SNMPNetworkManagementSystem types.String `tfsdk:"snmp_network_management_system"`
+	SIPProxy                    types.String `tfsdk:"sip_proxy"`
+	HTTPProxy                   types.String `tfsdk:"http_proxy"`
+	MSSIPProxy                  types.String `tfsdk:"mssip_proxy"`
+	TeamsProxy                  types.String `tfsdk:"teams_proxy"`
+	TURNServer                  types.String `tfsdk:"turn_server"`
+	STUNServer                  types.String `tfsdk:"stun_server"`
+	ClientTURNServers           types.List   `tfsdk:"client_turn_servers"`
+	ClientSTUNServers           types.List   `tfsdk:"client_stun_servers"`
+	UseRelayCandidatesOnly      types.Bool   `tfsdk:"use_relay_candidates_only"`
+	MediaQOS                    types.Int32  `tfsdk:"media_qos"`
+	SignallingQOS               types.Int32  `tfsdk:"signalling_qos"`
+	TranscodingLocation         types.String `tfsdk:"transcoding_location"`
+	OverflowLocationOne         types.String `tfsdk:"overflow_location1"`
+	OverflowLocationTwo         types.String `tfsdk:"overflow_location2"`
+	LocalMSSIPDomain            types.String `tfsdk:"local_mssip_domain"`
+	PolicyServer                types.String `tfsdk:"policy_server"`
+	EventSinks                  types.List   `tfsdk:"event_sinks"`
+	BDPMPINChecksEnabled        types.Bool   `tfsdk:"bdpm_pin_checks_enabled"`
+	BDPMScanQuarantineEnabled   types.Bool   `tfsdk:"bdpm_scan_quarantine_enabled"`
+	LiveCaptionsDialOutOne      types.String `tfsdk:"live_captions_dial_out1"`
+	LiveCaptionsDialOutTwo      types.String `tfsdk:"live_captions_dial_out2"`
+	LiveCaptionsDialOutThree    types.String `tfsdk:"live_captions_dial_out3"`
 }
 
 // getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
