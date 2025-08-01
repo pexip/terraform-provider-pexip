@@ -231,7 +231,7 @@ func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int, n
 	}
 	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances))
 	data.NotificationsEnabled = types.BoolValue(srv.NotificationsEnabled)
-	data.NotificationsQueue = types.StringValue(notificationsQueue)   // The server does not return the notifications queue, so we use the provided one
+	data.NotificationsQueue = types.StringValue(notificationsQueue) // The server does not return the notifications queue, so we use the provided one
 
 	return &data, nil
 }

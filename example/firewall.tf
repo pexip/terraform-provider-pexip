@@ -40,5 +40,5 @@ resource "google_compute_firewall" "allow_inter_node" {
   }
 
   source_ranges = [data.google_compute_subnetwork.default.ip_cidr_range]
-  target_tags = ["allow-inter-node-${var.project_id}"]
+  target_tags   = ["allow-inter-node-${var.project_id}"]
 }

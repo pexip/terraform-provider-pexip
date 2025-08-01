@@ -193,7 +193,7 @@ func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int, pa
 	data.Address = types.StringValue(srv.Address)
 	data.Protocol = types.StringValue(srv.Protocol)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(password)   // The server does not return the password, so we use the provided one
+	data.Password = types.StringValue(password) // The server does not return the password, so we use the provided one
 
 	if srv.Port != nil {
 		data.Port = types.Int32Value(int32(*srv.Port))

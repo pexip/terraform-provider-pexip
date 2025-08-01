@@ -38,11 +38,11 @@ resource "pexip_infinity_syslog_server" "syslog-server-test" {
 }
 
 resource "pexip_infinity_system_location" "AMS" {
-  name           = "AMS"
-  description    = "AMS always on"
-  mtu            = 1460
-  dns_servers    = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
-  ntp_servers    = [pexip_infinity_ntp_server.ntp1.id]
+  name        = "AMS"
+  description = "AMS always on"
+  mtu         = 1460
+  dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
+  ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
   // need a syslog server to for worker vm to register properly
   //syslog_servers = [pexip_infinity_syslog_server.syslog-server-test.id]
 
@@ -171,15 +171,15 @@ resource "pexip_infinity_teams_proxy" "teams-proxy-test-no-queue" {
 }
 
 resource "pexip_infinity_teams_proxy" "teams-proxy-test-with-queue" {
-  azure_tenant = pexip_infinity_azure_tenant.azure-tenant-test.id
-  address     = "teams-test-proxy.local"
-  port        = 443
-  name        = "Teams Proxy Test with queue"
-  description = "Test Teams Proxy"
+  azure_tenant            = pexip_infinity_azure_tenant.azure-tenant-test.id
+  address                 = "teams-test-proxy.local"
+  port                    = 443
+  name                    = "Teams Proxy Test with queue"
+  description             = "Test Teams Proxy"
   min_number_of_instances = 1
   //notifications_queue should be a secret
   notifications_enabled = true
-  notifications_queue = "Endpoint=sb://test-fooboo-ehn.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Y7cFX/7z5jzDpWBHkeJsrXZ+CqzleL9D4PjsR/CfaRQ="
+  notifications_queue   = "Endpoint=sb://test-fooboo-ehn.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Y7cFX/7z5jzDpWBHkeJsrXZ+CqzleL9D4PjsR/CfaRQ="
 
   depends_on = [
     module.gcp-infinity-manager,

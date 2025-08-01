@@ -13,15 +13,15 @@ resource "pexip_infinity_ssh_password_hash" "default" {
 }
 
 resource "pexip_infinity_worker_vm" "worker" {
-  name                    = local.hostname
-  hostname                = local.hostname
-  address                 = google_compute_address.infinity_node_private_ip.address
-  netmask                 = var.subnetwork_mask
-  domain                  = local.domain
-  gateway                 = var.gateway
-  password                = pexip_infinity_ssh_password_hash.default.hash
-  node_type               = var.node_type
-  system_location         = var.system_location
+  name            = local.hostname
+  hostname        = local.hostname
+  address         = google_compute_address.infinity_node_private_ip.address
+  netmask         = var.subnetwork_mask
+  domain          = local.domain
+  gateway         = var.gateway
+  password        = pexip_infinity_ssh_password_hash.default.hash
+  node_type       = var.node_type
+  system_location = var.system_location
 
   maintenance_mode        = var.maintenance_mode
   maintenance_mode_reason = var.maintenance_mode_reason
