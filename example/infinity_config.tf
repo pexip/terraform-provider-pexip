@@ -51,6 +51,46 @@ resource "pexip_infinity_system_location" "AMS" {
   ]
 }
 
+resource "pexip_infinity_system_location" "TEST-AMS" {
+  name           = "TEST AMS"
+  description    = "Set every parameter to test the system location"
+  mtu            = 1460
+  dns_servers    = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
+  ntp_servers    = [pexip_infinity_ntp_server.ntp1.id]
+  // need a syslog server to for worker vm to register properly
+  syslog_servers = [pexip_infinity_syslog_server.syslog-server-test.id]
+  stun_server    = pexip_infinity_stun_server.stun-server-test1.id
+  turn_server    = pexip_infinity_turn_server.turn-server-test1.id
+  client_turn_servers   = [pexip_infinity_turn_server.turn-server-test1.id, pexip_infinity_turn_server.turn-server-test1.id]
+  client_stun_servers   = [pexip_infinity_stun_server.stun-server-test1.id, pexip_infinity_stun_server.stun-server-test1.id]
+  sip_proxy     = pexip_infinity_sip_proxy.sip-proxy-test.id
+  h323_gatekeeper = pexip_infinity_h323_gatekeeper.h323-gatekeeper-test.id
+  http_proxy    = pexip_infinity_http_proxy.http-proxy-test.id
+  mssip_proxy   = pexip_infinity_mssip_proxy.mssip-proxy-test.id
+  teams_proxy   = pexip_infinity_teams_proxy.teams-proxy-test-no-queue.id
+  event_sinks   = [pexip_infinity_event_sink.event-sink-test.id]
+  media_qos   = 46
+  signalling_qos = 24
+  local_mssip_domain = "test-mssip-domain.local"
+  bdpm_pin_checks_enabled = "ON"
+  bdpm_scan_quarantine_enabled = "ON"
+  use_relay_candidates_only = true
+  snmp_network_management_system = pexip_infinity_snmp_network_management_system.snmp-nms-test2.id
+  policy_server = pexip_infinity_policy_server.policy-server-test.id
+  live_captions_dial_out1 = pexip_infinity_system_location.AMS.id
+  live_captions_dial_out2 = pexip_infinity_system_location.AMS.id
+  live_captions_dial_out3 = pexip_infinity_system_location.AMS.id
+
+  // These locations must already exist before being set
+  //transcoding_location = pexip_infinity_system_location.AMS.id
+  //overflow_location1 = pexip_infinity_system_location.AMS.id
+  //overflow_location2 = pexip_infinity_system_location.AMS.id
+
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+}
+
 resource "pexip_infinity_turn_server" "turn-server-test1" {
   address     = "turn-server-test1.local"
   port        = 3478
@@ -203,5 +243,30 @@ resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
 
   depends_on = [
     module.gcp-infinity-manager,
+  ]
+}
+
+resource "pexip_infinity_policy_server" "policy-server-test" {
+  name        = "Policy Server Test"
+  description = "Test Policy Server"
+  url     = "https://policy-server-test.local"
+  username    = "policyuser"
+  password    = "policypassword"
+
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+  
+}
+
+resource "pexip_infinity_snmp_network_management_system" "snmp-nms-test2" {
+  address             = "snmp-nms-test2.local"
+  port                = 161
+  name                = "SNMP NMS Test 2"
+  description         = "Test SNMP NMS 2"
+  snmp_trap_community = "public-test-trap"
+
+  depends_on = [
+    module.gcp-infinity-manager
   ]
 }

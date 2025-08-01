@@ -86,6 +86,18 @@ func (m *InfinitySystemLocationResourceModel) GetSyslogServers(ctx context.Conte
 	return getSortedStringList(ctx, m.SyslogServers)
 }
 
+func (m *InfinitySystemLocationResourceModel) GetClientTURNServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	return getSortedStringList(ctx, m.ClientTURNServers)
+}
+
+func (m *InfinitySystemLocationResourceModel) GetClientSTUNServers(ctx context.Context) ([]string, diag.Diagnostics) {
+	return getSortedStringList(ctx, m.ClientSTUNServers)
+}
+
+func (m *InfinitySystemLocationResourceModel) GetEventSinks(ctx context.Context) ([]string, diag.Diagnostics) {
+	return getSortedStringList(ctx, m.EventSinks)
+}
+
 func (r *InfinitySystemLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_infinity_system_location"
 }
@@ -169,25 +181,31 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	// Convert List attributes to []string
 	dnsServers, diags := plan.GetDNSServers(ctx)
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := plan.GetNTPServers(ctx)
 	resp.Diagnostics.Append(diags...)
 	syslogServers, diags := plan.GetSyslogServers(ctx)
 	resp.Diagnostics.Append(diags...)
+	clientTurnServers, diags := plan.GetClientTURNServers(ctx)
+	resp.Diagnostics.Append(diags...)
+	clientStunServers, diags := plan.GetClientSTUNServers(ctx)
+	resp.Diagnostics.Append(diags...)
+	eventSinks, diags := plan.GetEventSinks(ctx)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	createRequest := &config.SystemLocationCreateRequest{
-		Name:          plan.Name.ValueString(),
-		DNSServers:    dnsServers,
-		NTPServers:    ntpServers,
-		SyslogServers: syslogServers,
-		Name:          plan.Name.ValueString(),
-		DNSServers:    dnsServers,
-		NTPServers:    ntpServers,
-		SyslogServers: syslogServers,
+		Name:              plan.Name.ValueString(),
+		DNSServers:        dnsServers,
+		NTPServers:        ntpServers,
+		SyslogServers:     syslogServers,
+		ClientTURNServers: clientTurnServers,
+		ClientSTUNServers: clientStunServers,
+		EventSinks:        eventSinks,
 	}
 
 	// Only set optional fields if they are not null in the plan
@@ -196,6 +214,86 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	}
 	if !plan.MTU.IsNull() {
 		createRequest.MTU = int(plan.MTU.ValueInt32())
+	}
+	if !plan.H323GateKeeper.IsNull() && !plan.H323GateKeeper.IsUnknown() {
+		value := plan.H323GateKeeper.ValueString()
+		createRequest.H323Gatekeeper = &value
+	}
+	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
+		value := plan.SNMPNetworkManagementSystem.ValueString()
+		createRequest.SNMPNetworkManagementSystem = &value
+	}
+	if !plan.SIPProxy.IsNull() && !plan.SIPProxy.IsUnknown() {
+		value := plan.SIPProxy.ValueString()
+		createRequest.SIPProxy = &value
+	}
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		value := plan.HTTPProxy.ValueString()
+		createRequest.HTTPProxy = &value
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		value := plan.MSSIPProxy.ValueString()
+		createRequest.MSSIPProxy = &value
+	}
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
+		value := plan.TeamsProxy.ValueString()
+		createRequest.TeamsProxy = &value
+	}
+	if !plan.TURNServer.IsNull() && !plan.TURNServer.IsUnknown() {
+		value := plan.TURNServer.ValueString()
+		createRequest.TURNServer = &value
+	}
+	if !plan.STUNServer.IsNull() && !plan.STUNServer.IsUnknown() {
+		value := plan.STUNServer.ValueString()
+		createRequest.STUNServer = &value
+	}
+	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
+		createRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
+	}
+	if !plan.MediaQoS.IsNull() && !plan.MediaQoS.IsUnknown() {
+		value := int(plan.MediaQoS.ValueInt32())
+		createRequest.MediaQoS = &value
+	}
+	if !plan.SignallingQoS.IsNull() && !plan.SignallingQoS.IsUnknown() {
+		value := int(plan.SignallingQoS.ValueInt32())
+		createRequest.SignallingQoS = &value
+	}
+	if !plan.TranscodingLocation.IsNull() && !plan.TranscodingLocation.IsUnknown() {
+		value := plan.TranscodingLocation.ValueString()
+		createRequest.TranscodingLocation = &value
+	}
+	if !plan.OverflowLocation1.IsNull() && !plan.OverflowLocation1.IsUnknown() {
+		value := plan.OverflowLocation1.ValueString()
+		createRequest.OverflowLocation1 = &value
+	}
+	if !plan.OverflowLocation2.IsNull() && !plan.OverflowLocation2.IsUnknown() {
+		value := plan.OverflowLocation2.ValueString()
+		createRequest.OverflowLocation2 = &value
+	}
+	if !plan.LocalMSSIPDomain.IsNull() && !plan.LocalMSSIPDomain.IsUnknown() {
+		createRequest.LocalMSSIPDomain = plan.LocalMSSIPDomain.ValueString()
+	}
+	if !plan.PolicyServer.IsNull() && !plan.PolicyServer.IsUnknown() {
+		value := plan.PolicyServer.ValueString()
+		createRequest.PolicyServer = &value
+	}
+	if !plan.BDPMPinChecksEnabled.IsNull() && !plan.BDPMPinChecksEnabled.IsUnknown() {
+		createRequest.BDPMPinChecksEnabled = plan.BDPMPinChecksEnabled.ValueString()
+	}
+	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
+		createRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
+	}
+	if !plan.LiveCaptionsDialOut1.IsNull() && !plan.LiveCaptionsDialOut1.IsUnknown() {
+		value := plan.LiveCaptionsDialOut1.ValueString()
+		createRequest.LiveCaptionsDialOut1 = &value
+	}
+	if !plan.LiveCaptionsDialOut2.IsNull() && !plan.LiveCaptionsDialOut2.IsUnknown() {
+		value := plan.LiveCaptionsDialOut2.ValueString()
+		createRequest.LiveCaptionsDialOut2 = &value
+	}
+	if !plan.LiveCaptionsDialOut3.IsNull() && !plan.LiveCaptionsDialOut3.IsUnknown() {
+		value := plan.LiveCaptionsDialOut3.ValueString()
+		createRequest.LiveCaptionsDialOut3 = &value
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateSystemLocation(ctx, createRequest)
@@ -284,20 +382,21 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	}
 	data.SyslogServers = syslogListValue
 
-	// The following fields are set if available in srv, otherwise set to Null
-	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
-	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
-	data.SIPProxy = types.StringPointerValue(srv.SIPProxy)
-	data.HTTPProxy = types.StringPointerValue(srv.HTTPProxy)
-	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
-	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
-	data.TURNServer = types.StringPointerValue(srv.TURNServer)
-	data.STUNServer = types.StringPointerValue(srv.STUNServer)
+	// Event Sinks
+	var eventSinks []string
+	for _, sink := range srv.EventSinks {
+		eventSinks = append(eventSinks, fmt.Sprintf("/api/admin/configuration/v1/event_sink/%d/", sink.ID))
+	}
+	eventSinksList, diags := types.ListValueFrom(ctx, types.StringType, eventSinks)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting event sinks: %v", diags)
+	}
+	data.EventSinks = eventSinksList
 
 	// Client TURN Servers
 	var clientTurnServers []string
 	for _, turn := range srv.ClientTURNServers {
-		clientTurnServers = append(clientTurnServers, turn)
+		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
 	}
 	clientTurnList, diags := types.ListValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
@@ -308,7 +407,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Client STUN Servers
 	var clientStunServers []string
 	for _, stun := range srv.ClientSTUNServers {
-		clientStunServers = append(clientStunServers, stun)
+		clientStunServers = append(clientStunServers, fmt.Sprintf("/api/admin/configuration/v1/stun_server/%d/", stun.ID))
 	}
 	clientStunList, diags := types.ListValueFrom(ctx, types.StringType, clientStunServers)
 	if diags.HasError() {
@@ -316,31 +415,29 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	}
 	data.ClientSTUNServers = clientStunList
 
+	
+
+	// The following fields are set if available in srv, otherwise set to Null
+	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
+	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
+	data.SIPProxy = types.StringPointerValue(srv.SIPProxy)
+	data.HTTPProxy = types.StringPointerValue(srv.HTTPProxy)
+	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
+	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
+	data.TURNServer = types.StringPointerValue(srv.TURNServer)
+	data.STUNServer = types.StringPointerValue(srv.STUNServer)
+
 	// Booleans and Ints
 	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
 	data.MediaQoS = types.Int32Value(int32(*srv.MediaQoS))
 	data.SignallingQoS = types.Int32Value(int32(*srv.SignallingQoS))
-
 	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
 	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
 	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
 	data.LocalMSSIPDomain = types.StringValue(srv.LocalMSSIPDomain)
 	data.PolicyServer = types.StringPointerValue(srv.PolicyServer)
-
-	// Event Sinks
-	var eventSinks []string
-	for _, sink := range srv.EventSinks {
-		eventSinks = append(eventSinks, sink)
-	}
-	eventSinksList, diags := types.ListValueFrom(ctx, types.StringType, eventSinks)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting event sinks: %v", diags)
-	}
-	data.EventSinks = eventSinksList
-
 	data.BDPMPinChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
 	data.BDPMScanQuarantineEnabled = types.StringValue(srv.BDPMScanQuarantineEnabled)
-
 	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
 	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
 	data.LiveCaptionsDialOut3 = types.StringPointerValue(srv.LiveCaptionsDialOut3)
@@ -392,19 +489,24 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	resp.Diagnostics.Append(diags...)
 	syslogServers, diags := plan.GetSyslogServers(ctx)
 	resp.Diagnostics.Append(diags...)
+	clientTurnServers, diags := plan.GetClientTURNServers(ctx)
+	resp.Diagnostics.Append(diags...)
+	clientStunServers, diags := plan.GetClientSTUNServers(ctx)
+	resp.Diagnostics.Append(diags...)
+	eventSinks, diags := plan.GetEventSinks(ctx)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	updateRequest := &config.SystemLocationUpdateRequest{
-		Name:          plan.Name.ValueString(),
-		DNSServers:    dnsServers,
-		NTPServers:    ntpServers,
-		SyslogServers: syslogServers,
-		Name:          plan.Name.ValueString(),
-		DNSServers:    dnsServers,
-		NTPServers:    ntpServers,
-		SyslogServers: syslogServers,
+		Name:              plan.Name.ValueString(),
+		DNSServers:        dnsServers,
+		NTPServers:        ntpServers,
+		SyslogServers:     syslogServers,
+		ClientTURNServers: clientTurnServers,
+		ClientSTUNServers: clientStunServers,
+		EventSinks:        eventSinks,
 	}
 
 	if !plan.Description.IsNull() {
