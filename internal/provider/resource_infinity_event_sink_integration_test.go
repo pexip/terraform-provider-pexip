@@ -33,5 +33,5 @@ func TestInfinityEventSinkIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityPolicyServer(t, client)
+	testInfinityEventSink(t, client)
 }
