@@ -78,8 +78,8 @@ resource "pexip_infinity_system_location" "TEST-AMS" {
   snmp_network_management_system = pexip_infinity_snmp_network_management_system.snmp-nms-test2.id
   policy_server = pexip_infinity_policy_server.policy-server-test.id
   live_captions_dial_out1 = pexip_infinity_system_location.AMS.id
-  live_captions_dial_out2 = pexip_infinity_system_location.AMS.id
-  live_captions_dial_out3 = pexip_infinity_system_location.AMS.id
+  //live_captions_dial_out2 = pexip_infinity_system_location.AMS.id
+  //live_captions_dial_out3 = pexip_infinity_system_location.AMS.id
 
   // These locations must already exist before being set
   //transcoding_location = pexip_infinity_system_location.AMS.id

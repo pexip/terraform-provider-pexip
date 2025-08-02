@@ -48,16 +48,16 @@ type InfinitySystemLocationResourceModel struct {
 	MediaQOS                    types.Int32  `tfsdk:"media_qos"`
 	SignallingQOS               types.Int32  `tfsdk:"signalling_qos"`
 	TranscodingLocation         types.String `tfsdk:"transcoding_location"`
-	OverflowLocationOne         types.String `tfsdk:"overflow_location1"`
-	OverflowLocationTwo         types.String `tfsdk:"overflow_location2"`
+	OverflowLocation1           types.String `tfsdk:"overflow_location1"`
+	OverflowLocation2           types.String `tfsdk:"overflow_location2"`
 	LocalMSSIPDomain            types.String `tfsdk:"local_mssip_domain"`
 	PolicyServer                types.String `tfsdk:"policy_server"`
 	EventSinks                  types.List   `tfsdk:"event_sinks"`
-	BDPMPINChecksEnabled        types.Bool   `tfsdk:"bdpm_pin_checks_enabled"`
-	BDPMScanQuarantineEnabled   types.Bool   `tfsdk:"bdpm_scan_quarantine_enabled"`
-	LiveCaptionsDialOutOne      types.String `tfsdk:"live_captions_dial_out1"`
-	LiveCaptionsDialOutTwo      types.String `tfsdk:"live_captions_dial_out2"`
-	LiveCaptionsDialOutThree    types.String `tfsdk:"live_captions_dial_out3"`
+	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
+	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
+	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out1"`
+	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out2"`
+	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out3"`
 }
 
 // getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
@@ -130,6 +130,13 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "The resource integer identifier for the system location in Infinity",
 			},
+			"name": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(250),
+				},
+				MarkdownDescription: "The name used to refer to this system location. Maximum length: 250 characters.",
+			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -153,20 +160,136 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"mtu": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Maximum Transmission Unit - the size of the largest packet that can be transmitted via the network interface for this system location. It depends on your network topology as to whether you may need to specify an MTU value here. Range: 512 to 1500.",
-			},
-			"name": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
-				},
-				MarkdownDescription: "The name used to refer to this system location. Maximum length: 250 characters.",
+				MarkdownDescription: "Maximum Transmission Unit for this system location. Range: 512 to 1500.",
 			},
 			"syslog_servers": schema.ListAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The Syslog servers to be used by Conferencing Nodes deployed in this Location.",
+			},
+			"h323_gatekeeper": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "H.323 Gatekeeper resource URI.",
+			},
+			"snmp_network_management_system": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "SNMP Network Management System resource URI.",
+			},
+			"sip_proxy": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "SIP Proxy resource URI.",
+			},
+			"http_proxy": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "HTTP Proxy resource URI.",
+			},
+			"mssip_proxy": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Microsoft SIP Proxy resource URI.",
+			},
+			"teams_proxy": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Teams Proxy resource URI.",
+			},
+			"turn_server": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "TURN server resource URI.",
+			},
+			"stun_server": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "STUN server resource URI.",
+			},
+			"client_turn_servers": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of client TURN server URIs.",
+			},
+			"client_stun_servers": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of client STUN server URIs.",
+			},
+			"use_relay_candidates_only": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Whether to use relay candidates only.",
+			},
+			"media_qos": schema.Int32Attribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Media QoS value.",
+			},
+			"signalling_qos": schema.Int32Attribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Signalling QoS value.",
+			},
+			"transcoding_location": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Transcoding location resource URI.",
+			},
+			"overflow_location1": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Overflow location 1 resource URI.",
+			},
+			"overflow_location2": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Overflow location 2 resource URI.",
+			},
+			"local_mssip_domain": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Local Microsoft SIP domain.",
+			},
+			"policy_server": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Policy server resource URI.",
+			},
+			"event_sinks": schema.ListAttribute{
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of event sink URIs.",
+			},
+			"bdpm_pin_checks_enabled": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Whether BDPM PIN checks are enabled.",
+			},
+			"bdpm_scan_quarantine_enabled": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Whether BDPM scan quarantine is enabled.",
+			},
+			"live_captions_dial_out1": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Live captions dial out 1 URI.",
+			},
+			"live_captions_dial_out2": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Live captions dial out 2 URI.",
+			},
+			"live_captions_dial_out3": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Live captions dial out 3 URI.",
 			},
 		},
 		MarkdownDescription: "Registers a system location with the Infinity service.",
@@ -250,12 +373,12 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
 		createRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
 	}
-	if !plan.MediaQoS.IsNull() && !plan.MediaQoS.IsUnknown() {
-		value := int(plan.MediaQoS.ValueInt32())
+	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
+		value := int(plan.MediaQOS.ValueInt32())
 		createRequest.MediaQoS = &value
 	}
-	if !plan.SignallingQoS.IsNull() && !plan.SignallingQoS.IsUnknown() {
-		value := int(plan.SignallingQoS.ValueInt32())
+	if !plan.SignallingQOS.IsNull() && !plan.SignallingQOS.IsUnknown() {
+		value := int(plan.SignallingQOS.ValueInt32())
 		createRequest.SignallingQoS = &value
 	}
 	if !plan.TranscodingLocation.IsNull() && !plan.TranscodingLocation.IsUnknown() {
@@ -277,8 +400,8 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		value := plan.PolicyServer.ValueString()
 		createRequest.PolicyServer = &value
 	}
-	if !plan.BDPMPinChecksEnabled.IsNull() && !plan.BDPMPinChecksEnabled.IsUnknown() {
-		createRequest.BDPMPinChecksEnabled = plan.BDPMPinChecksEnabled.ValueString()
+	if !plan.BDPMPINChecksEnabled.IsNull() && !plan.BDPMPINChecksEnabled.IsUnknown() {
+		createRequest.BDPMPinChecksEnabled = plan.BDPMPINChecksEnabled.ValueString()
 	}
 	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
 		createRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
@@ -415,8 +538,6 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	}
 	data.ClientSTUNServers = clientStunList
 
-	
-
 	// The following fields are set if available in srv, otherwise set to Null
 	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
 	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
@@ -429,14 +550,14 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Booleans and Ints
 	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
-	data.MediaQoS = types.Int32Value(int32(*srv.MediaQoS))
-	data.SignallingQoS = types.Int32Value(int32(*srv.SignallingQoS))
+	data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
+	data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
 	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
 	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
 	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
 	data.LocalMSSIPDomain = types.StringValue(srv.LocalMSSIPDomain)
 	data.PolicyServer = types.StringPointerValue(srv.PolicyServer)
-	data.BDPMPinChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
+	data.BDPMPINChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
 	data.BDPMScanQuarantineEnabled = types.StringValue(srv.BDPMScanQuarantineEnabled)
 	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
 	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
