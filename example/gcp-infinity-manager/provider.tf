@@ -1,0 +1,25 @@
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    pexip = {
+      source  = "pexip.com/pexip/pexip"
+      version = ">= 0.0.1"
+    }
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.0"
+    }
+  }
+}

@@ -1,0 +1,387 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/pexip/go-infinity-sdk/v38/config"
+)
+
+var (
+	_ resource.ResourceWithImportState = (*InfinityTURNServerResource)(nil)
+)
+
+type InfinityTURNServerResource struct {
+	InfinityClient InfinityClient
+}
+
+type InfinityTURNServerResourceModel struct {
+	ID            types.String `tfsdk:"id"`
+	ResourceID    types.Int32  `tfsdk:"resource_id"`
+	Name          types.String `tfsdk:"name"`
+	Description   types.String `tfsdk:"description"`
+	Address       types.String `tfsdk:"address"`
+	Port          types.Int32  `tfsdk:"port"`
+	ServerType    types.String `tfsdk:"server_type"`
+	TransportType types.String `tfsdk:"transport_type"`
+	Username      types.String `tfsdk:"username"`
+	Password      types.String `tfsdk:"password"`
+	SecretKey     types.String `tfsdk:"secret_key"`
+}
+
+func (r *InfinityTURNServerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_infinity_turn_server"
+}
+
+func (r *InfinityTURNServerResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	p, ok := req.ProviderData.(*PexipProvider)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *PexipProvider, got: %T. Please report this issue to the provider developers", req.ProviderData),
+		)
+		return
+	}
+
+	r.InfinityClient = p.client
+}
+
+func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Resource URI for the TURN server in Infinity",
+			},
+			"resource_id": schema.Int32Attribute{
+				Computed:            true,
+				MarkdownDescription: "The resource integer identifier for the TURN server in Infinity",
+			},
+			"name": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(250),
+				},
+				MarkdownDescription: "The name used to refer to this TURN server. Maximum length: 250 characters.",
+			},
+			"description": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(250),
+				},
+				MarkdownDescription: "A description of the TURN server. Maximum length: 250 characters.",
+			},
+			"address": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "The address or hostname of the TURN server. Maximum length: 255 characters.",
+			},
+			"port": schema.Int32Attribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.Int32{
+					int32validator.Between(1, 65535),
+				},
+				MarkdownDescription: "The port number for the TURN server. Range: 1 to 65535.",
+			},
+			"server_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("namepsw", "coturn_shared"),
+				},
+				Default:             stringdefault.StaticString("namepsw"),
+				MarkdownDescription: "The type of TURN server. Valid values: standard, shared_secret.",
+			},
+			"transport_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("udp", "tcp", "tls"),
+				},
+				Default:             stringdefault.StaticString("udp"),
+				MarkdownDescription: "The transport type for the TURN server. Valid values: udp, tcp, tls.",
+			},
+			"username": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "Username for authentication to the TURN server. Maximum length: 100 characters.",
+			},
+			"password": schema.StringAttribute{
+				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "Password for authentication to the TURN server. Maximum length: 100 characters.",
+			},
+			"secret_key": schema.StringAttribute{
+				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(256),
+				},
+				MarkdownDescription: "Secret key for shared secret TURN servers. Maximum length: 256 characters.",
+			},
+		},
+		MarkdownDescription: "Manages a TURN server configuration with the Infinity service.",
+	}
+}
+
+func (r *InfinityTURNServerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	plan := &InfinityTURNServerResourceModel{}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	createRequest := &config.TURNServerCreateRequest{
+		Name:          plan.Name.ValueString(),
+		Address:       plan.Address.ValueString(),
+		ServerType:    plan.ServerType.ValueString(),
+		TransportType: plan.TransportType.ValueString(),
+	}
+
+	// Only set optional fields if they are not null in the plan
+	if !plan.Description.IsNull() {
+		createRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.Port.IsNull() {
+		port := int(plan.Port.ValueInt32())
+		createRequest.Port = &port
+	}
+	if !plan.Username.IsNull() {
+		createRequest.Username = plan.Username.ValueString()
+	}
+	if !plan.Password.IsNull() {
+		createRequest.Password = plan.Password.ValueString()
+	}
+	if !plan.SecretKey.IsNull() {
+		createRequest.SecretKey = plan.SecretKey.ValueString()
+	}
+
+	createResponse, err := r.InfinityClient.Config().CreateTURNServer(ctx, createRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating Infinity TURN server",
+			fmt.Sprintf("Could not create Infinity TURN server: %s", err),
+		)
+		return
+	}
+
+	resourceID, err := createResponse.ResourceID()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Retrieving Infinity TURN server ID",
+			fmt.Sprintf("Could not retrieve ID for created Infinity TURN server: %s", err),
+		)
+		return
+	}
+
+	// Read the state from the API to get all computed values
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString(), plan.SecretKey.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Created Infinity TURN server",
+			fmt.Sprintf("Could not read created Infinity TURN server with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity TURN server with ID: %s, name: %s", model.ID, model.Name))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, password string, secretKey string) (*InfinityTURNServerResourceModel, error) {
+	var data InfinityTURNServerResourceModel
+
+	srv, err := r.InfinityClient.Config().GetTURNServer(ctx, resourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(srv.ResourceURI) == 0 {
+		return nil, fmt.Errorf("TURN server with ID %d not found", resourceID)
+	}
+
+	data.ID = types.StringValue(srv.ResourceURI)
+	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.Name = types.StringValue(srv.Name)
+	data.Description = types.StringValue(srv.Description)
+	data.Address = types.StringValue(srv.Address)
+	data.ServerType = types.StringValue(srv.ServerType)
+	data.TransportType = types.StringValue(srv.TransportType)
+	data.Username = types.StringValue(srv.Username)
+	data.Password = types.StringValue(password)   // The server does not return the password, so we use the provided one
+	data.SecretKey = types.StringValue(secretKey) // The server does not return the secret key, so we use the provided one
+
+	if srv.Port != nil {
+		data.Port = types.Int32Value(int32(*srv.Port))
+	} else {
+		data.Port = types.Int32Null()
+	}
+
+	return &data, nil
+}
+
+func (r *InfinityTURNServerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	state := &InfinityTURNServerResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resourceID := int(state.ResourceID.ValueInt32())
+	state, err := r.read(ctx, resourceID, state.Password.ValueString(), state.SecretKey.ValueString())
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Error Reading Infinity TURN server",
+			fmt.Sprintf("Could not read Infinity TURN server: %s", err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func (r *InfinityTURNServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	plan := &InfinityTURNServerResourceModel{}
+	state := &InfinityTURNServerResourceModel{}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resourceID := int(state.ResourceID.ValueInt32())
+
+	updateRequest := &config.TURNServerUpdateRequest{
+		Name:          plan.Name.ValueString(),
+		Address:       plan.Address.ValueString(),
+		ServerType:    plan.ServerType.ValueString(),
+		TransportType: plan.TransportType.ValueString(),
+	}
+
+	if !plan.Description.IsNull() {
+		updateRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.Port.IsNull() {
+		port := int(plan.Port.ValueInt32())
+		updateRequest.Port = &port
+	}
+	if !plan.Username.IsNull() {
+		updateRequest.Username = plan.Username.ValueString()
+	}
+	if !plan.Password.IsNull() {
+		updateRequest.Password = plan.Password.ValueString()
+	}
+	if !plan.SecretKey.IsNull() {
+		updateRequest.SecretKey = plan.SecretKey.ValueString()
+	}
+
+	_, err := r.InfinityClient.Config().UpdateTURNServer(ctx, resourceID, updateRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Infinity TURN server",
+			fmt.Sprintf("Could not update Infinity TURN server with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString(), plan.SecretKey.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity TURN server",
+			fmt.Sprintf("Could not read updated Infinity TURN server with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
+}
+
+func (r *InfinityTURNServerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	state := &InfinityTURNServerResourceModel{}
+
+	tflog.Info(ctx, "Deleting Infinity TURN server")
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := r.InfinityClient.Config().DeleteTURNServer(ctx, int(state.ResourceID.ValueInt32()))
+
+	// Ignore 404 Not Found and Lookup errors on delete
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
+		resp.Diagnostics.AddError(
+			"Error Deleting Infinity TURN server",
+			fmt.Sprintf("Could not delete Infinity TURN server with ID %s: %s", state.ID.ValueString(), err),
+		)
+		return
+	}
+}
+
+func (r *InfinityTURNServerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resourceID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Import ID must be a valid integer for the resource ID. Got: %s", req.ID),
+		)
+		return
+	}
+
+	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity TURN server with resource ID: %d", resourceID))
+
+	// Read the resource from the API
+	model, err := r.read(ctx, resourceID, "", "")
+	if err != nil {
+		// Check if the error is a 404 (not found)
+		if isNotFoundError(err) {
+			resp.Diagnostics.AddError(
+				"Infinity TURN Server Not Found",
+				fmt.Sprintf("Infinity TURN server with resource ID %d not found.", resourceID),
+			)
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Error Importing Infinity TURN Server",
+			fmt.Sprintf("Could not import Infinity TURN server with resource ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	// Set the state from the imported resource
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}

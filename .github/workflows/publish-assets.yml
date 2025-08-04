@@ -1,0 +1,90 @@
+name: Build and Publish Terraform Provider
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  GO_VERSION: "1.24"
+  PROVIDER_NAME: "pexip"
+
+jobs:
+  publish:
+    name: Build and Upload Assets
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goarch: arm64
+            goos: windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate git for private modules
+        run: |
+          git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set build variables
+        id: vars
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+          
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${USER}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
+
+      - name: Package binary
+        run: |
+          cd dist
+          zip "${{ steps.vars.outputs.binary_name }}.zip" "${{ steps.vars.outputs.binary_name }}"
+
+      - name: Generate SHA256 checksum
+        run: |
+          cd dist
+          shasum -a 256 *.zip > terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
+
+      - name: Sign checksum file
+        run: |
+          cd dist
+          gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
+            --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig \
+            --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 #v2.3.2
+        with:
+          files: |
+            dist/*.zip
+            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig
