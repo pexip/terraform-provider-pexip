@@ -7,9 +7,9 @@ resource "pexip_infinity_worker_vm" "worker_vm-test" {
   gateway                 = "192.168.1.1"   // Updated value
   ipv6_address            = "2001:db8::2"   // Updated address
   ipv6_gateway            = "2001:db8::fe"  // Updated value
-  node_type               = "proxying"      // Updated value
+  node_type               = "PROXYING"      // Updated value
   transcoding             = false           // Updated to false
-  password                = "updated-value" // Updated value
+  password                = "test-value" // Keep same password for sensitive attribute
   maintenance_mode        = false           // Updated to false
   maintenance_mode_reason = "updated-value" // Updated value
   system_location         = "updated-value" // Updated value

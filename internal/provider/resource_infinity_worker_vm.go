@@ -68,10 +68,10 @@ type InfinityWorkerVMResourceModel struct {
 	SNMPSystemContact          types.String `tfsdk:"snmp_system_contact"`
 	SNMPSystemLocation         types.String `tfsdk:"snmp_system_location"`
 	SNMPUsername               types.String `tfsdk:"snmp_username"`
-	SSHAuthorizedKeys          types.List   `tfsdk:"ssh_authorized_keys"`
+	SSHAuthorizedKeys          types.Set    `tfsdk:"ssh_authorized_keys"`
 	SSHAuthorizedKeysUseCloud  types.Bool   `tfsdk:"ssh_authorized_keys_use_cloud"`
 	StaticNATAddress           types.String `tfsdk:"static_nat_address"`
-	StaticRoutes               types.List   `tfsdk:"static_routes"`
+	StaticRoutes               types.Set    `tfsdk:"static_routes"`
 	TLSCertificate             types.String `tfsdk:"tls_certificate"`
 
 	Config types.String `tfsdk:"config"`
@@ -362,7 +362,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The username used to authenticate SNMPv3 requests. Maximum length: 100 characters.",
 			},
-			"ssh_authorized_keys": schema.ListAttribute{
+			"ssh_authorized_keys": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -384,7 +384,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The public IPv4 address used by the Conferencing Node when it is located behind a NAT device. Note that if you are using NAT, you must also configure your NAT device to route the Conferencing Node's IPv4 static NAT address to its IPv4 address.",
 			},
-			"static_routes": schema.ListAttribute{
+			"static_routes": schema.SetAttribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     nil,
@@ -581,8 +581,8 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	data.TLSCertificate = types.StringNull()                         // Default: nil (nullable)
 
 	// Initialize list fields to empty lists to match schema types
-	data.SSHAuthorizedKeys, _ = types.ListValue(types.StringType, []attr.Value{})
-	data.StaticRoutes, _ = types.ListValue(types.StringType, []attr.Value{})
+	data.SSHAuthorizedKeys, _ = types.SetValue(types.StringType, []attr.Value{})
+	data.StaticRoutes, _ = types.SetValue(types.StringType, []attr.Value{})
 
 	return &data, nil
 }

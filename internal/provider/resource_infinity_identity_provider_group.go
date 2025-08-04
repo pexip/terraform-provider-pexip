@@ -27,7 +27,7 @@ type InfinityIdentityProviderGroupResourceModel struct {
 	ResourceID       types.Int32  `tfsdk:"resource_id"`
 	Name             types.String `tfsdk:"name"`
 	Description      types.String `tfsdk:"description"`
-	IdentityProvider types.List   `tfsdk:"identity_provider"`
+	IdentityProvider types.Set    `tfsdk:"identity_provider"`
 }
 
 func (r *InfinityIdentityProviderGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,7 +77,7 @@ func (r *InfinityIdentityProviderGroupResource) Schema(ctx context.Context, req 
 				},
 				MarkdownDescription: "Description of the identity provider group. Maximum length: 500 characters.",
 			},
-			"identity_provider": schema.ListAttribute{
+			"identity_provider": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of identity provider URIs associated with this group.",
@@ -161,13 +161,13 @@ func (r *InfinityIdentityProviderGroupResource) read(ctx context.Context, resour
 
 	// Handle list field
 	if srv.IdentityProvider != nil {
-		providersList, diags := types.ListValueFrom(ctx, types.StringType, srv.IdentityProvider)
+		providersSet, diags := types.SetValueFrom(ctx, types.StringType, srv.IdentityProvider)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert identity providers: %s", diags.Errors())
 		}
-		data.IdentityProvider = providersList
+		data.IdentityProvider = providersSet
 	} else {
-		data.IdentityProvider = types.ListNull(types.StringType)
+		data.IdentityProvider = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

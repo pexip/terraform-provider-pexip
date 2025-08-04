@@ -28,7 +28,7 @@ type InfinityDiagnosticGraphResourceModel struct {
 	ResourceID types.Int32  `tfsdk:"resource_id"`
 	Title      types.String `tfsdk:"title"`
 	Order      types.Int64  `tfsdk:"order"`
-	Datasets   types.List   `tfsdk:"datasets"`
+	Datasets   types.Set    `tfsdk:"datasets"`
 }
 
 func (r *InfinityDiagnosticGraphResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,7 +78,7 @@ func (r *InfinityDiagnosticGraphResource) Schema(ctx context.Context, req resour
 				},
 				MarkdownDescription: "The display order of the diagnostic graph. Lower values appear first.",
 			},
-			"datasets": schema.ListAttribute{
+			"datasets": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of dataset identifiers to include in this diagnostic graph.",
@@ -162,13 +162,13 @@ func (r *InfinityDiagnosticGraphResource) read(ctx context.Context, resourceID i
 
 	// Handle list field
 	if srv.Datasets != nil {
-		datasetsList, diags := types.ListValueFrom(ctx, types.StringType, srv.Datasets)
+		datasetsSet, diags := types.SetValueFrom(ctx, types.StringType, srv.Datasets)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert datasets: %s", diags.Errors())
 		}
-		data.Datasets = datasetsList
+		data.Datasets = datasetsSet
 	} else {
-		data.Datasets = types.ListNull(types.StringType)
+		data.Datasets = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

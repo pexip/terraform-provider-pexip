@@ -29,7 +29,7 @@ type InfinityMediaLibraryPlaylistResourceModel struct {
 	Description     types.String `tfsdk:"description"`
 	Loop            types.Bool   `tfsdk:"loop"`
 	Shuffle         types.Bool   `tfsdk:"shuffle"`
-	PlaylistEntries types.List   `tfsdk:"playlist_entries"`
+	PlaylistEntries types.Set    `tfsdk:"playlist_entries"`
 }
 
 func (r *InfinityMediaLibraryPlaylistResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -87,7 +87,7 @@ func (r *InfinityMediaLibraryPlaylistResource) Schema(ctx context.Context, req r
 				Optional:            true,
 				MarkdownDescription: "Whether the playlist entries should be played in random order.",
 			},
-			"playlist_entries": schema.ListAttribute{
+			"playlist_entries": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of media library entry URIs that make up this playlist.",
@@ -175,13 +175,13 @@ func (r *InfinityMediaLibraryPlaylistResource) read(ctx context.Context, resourc
 
 	// Handle playlist entries
 	if srv.PlaylistEntries != nil {
-		entriesList, diags := types.ListValueFrom(ctx, types.StringType, srv.PlaylistEntries)
+		entriesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.PlaylistEntries)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert playlist entries: %s", diags.Errors())
 		}
-		data.PlaylistEntries = entriesList
+		data.PlaylistEntries = entriesSet
 	} else {
-		data.PlaylistEntries = types.ListNull(types.StringType)
+		data.PlaylistEntries = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

@@ -28,7 +28,7 @@ type InfinityRoleMappingResourceModel struct {
 	Name       types.String `tfsdk:"name"`
 	Source     types.String `tfsdk:"source"`
 	Value      types.String `tfsdk:"value"`
-	Roles      types.List   `tfsdk:"roles"`
+	Roles      types.Set    `tfsdk:"roles"`
 }
 
 func (r *InfinityRoleMappingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -85,7 +85,7 @@ func (r *InfinityRoleMappingResource) Schema(ctx context.Context, req resource.S
 				},
 				MarkdownDescription: "The value to match for this role mapping.",
 			},
-			"roles": schema.ListAttribute{
+			"roles": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of role URIs to assign when this mapping matches.",
@@ -171,13 +171,13 @@ func (r *InfinityRoleMappingResource) read(ctx context.Context, resourceID int) 
 
 	// Handle list field
 	if srv.Roles != nil {
-		rolesList, diags := types.ListValueFrom(ctx, types.StringType, srv.Roles)
+		rolesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.Roles)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert roles: %s", diags.Errors())
 		}
-		data.Roles = rolesList
+		data.Roles = rolesSet
 	} else {
-		data.Roles = types.ListNull(types.StringType)
+		data.Roles = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

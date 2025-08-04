@@ -7,7 +7,7 @@ resource "pexip_infinity_worker_vm" "worker_vm-test" {
   gateway                 = "192.168.1.1"
   ipv6_address            = "2001:db8::1"
   ipv6_gateway            = "2001:db8::fe"
-  node_type               = "conferencing"
+  node_type               = "CONFERENCING"
   transcoding             = true
   password                = "test-value"
   maintenance_mode        = true

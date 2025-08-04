@@ -26,7 +26,7 @@ type InfinityRoleResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	ResourceID  types.Int32  `tfsdk:"resource_id"`
 	Name        types.String `tfsdk:"name"`
-	Permissions types.List   `tfsdk:"permissions"`
+	Permissions types.Set    `tfsdk:"permissions"`
 }
 
 func (r *InfinityRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -68,7 +68,7 @@ func (r *InfinityRoleResource) Schema(ctx context.Context, req resource.SchemaRe
 				},
 				MarkdownDescription: "The unique name of the role. Maximum length: 250 characters.",
 			},
-			"permissions": schema.ListAttribute{
+			"permissions": schema.SetAttribute{
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of permissions assigned to this role.",
@@ -148,15 +148,15 @@ func (r *InfinityRoleResource) read(ctx context.Context, resourceID int) (*Infin
 	data.ResourceID = types.Int32Value(int32(resourceID))
 	data.Name = types.StringValue(srv.Name)
 
-	// Convert permissions to types.List, but keep as null if empty and not originally specified
+	// Convert permissions to types.Set, but keep as null if empty and not originally specified
 	if srv.Permissions != nil && len(srv.Permissions) > 0 {
-		permissionsListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.Permissions)
+		permissionsSetValue, diags := types.SetValueFrom(ctx, types.StringType, srv.Permissions)
 		if diags.HasError() {
 			return nil, fmt.Errorf("error converting permissions: %v", diags)
 		}
-		data.Permissions = permissionsListValue
+		data.Permissions = permissionsSetValue
 	} else {
-		data.Permissions = types.ListNull(types.StringType)
+		data.Permissions = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

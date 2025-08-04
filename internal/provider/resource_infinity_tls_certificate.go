@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -31,7 +31,7 @@ type InfinityTLSCertificateResourceModel struct {
 	PrivateKey           types.String `tfsdk:"private_key"`
 	PrivateKeyPassphrase types.String `tfsdk:"private_key_passphrase"`
 	Parameters           types.String `tfsdk:"parameters"`
-	Nodes                types.List   `tfsdk:"nodes"`
+	Nodes                types.Set    `tfsdk:"nodes"`
 	StartDate            types.String `tfsdk:"start_date"`
 	EndDate              types.String `tfsdk:"end_date"`
 	SubjectName          types.String `tfsdk:"subject_name"`
@@ -112,11 +112,11 @@ func (r *InfinityTLSCertificateResource) Schema(ctx context.Context, req resourc
 				},
 				MarkdownDescription: "Additional parameters for the certificate. Maximum length: 1000 characters.",
 			},
-			"nodes": schema.ListAttribute{
+			"nodes": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             listdefault.StaticValue(types.ListValueMust(types.StringType, []attr.Value{})),
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				MarkdownDescription: "List of node resource URIs where this certificate should be deployed.",
 			},
 			"start_date": schema.StringAttribute{
@@ -279,12 +279,12 @@ func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID in
 		data.IssuerKeyID = types.StringNull()
 	}
 
-	// Convert nodes to types.List
-	nodesListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.Nodes)
+	// Convert nodes to types.Set
+	nodesSetValue, diags := types.SetValueFrom(ctx, types.StringType, srv.Nodes)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting nodes: %v", diags)
 	}
-	data.Nodes = nodesListValue
+	data.Nodes = nodesSetValue
 
 	return &data, nil
 }

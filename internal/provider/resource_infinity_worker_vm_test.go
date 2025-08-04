@@ -37,7 +37,7 @@ func TestInfinityWorkerVM(t *testing.T) {
 		Gateway:               "192.168.1.1",
 		IPv6Address:           test.StringPtr("2001:db8::1"),
 		IPv6Gateway:           test.StringPtr("2001:db8::fe"),
-		NodeType:              "conferencing",
+		NodeType:              "CONFERENCING",
 		Transcoding:           true,
 		Password:              "test-value",
 		MaintenanceMode:       true,

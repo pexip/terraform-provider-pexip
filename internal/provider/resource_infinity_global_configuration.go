@@ -49,7 +49,7 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableErrorReporting         types.Bool   `tfsdk:"enable_error_reporting"`
 	BandwidthRestrictions        types.String `tfsdk:"bandwidth_restrictions"`
 	AdministratorEmail           types.String `tfsdk:"administrator_email"`
-	GlobalConferenceCreateGroups types.List   `tfsdk:"global_conference_create_groups"`
+	GlobalConferenceCreateGroups types.Set    `tfsdk:"global_conference_create_groups"`
 }
 
 func (r *InfinityGlobalConfigurationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -216,7 +216,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				},
 				MarkdownDescription: "Administrator email address for system notifications.",
 			},
-			"global_conference_create_groups": schema.ListAttribute{
+			"global_conference_create_groups": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of groups that can create conferences globally.",
@@ -427,13 +427,13 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context) (*Infini
 
 	// Handle list field
 	if srv.GlobalConferenceCreateGroups != nil {
-		groupList, diags := types.ListValueFrom(ctx, types.StringType, srv.GlobalConferenceCreateGroups)
+		groupSet, diags := types.SetValueFrom(ctx, types.StringType, srv.GlobalConferenceCreateGroups)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert global conference create groups: %s", diags.Errors())
 		}
-		data.GlobalConferenceCreateGroups = groupList
+		data.GlobalConferenceCreateGroups = groupSet
 	} else {
-		data.GlobalConferenceCreateGroups = types.ListNull(types.StringType)
+		data.GlobalConferenceCreateGroups = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

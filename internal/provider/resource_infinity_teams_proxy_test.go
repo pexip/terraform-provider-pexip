@@ -38,7 +38,7 @@ func TestInfinityTeamsProxy(t *testing.T) {
 		AzureTenant:          "test-azure-tenant",
 		EventhubID:           &eventhubID,
 		MinNumberOfInstances: 2,
-		NotificationsEnabled: true,
+		NotificationsEnabled: false,
 		NotificationsQueue:   &notificationsQueue,
 	}
 
@@ -102,6 +102,7 @@ func testInfinityTeamsProxy(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "test-azure-tenant"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "eventhub_id", "test-eventhub-id"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "2"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_enabled", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_queue", "test-notifications-queue"),
 				),
 			},
@@ -117,6 +118,7 @@ func testInfinityTeamsProxy(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "test-azure-tenant"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "eventhub_id", "test-eventhub-id"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "1"), // Updated min_number_of_instances
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_enabled", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_queue", "test-notifications-queue"),
 				),
 			},

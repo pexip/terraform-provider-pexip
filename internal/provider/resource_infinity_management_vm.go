@@ -39,15 +39,15 @@ type InfinityManagementVMResourceModel struct {
 	IPV6Gateway                 types.String `tfsdk:"ipv6_gateway"`
 	MTU                         types.Int64  `tfsdk:"mtu"`
 	StaticNATAddress            types.String `tfsdk:"static_nat_address"`
-	DNSServers                  types.List   `tfsdk:"dns_servers"`
-	NTPServers                  types.List   `tfsdk:"ntp_servers"`
-	SyslogServers               types.List   `tfsdk:"syslog_servers"`
-	StaticRoutes                types.List   `tfsdk:"static_routes"`
-	EventSinks                  types.List   `tfsdk:"event_sinks"`
+	DNSServers                  types.Set    `tfsdk:"dns_servers"`
+	NTPServers                  types.Set    `tfsdk:"ntp_servers"`
+	SyslogServers               types.Set    `tfsdk:"syslog_servers"`
+	StaticRoutes                types.Set    `tfsdk:"static_routes"`
+	EventSinks                  types.Set    `tfsdk:"event_sinks"`
 	HTTPProxy                   types.String `tfsdk:"http_proxy"`
 	TLSCertificate              types.String `tfsdk:"tls_certificate"`
 	EnableSSH                   types.String `tfsdk:"enable_ssh"`
-	SSHAuthorizedKeys           types.List   `tfsdk:"ssh_authorized_keys"`
+	SSHAuthorizedKeys           types.Set    `tfsdk:"ssh_authorized_keys"`
 	SSHAuthorizedKeysUseCloud   types.Bool   `tfsdk:"ssh_authorized_keys_use_cloud"`
 	SecondaryConfigPassphrase   types.String `tfsdk:"secondary_config_passphrase"`
 	SNMPMode                    types.String `tfsdk:"snmp_mode"`
@@ -171,27 +171,27 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				},
 				MarkdownDescription: "Static NAT address for the management VM.",
 			},
-			"dns_servers": schema.ListAttribute{
+			"dns_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of DNS server URIs for the management VM.",
 			},
-			"ntp_servers": schema.ListAttribute{
+			"ntp_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of NTP server URIs for the management VM.",
 			},
-			"syslog_servers": schema.ListAttribute{
+			"syslog_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of syslog server URIs for the management VM.",
 			},
-			"static_routes": schema.ListAttribute{
+			"static_routes": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of static route URIs for the management VM.",
 			},
-			"event_sinks": schema.ListAttribute{
+			"event_sinks": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of event sink URIs for the management VM.",
@@ -211,7 +211,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				},
 				MarkdownDescription: "SSH access configuration. Valid values: yes, no, keys_only.",
 			},
-			"ssh_authorized_keys": schema.ListAttribute{
+			"ssh_authorized_keys": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of SSH authorized key URIs for the management VM.",
@@ -500,63 +500,63 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int)
 
 	// Handle list fields
 	if srv.DNSServers != nil {
-		serversList, diags := types.ListValueFrom(ctx, types.StringType, srv.DNSServers)
+		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.DNSServers)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert DNS servers: %s", diags.Errors())
 		}
-		data.DNSServers = serversList
+		data.DNSServers = serversSet
 	} else {
-		data.DNSServers = types.ListNull(types.StringType)
+		data.DNSServers = types.SetNull(types.StringType)
 	}
 
 	if srv.NTPServers != nil {
-		serversList, diags := types.ListValueFrom(ctx, types.StringType, srv.NTPServers)
+		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.NTPServers)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert NTP servers: %s", diags.Errors())
 		}
-		data.NTPServers = serversList
+		data.NTPServers = serversSet
 	} else {
-		data.NTPServers = types.ListNull(types.StringType)
+		data.NTPServers = types.SetNull(types.StringType)
 	}
 
 	if srv.SyslogServers != nil {
-		serversList, diags := types.ListValueFrom(ctx, types.StringType, srv.SyslogServers)
+		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.SyslogServers)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert syslog servers: %s", diags.Errors())
 		}
-		data.SyslogServers = serversList
+		data.SyslogServers = serversSet
 	} else {
-		data.SyslogServers = types.ListNull(types.StringType)
+		data.SyslogServers = types.SetNull(types.StringType)
 	}
 
 	if srv.StaticRoutes != nil {
-		routesList, diags := types.ListValueFrom(ctx, types.StringType, srv.StaticRoutes)
+		routesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.StaticRoutes)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert static routes: %s", diags.Errors())
 		}
-		data.StaticRoutes = routesList
+		data.StaticRoutes = routesSet
 	} else {
-		data.StaticRoutes = types.ListNull(types.StringType)
+		data.StaticRoutes = types.SetNull(types.StringType)
 	}
 
 	if srv.EventSinks != nil {
-		sinksList, diags := types.ListValueFrom(ctx, types.StringType, srv.EventSinks)
+		sinksSet, diags := types.SetValueFrom(ctx, types.StringType, srv.EventSinks)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert event sinks: %s", diags.Errors())
 		}
-		data.EventSinks = sinksList
+		data.EventSinks = sinksSet
 	} else {
-		data.EventSinks = types.ListNull(types.StringType)
+		data.EventSinks = types.SetNull(types.StringType)
 	}
 
 	if srv.SSHAuthorizedKeys != nil {
-		keysList, diags := types.ListValueFrom(ctx, types.StringType, srv.SSHAuthorizedKeys)
+		keysSet, diags := types.SetValueFrom(ctx, types.StringType, srv.SSHAuthorizedKeys)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert SSH authorized keys: %s", diags.Errors())
 		}
-		data.SSHAuthorizedKeys = keysList
+		data.SSHAuthorizedKeys = keysSet
 	} else {
-		data.SSHAuthorizedKeys = types.ListNull(types.StringType)
+		data.SSHAuthorizedKeys = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

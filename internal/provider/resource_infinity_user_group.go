@@ -27,8 +27,8 @@ type InfinityUserGroupResourceModel struct {
 	ResourceID              types.Int32  `tfsdk:"resource_id"`
 	Name                    types.String `tfsdk:"name"`
 	Description             types.String `tfsdk:"description"`
-	Users                   types.List   `tfsdk:"users"`
-	UserGroupEntityMappings types.List   `tfsdk:"user_group_entity_mappings"`
+	Users                   types.Set    `tfsdk:"users"`
+	UserGroupEntityMappings types.Set    `tfsdk:"user_group_entity_mappings"`
 }
 
 func (r *InfinityUserGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,13 +78,13 @@ func (r *InfinityUserGroupResource) Schema(ctx context.Context, req resource.Sch
 				},
 				MarkdownDescription: "A description of the user group. Maximum length: 250 characters.",
 			},
-			"users": schema.ListAttribute{
+			"users": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of user resource URIs that belong to this group.",
 			},
-			"user_group_entity_mappings": schema.ListAttribute{
+			"user_group_entity_mappings": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -177,19 +177,19 @@ func (r *InfinityUserGroupResource) read(ctx context.Context, resourceID int) (*
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 
-	// Convert users to types.List
-	usersListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.Users)
+	// Convert users to types.Set
+	usersSet, diags := types.SetValueFrom(ctx, types.StringType, srv.Users)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting users: %v", diags)
 	}
-	data.Users = usersListValue
+	data.Users = usersSet
 
-	// Convert user group entity mappings to types.List
-	mappingsListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.UserGroupEntityMappings)
+	// Convert user group entity mappings to types.Set
+	mappingsSet, diags := types.SetValueFrom(ctx, types.StringType, srv.UserGroupEntityMappings)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting user group entity mappings: %v", diags)
 	}
-	data.UserGroupEntityMappings = mappingsListValue
+	data.UserGroupEntityMappings = mappingsSet
 
 	return &data, nil
 }

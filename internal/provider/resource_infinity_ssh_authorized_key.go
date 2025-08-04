@@ -28,7 +28,7 @@ type InfinitySSHAuthorizedKeyResourceModel struct {
 	Keytype    types.String `tfsdk:"keytype"`
 	Key        types.String `tfsdk:"key"`
 	Comment    types.String `tfsdk:"comment"`
-	Nodes      types.List   `tfsdk:"nodes"`
+	Nodes      types.Set    `tfsdk:"nodes"`
 }
 
 func (r *InfinitySSHAuthorizedKeyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -85,7 +85,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				},
 				MarkdownDescription: "A comment for the SSH key. Maximum length: 250 characters.",
 			},
-			"nodes": schema.ListAttribute{
+			"nodes": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
@@ -172,16 +172,16 @@ func (r *InfinitySSHAuthorizedKeyResource) read(ctx context.Context, resourceID 
 	data.Key = types.StringValue(srv.Key)
 	data.Comment = types.StringValue(srv.Comment)
 
-	// Convert nodes slice to types.List
+	// Convert nodes slice to types.Set
 	nodeElements := make([]types.String, len(srv.Nodes))
 	for i, node := range srv.Nodes {
 		nodeElements[i] = types.StringValue(node)
 	}
-	nodesList, diags := types.ListValueFrom(ctx, types.StringType, nodeElements)
+	nodesSet, diags := types.SetValueFrom(ctx, types.StringType, nodeElements)
 	if diags.HasError() {
-		return nil, fmt.Errorf("failed to convert nodes to list: %v", diags)
+		return nil, fmt.Errorf("failed to convert nodes to set: %v", diags)
 	}
-	data.Nodes = nodesList
+	data.Nodes = nodesSet
 
 	return &data, nil
 }

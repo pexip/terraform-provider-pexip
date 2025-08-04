@@ -30,10 +30,10 @@ type InfinitySystemLocationResourceModel struct {
 	ResourceID                  types.Int32  `tfsdk:"resource_id"`
 	Name                        types.String `tfsdk:"name"`
 	Description                 types.String `tfsdk:"description"`
-	DNSServers                  types.List   `tfsdk:"dns_servers"`
-	NTPServers                  types.List   `tfsdk:"ntp_servers"`
+	DNSServers                  types.Set    `tfsdk:"dns_servers"`
+	NTPServers                  types.Set    `tfsdk:"ntp_servers"`
 	MTU                         types.Int32  `tfsdk:"mtu"`
-	SyslogServers               types.List   `tfsdk:"syslog_servers"`
+	SyslogServers               types.Set    `tfsdk:"syslog_servers"`
 	H323GateKeeper              types.String `tfsdk:"h323_gatekeeper"`
 	SNMPNetworkManagementSystem types.String `tfsdk:"snmp_network_management_system"`
 	SIPProxy                    types.String `tfsdk:"sip_proxy"`
@@ -42,8 +42,8 @@ type InfinitySystemLocationResourceModel struct {
 	TeamsProxy                  types.String `tfsdk:"teams_proxy"`
 	TURNServer                  types.String `tfsdk:"turn_server"`
 	STUNServer                  types.String `tfsdk:"stun_server"`
-	ClientTURNServers           types.List   `tfsdk:"client_turn_servers"`
-	ClientSTUNServers           types.List   `tfsdk:"client_stun_servers"`
+	ClientTURNServers           types.Set    `tfsdk:"client_turn_servers"`
+	ClientSTUNServers           types.Set    `tfsdk:"client_stun_servers"`
 	UseRelayCandidatesOnly      types.Bool   `tfsdk:"use_relay_candidates_only"`
 	MediaQOS                    types.Int32  `tfsdk:"media_qos"`
 	SignallingQOS               types.Int32  `tfsdk:"signalling_qos"`
@@ -52,7 +52,7 @@ type InfinitySystemLocationResourceModel struct {
 	OverflowLocation2           types.String `tfsdk:"overflow_location2"`
 	LocalMSSIPDomain            types.String `tfsdk:"local_mssip_domain"`
 	PolicyServer                types.String `tfsdk:"policy_server"`
-	EventSinks                  types.List   `tfsdk:"event_sinks"`
+	EventSinks                  types.Set    `tfsdk:"event_sinks"`
 	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
 	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
 	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out1"`
@@ -60,42 +60,17 @@ type InfinitySystemLocationResourceModel struct {
 	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out3"`
 }
 
-// getSortedStringList is a generic helper to convert a types.List of strings to a sorted string slice.
-func getSortedStringList(ctx context.Context, list types.List) ([]string, diag.Diagnostics) {
-	if list.IsNull() || list.IsUnknown() {
+func getStringList(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
+	if set.IsNull() || set.IsUnknown() {
 		return nil, nil
 	}
 	var items []string
-	diags := list.ElementsAs(ctx, &items, false)
+	diags := set.ElementsAs(ctx, &items, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 	sort.Strings(items)
 	return items, diags
-}
-
-func (m *InfinitySystemLocationResourceModel) GetDNSServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.DNSServers)
-}
-
-func (m *InfinitySystemLocationResourceModel) GetNTPServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.NTPServers)
-}
-
-func (m *InfinitySystemLocationResourceModel) GetSyslogServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.SyslogServers)
-}
-
-func (m *InfinitySystemLocationResourceModel) GetClientTURNServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.ClientTURNServers)
-}
-
-func (m *InfinitySystemLocationResourceModel) GetClientSTUNServers(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.ClientSTUNServers)
-}
-
-func (m *InfinitySystemLocationResourceModel) GetEventSinks(ctx context.Context) ([]string, diag.Diagnostics) {
-	return getSortedStringList(ctx, m.EventSinks)
 }
 
 func (r *InfinitySystemLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -145,13 +120,13 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				},
 				MarkdownDescription: "A description of the system location. Maximum length: 250 characters.",
 			},
-			"dns_servers": schema.ListAttribute{
+			"dns_servers": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of DNS server resource URIs for this system location.",
 			},
-			"ntp_servers": schema.ListAttribute{
+			"ntp_servers": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -162,7 +137,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "Maximum Transmission Unit for this system location. Range: 512 to 1500.",
 			},
-			"syslog_servers": schema.ListAttribute{
+			"syslog_servers": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -208,13 +183,13 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "STUN server resource URI.",
 			},
-			"client_turn_servers": schema.ListAttribute{
+			"client_turn_servers": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of client TURN server URIs.",
 			},
-			"client_stun_servers": schema.ListAttribute{
+			"client_stun_servers": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -260,7 +235,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "Policy server resource URI.",
 			},
-			"event_sinks": schema.ListAttribute{
+			"event_sinks": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -305,17 +280,17 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	}
 
 	// Convert List attributes to []string
-	dnsServers, diags := plan.GetDNSServers(ctx)
+	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)
-	ntpServers, diags := plan.GetNTPServers(ctx)
+	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
-	syslogServers, diags := plan.GetSyslogServers(ctx)
+	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
 	resp.Diagnostics.Append(diags...)
-	clientTurnServers, diags := plan.GetClientTURNServers(ctx)
+	clientTurnServers, diags := getStringList(ctx, plan.ClientTURNServers)
 	resp.Diagnostics.Append(diags...)
-	clientStunServers, diags := plan.GetClientSTUNServers(ctx)
+	clientStunServers, diags := getStringList(ctx, plan.ClientSTUNServers)
 	resp.Diagnostics.Append(diags...)
-	eventSinks, diags := plan.GetEventSinks(ctx)
+	eventSinks, diags := getStringList(ctx, plan.EventSinks)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -474,69 +449,66 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	for _, dns := range srv.DNSServers {
 		dnsServers = append(dnsServers, fmt.Sprintf("/api/admin/configuration/v1/dns_server/%d/", dns.ID))
 	}
-	sort.Strings(dnsServers)
-	dnsListValue, diags := types.ListValueFrom(ctx, types.StringType, dnsServers)
+	dnsSetValue, diags := types.SetValueFrom(ctx, types.StringType, dnsServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting DNS servers: %v", diags)
 	}
-	data.DNSServers = dnsListValue
+	data.DNSServers = dnsSetValue
 
 	// Convert NTP servers from SDK to Terraform format
 	var ntpServers []string
 	for _, ntp := range srv.NTPServers {
 		ntpServers = append(ntpServers, fmt.Sprintf("/api/admin/configuration/v1/ntp_server/%d/", ntp.ID))
 	}
-	sort.Strings(ntpServers)
-	ntpListValue, diags := types.ListValueFrom(ctx, types.StringType, ntpServers)
+	ntpSetValue, diags := types.SetValueFrom(ctx, types.StringType, ntpServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting NTP servers: %v", diags)
 	}
-	data.NTPServers = ntpListValue
+	data.NTPServers = ntpSetValue
 
 	// Convert Syslog servers from SDK to Terraform format
 	var syslogServers []string
 	for _, syslog := range srv.SyslogServers {
 		syslogServers = append(syslogServers, fmt.Sprintf("/api/admin/configuration/v1/syslog_server/%d/", syslog.ID))
 	}
-	sort.Strings(syslogServers)
-	syslogListValue, diags := types.ListValueFrom(ctx, types.StringType, syslogServers)
+	syslogSetValue, diags := types.SetValueFrom(ctx, types.StringType, syslogServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting Syslog servers: %v", diags)
 	}
-	data.SyslogServers = syslogListValue
+	data.SyslogServers = syslogSetValue
 
 	// Event Sinks
 	var eventSinks []string
 	for _, sink := range srv.EventSinks {
 		eventSinks = append(eventSinks, fmt.Sprintf("/api/admin/configuration/v1/event_sink/%d/", sink.ID))
 	}
-	eventSinksList, diags := types.ListValueFrom(ctx, types.StringType, eventSinks)
+	eventSinksSet, diags := types.SetValueFrom(ctx, types.StringType, eventSinks)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting event sinks: %v", diags)
 	}
-	data.EventSinks = eventSinksList
+	data.EventSinks = eventSinksSet
 
 	// Client TURN Servers
 	var clientTurnServers []string
 	for _, turn := range srv.ClientTURNServers {
 		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
 	}
-	clientTurnList, diags := types.ListValueFrom(ctx, types.StringType, clientTurnServers)
+	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting client TURN servers: %v", diags)
 	}
-	data.ClientTURNServers = clientTurnList
+	data.ClientTURNServers = clientTurnSet
 
 	// Client STUN Servers
 	var clientStunServers []string
 	for _, stun := range srv.ClientSTUNServers {
 		clientStunServers = append(clientStunServers, fmt.Sprintf("/api/admin/configuration/v1/stun_server/%d/", stun.ID))
 	}
-	clientStunList, diags := types.ListValueFrom(ctx, types.StringType, clientStunServers)
+	clientStunSet, diags := types.SetValueFrom(ctx, types.StringType, clientStunServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting client STUN servers: %v", diags)
 	}
-	data.ClientSTUNServers = clientStunList
+	data.ClientSTUNServers = clientStunSet
 
 	// The following fields are set if available in srv, otherwise set to Null
 	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
@@ -604,17 +576,18 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	dnsServers, diags := plan.GetDNSServers(ctx)
+	dnsServers, diags := getStringList(ctx, plan.DNSServers)
+
 	resp.Diagnostics.Append(diags...)
-	ntpServers, diags := plan.GetNTPServers(ctx)
+	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
-	syslogServers, diags := plan.GetSyslogServers(ctx)
+	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
 	resp.Diagnostics.Append(diags...)
-	clientTurnServers, diags := plan.GetClientTURNServers(ctx)
+	clientTurnServers, diags := getStringList(ctx, plan.ClientTURNServers)
 	resp.Diagnostics.Append(diags...)
-	clientStunServers, diags := plan.GetClientSTUNServers(ctx)
+	clientStunServers, diags := getStringList(ctx, plan.ClientSTUNServers)
 	resp.Diagnostics.Append(diags...)
-	eventSinks, diags := plan.GetEventSinks(ctx)
+	eventSinks, diags := getStringList(ctx, plan.EventSinks)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

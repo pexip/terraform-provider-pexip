@@ -34,7 +34,7 @@ type InfinityEndUserResourceModel struct {
 	Title               types.String `tfsdk:"title"`
 	Department          types.String `tfsdk:"department"`
 	AvatarURL           types.String `tfsdk:"avatar_url"`
-	UserGroups          types.List   `tfsdk:"user_groups"`
+	UserGroups          types.Set    `tfsdk:"user_groups"`
 	UserOID             types.String `tfsdk:"user_oid"`
 	ExchangeUserID      types.String `tfsdk:"exchange_user_id"`
 	MSExchangeGUID      types.String `tfsdk:"ms_exchange_guid"`
@@ -144,7 +144,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 				},
 				MarkdownDescription: "The avatar URL for the end user. Maximum length: 255 characters.",
 			},
-			"user_groups": schema.ListAttribute{
+			"user_groups": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -310,12 +310,12 @@ func (r *InfinityEndUserResource) read(ctx context.Context, resourceID int) (*In
 		data.MSExchangeGUID = types.StringNull()
 	}
 
-	// Convert user groups to types.List
-	userGroupsListValue, diags := types.ListValueFrom(ctx, types.StringType, srv.UserGroups)
+	// Convert user groups to types.Set
+	userGroupsSet, diags := types.SetValueFrom(ctx, types.StringType, srv.UserGroups)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting user groups: %v", diags)
 	}
-	data.UserGroups = userGroupsListValue
+	data.UserGroups = userGroupsSet
 
 	return &data, nil
 }

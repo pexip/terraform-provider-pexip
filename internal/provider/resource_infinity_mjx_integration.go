@@ -51,7 +51,7 @@ type InfinityMjxIntegrationResourceModel struct {
 	WebexOAuthState             types.String `tfsdk:"webex_oauth_state"`
 	WebexRedirectURI            types.String `tfsdk:"webex_redirect_uri"`
 	WebexRefreshToken           types.String `tfsdk:"webex_refresh_token"`
-	EndpointGroups              types.List   `tfsdk:"endpoint_groups"`
+	EndpointGroups              types.Set    `tfsdk:"endpoint_groups"`
 }
 
 func (r *InfinityMjxIntegrationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -223,7 +223,7 @@ func (r *InfinityMjxIntegrationResource) Schema(ctx context.Context, req resourc
 				Sensitive:           true,
 				MarkdownDescription: "Webex OAuth refresh token. This field is sensitive.",
 			},
-			"endpoint_groups": schema.ListAttribute{
+			"endpoint_groups": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
 				MarkdownDescription: "List of endpoint group URIs associated with this integration.",
@@ -412,13 +412,13 @@ func (r *InfinityMjxIntegrationResource) read(ctx context.Context, resourceID in
 
 	// Handle list field
 	if srv.EndpointGroups != nil {
-		endpointGroupsList, diags := types.ListValueFrom(ctx, types.StringType, srv.EndpointGroups)
+		endpointGroupsSet, diags := types.SetValueFrom(ctx, types.StringType, srv.EndpointGroups)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert endpoint groups: %s", diags.Errors())
 		}
-		data.EndpointGroups = endpointGroupsList
+		data.EndpointGroups = endpointGroupsSet
 	} else {
-		data.EndpointGroups = types.ListNull(types.StringType)
+		data.EndpointGroups = types.SetNull(types.StringType)
 	}
 
 	return &data, nil

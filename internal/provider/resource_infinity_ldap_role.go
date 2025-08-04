@@ -27,7 +27,7 @@ type InfinityLdapRoleResourceModel struct {
 	ResourceID  types.Int32  `tfsdk:"resource_id"`
 	Name        types.String `tfsdk:"name"`
 	LdapGroupDN types.String `tfsdk:"ldap_group_dn"`
-	Roles       types.List   `tfsdk:"roles"`
+	Roles       types.Set    `tfsdk:"roles"`
 }
 
 func (r *InfinityLdapRoleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,7 +77,7 @@ func (r *InfinityLdapRoleResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The distinguished name (DN) of the LDAP group.",
 			},
-			"roles": schema.ListAttribute{
+			"roles": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "List of role URIs associated with this LDAP role mapping.",
@@ -161,13 +161,13 @@ func (r *InfinityLdapRoleResource) read(ctx context.Context, resourceID int) (*I
 
 	// Handle list field
 	if srv.Roles != nil {
-		rolesList, diags := types.ListValueFrom(ctx, types.StringType, srv.Roles)
+		rolesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.Roles)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert roles: %s", diags.Errors())
 		}
-		data.Roles = rolesList
+		data.Roles = rolesSet
 	} else {
-		data.Roles = types.ListNull(types.StringType)
+		data.Roles = types.SetNull(types.StringType)
 	}
 
 	return &data, nil
