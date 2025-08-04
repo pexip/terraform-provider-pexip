@@ -47,8 +47,14 @@ func TestInfinitySystemLocation(t *testing.T) {
 				NTPServers: []config.NTPServer{
 					{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
 				},
-				ClientSTUNServers: []config.STUNServer{
-					{ID: 2},
+				ClientSTUNServers: []string{
+					"/api/admin/configuration/v1/stun_server/2/",
+				},
+				ClientTURNServers: []string{
+					"/api/admin/configuration/v1/turn_server/2/",
+				},
+				EventSinks: []config.EventSink{
+					{ID: 3, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
 				},
 				ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 			}
@@ -69,8 +75,16 @@ func TestInfinitySystemLocation(t *testing.T) {
 				NTPServers: []config.NTPServer{
 					{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
 				},
-				ClientSTUNServers: []config.STUNServer{
-					{ID: 1},
+				ClientSTUNServers: []string{
+					"/api/admin/configuration/v1/stun_server/1/",
+					"/api/admin/configuration/v1/stun_server/2/",
+				},
+				ClientTURNServers: []string{
+					"/api/admin/configuration/v1/turn_server/1/",
+					"/api/admin/configuration/v1/turn_server/2/",
+				},
+				EventSinks: []config.EventSink{
+					{ID: 1, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
 				},
 				ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 			}
@@ -98,8 +112,14 @@ func TestInfinitySystemLocation(t *testing.T) {
 			NTPServers: []config.NTPServer{
 				{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
 			},
-			ClientSTUNServers: []config.STUNServer{
-				{ID: 2},
+			ClientSTUNServers: []string{
+				"/api/admin/configuration/v1/stun_server/2/",
+			},
+			ClientTURNServers: []string{
+				"/api/admin/configuration/v1/turn_server/2/",
+			},
+			EventSinks: []config.EventSink{
+				{ID: 3, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
 			},
 			ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 		}
@@ -128,8 +148,15 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.#", "2"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "dns_servers.*", "/api/admin/configuration/v1/dns_server/1/"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "dns_servers.*", "/api/admin/configuration/v1/dns_server/2/"),
-					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_stun_servers.#", "1"),
-					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_stun_servers.*", "/api/admin/configuration/v1/stun_server/1/")),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_stun_servers.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_stun_servers.*", "/api/admin/configuration/v1/stun_server/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_stun_servers.*", "/api/admin/configuration/v1/stun_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_turn_servers.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_turn_servers.*", "/api/admin/configuration/v1/turn_server/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_turn_servers.*", "/api/admin/configuration/v1/turn_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "event_sinks.#", "1"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "event_sinks.*", "/api/admin/configuration/v1/event_sink/1/"),
+				),
 			},
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_system_location_basic_updated"),
@@ -143,6 +170,10 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "dns_servers.*", "/api/admin/configuration/v1/dns_server/1/"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_stun_servers.#", "1"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_stun_servers.*", "/api/admin/configuration/v1/stun_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_turn_servers.#", "1"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_turn_servers.*", "/api/admin/configuration/v1/turn_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "event_sinks.#", "1"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "event_sinks.*", "/api/admin/configuration/v1/event_sink/1/"),
 				),
 			},
 		},

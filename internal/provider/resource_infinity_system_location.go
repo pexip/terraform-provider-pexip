@@ -55,9 +55,9 @@ type InfinitySystemLocationResourceModel struct {
 	EventSinks                  types.Set    `tfsdk:"event_sinks"`
 	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
 	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
-	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out1"`
-	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out2"`
-	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out3"`
+	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out_1"`
+	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out_2"`
+	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out_3"`
 }
 
 func getStringList(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
@@ -251,17 +251,17 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "Whether BDPM scan quarantine is enabled.",
 			},
-			"live_captions_dial_out1": schema.StringAttribute{
+			"live_captions_dial_out_1": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 1 URI.",
 			},
-			"live_captions_dial_out2": schema.StringAttribute{
+			"live_captions_dial_out_2": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 2 URI.",
 			},
-			"live_captions_dial_out3": schema.StringAttribute{
+			"live_captions_dial_out_3": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 3 URI.",
@@ -491,7 +491,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Client TURN Servers
 	var clientTurnServers []string
 	for _, turn := range srv.ClientTURNServers {
-		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
+		clientTurnServers = append(clientTurnServers, turn)
 	}
 	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
@@ -502,7 +502,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Client STUN Servers
 	var clientStunServers []string
 	for _, stun := range srv.ClientSTUNServers {
-		clientStunServers = append(clientStunServers, fmt.Sprintf("/api/admin/configuration/v1/stun_server/%d/", stun.ID))
+		clientStunServers = append(clientStunServers, stun)
 	}
 	clientStunSet, diags := types.SetValueFrom(ctx, types.StringType, clientStunServers)
 	if diags.HasError() {
