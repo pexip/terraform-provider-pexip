@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    name: Build and install local provider
+    name: Build local provider
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,7 +52,13 @@ jobs:
 
       - name: Build binary
         run: |
-          make build && make install
+          make build
+
+      - name: Upload dist folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-provider-dist
+          path: dist/
 
   test:
     name: Test
@@ -66,7 +72,7 @@ jobs:
       matrix:
         go-version: ["1.21", "1.24"]
         terraform-version: ["1.0", "1.12"]
-    
+
     steps:
     - uses: actions/checkout@v4
 
@@ -89,16 +95,16 @@ jobs:
         key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-${{ matrix.go-version }}-
-    
+
     - name: Download dependencies
       run: go mod download
-    
+
     - name: Verify dependencies
       run: go mod verify
-    
+
     - name: Build
       run: go build -v ./...
-    
+
     - name: Run unit tests
       run: |
         go test -race -covermode=atomic -v -tags=unit ./...
@@ -113,6 +119,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download dist folder
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-provider-dist
+          path: ./dist
+
+      - name: Install local provider
+        run: |
+          make install
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
