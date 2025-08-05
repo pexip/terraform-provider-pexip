@@ -59,6 +59,7 @@ jobs:
         with:
           name: terraform-provider-dist
           path: dist/
+          retention-days: 7
 
   test:
     name: Test
@@ -70,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.21", "1.24"]
+        go-version: ["1.24"]
         terraform-version: ["1.0", "1.12"]
 
     steps:

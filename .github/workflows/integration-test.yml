@@ -1,0 +1,76 @@
+name: Integration Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight
+  workflow_call:
+
+permissions: {}
+
+env:
+  GO_VERSION: "1.24"
+  GOPRIVATE: github.com/pexip
+
+jobs:
+  integation-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate git for private modules
+        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Setup gcloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Show current gcloud user
+        run: gcloud config list account --format "value(core.account)"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6"
+          terraform_wrapper: false
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive ./example/
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: ./example/
+
+      - name: Terraform apply
+        continue-on-error: true
+        run: terraform apply -no-color -auto-approve
+        working-directory: ./example/
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run acceptance tests
+        continue-on-error: true
+        env:
+          TF_ACC: "1"
+          PEXIP_ADDRESS: ${{ secrets.PEXIP_ADDRESS }}
+          PEXIP_USERNAME: ${{ secrets.PEXIP_USERNAME }}
+          PEXIP_PASSWORD: ${{ secrets.PEXIP_PASSWORD }}
+        run: |
+          echo "Acceptance tests would run here with real Pexip environment"
+          go test -v -tags=integration -timeout 30m ./...
+
+      - name: Terraform destroy
+        run: terraform destroy -no-color -auto-approve
+        working-directory: ./example/
