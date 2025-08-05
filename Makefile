@@ -12,7 +12,6 @@ OS_ARCH            := $(GO_OS)_$(GO_ARCH)
 GIT_BRANCH         :=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
-GO_LINT_CHECKS     := govet ineffassign staticcheck deadcode unused
 
 .PHONY: prepare lint check build-dev build install test testacc fmt clean
 
@@ -22,7 +21,7 @@ prepare:
 	mkdir -p $(BUILD_DIR)
 
 lint:
-	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run --disable-all $(foreach check,$(GO_LINT_CHECKS), -E $(check)) $(foreach issue,$(GO_LINT_EXCLUDE_ISSUES), -e $(issue)) $(GO_LINT_TRAIL)
+	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run
 
 check: lint test
 
