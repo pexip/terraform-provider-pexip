@@ -35,6 +35,7 @@ build: prepare
 install:
 	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
 	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
+	chmod +x ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
 	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
 
 test: prepare
