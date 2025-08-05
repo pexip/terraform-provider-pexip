@@ -12,6 +12,7 @@ permissions: {}
 env:
   GO_VERSION: "1.24"
   GOPRIVATE: github.com/pexip
+  GONOPROXY: github.com/pexip/*
 
 jobs:
   test:
@@ -66,6 +67,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+
     steps:
     - uses: actions/checkout@v4
 
