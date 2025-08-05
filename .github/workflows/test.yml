@@ -1,20 +1,10 @@
-# Test Workflow
-#
-# This workflow runs all tests, code quality checks, security scans,
-# and Terraform validation. It's designed to be reusable and is called
-# by the build workflow to ensure all checks pass before building.
-#
-# Jobs included:
-# - test: Unit tests with Go/Terraform matrix
-# - lint: Code formatting and linting
-# - security: Security scanning with gosec
-# - terraform: Terraform validation
-# - acceptance: Integration tests (conditional)
-# - dependency-review: Dependency vulnerability check (PRs only)
-
 name: Tests
 
 on:
+  push:
+    branches:
+      - master
+  pull_request:
   workflow_call:
 
 env:
