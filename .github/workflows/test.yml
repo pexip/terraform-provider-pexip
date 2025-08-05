@@ -36,12 +36,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ matrix.terraform-version }}
-        terraform_wrapper: false
-    
     - name: Go cache
       uses: actions/cache@v3
       with:
@@ -81,7 +75,20 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ env.GO_VERSION }}
-    
+
+    - name: Go cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
+
+    - name: Download dependencies
+      run: go mod download
+
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
       with:
