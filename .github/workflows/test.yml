@@ -12,7 +12,6 @@ permissions: {}
 env:
   GO_VERSION: "1.24"
   GOPRIVATE: github.com/pexip
-  GONOPROXY: github.com/pexip/*
 
 jobs:
   test:
@@ -31,7 +30,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Authenticate git for private modules
-      run: git config --global url."https://x-oauth-basic:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+      run: git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -72,7 +73,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Authenticate git for private modules
-      run: git config --global url."https://x-oauth-basic:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+      run: git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Go
       uses: actions/setup-go@v4
