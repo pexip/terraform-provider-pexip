@@ -14,6 +14,30 @@ env:
   GOPRIVATE: github.com/pexip
 
 jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive ./example/
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: ./example/
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+        working-directory: ./example/
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -139,35 +163,6 @@ jobs:
 #      uses: github/codeql-action/upload-sarif@v2
 #      with:
 #        sarif_file: results.sarif
-
-  terraform:
-    name: Terraform
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    
-    steps:
-    - name: Authenticate git for private modules
-      run: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - uses: actions/checkout@v4
-    
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-    
-    - name: Terraform fmt
-      run: terraform fmt -check -recursive ./example/
-    
-    - name: Terraform init
-      run: terraform init
-      working-directory: ./example/
-    
-    - name: Terraform validate
-      run: terraform validate -no-color
-      working-directory: ./example/
 
   # Dependency review for PRs
   dependency-review:
