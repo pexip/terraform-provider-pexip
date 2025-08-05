@@ -65,14 +65,15 @@ jobs:
     timeout-minutes: 10
     env:
       GOPRIVATE: github.com/pexip
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Authenticate git for private modules
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://${TOKEN}@github.com/".insteadOf "https://github.com/"
 
     - name: Set up Go
       uses: actions/setup-go@v4
