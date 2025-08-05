@@ -32,7 +32,7 @@ build-dev:
 build: prepare
 	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersionn=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
 
-install: build
+install:
 	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
 	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
 	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
