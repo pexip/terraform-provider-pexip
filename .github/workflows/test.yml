@@ -144,8 +144,15 @@ jobs:
     name: Terraform
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     
     steps:
+    - name: Authenticate git for private modules
+      run: git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - uses: actions/checkout@v4
     
     - name: Set up Terraform
