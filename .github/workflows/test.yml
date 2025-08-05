@@ -58,6 +58,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+    needs: build
     strategy:
       fail-fast: false
       matrix:
