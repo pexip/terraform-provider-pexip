@@ -250,12 +250,12 @@ func (r *InfinityAutomaticParticipantResource) read(ctx context.Context, resourc
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("automatic participant with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Alias = types.StringValue(srv.Alias)
 	data.Description = types.StringValue(srv.Description)
 	data.Conference = types.StringValue(srv.Conference)

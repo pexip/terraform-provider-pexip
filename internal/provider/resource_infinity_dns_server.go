@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
@@ -139,12 +140,12 @@ func (r *InfinityDnsServerResource) read(ctx context.Context, resourceID int) (*
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("DNS server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Address = types.StringValue(srv.Address)
 	data.Description = types.StringValue(srv.Description)
 

@@ -2,10 +2,12 @@ package provider
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
@@ -147,6 +149,6 @@ func (d *InfinityManagerConfigDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	resp.Diagnostics.Append(config.update(ctx)...)
+	resp.Diagnostics.Append(config.update()...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }

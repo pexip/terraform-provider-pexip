@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
@@ -555,12 +556,12 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
-		return nil, fmt.Errorf("Microsoft Exchange connector with ID %d not found", resourceID)
+	if srv.ResourceURI == "" {
+		return nil, fmt.Errorf("microsoft Exchange connector with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.RoomMailboxName = types.StringValue(srv.RoomMailboxName)

@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -214,7 +215,7 @@ func (r *InfinityTURNServerResource) Create(ctx context.Context, req resource.Cr
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, password string, secretKey string) (*InfinityTURNServerResourceModel, error) {
+func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, password, secretKey string) (*InfinityTURNServerResourceModel, error) {
 	var data InfinityTURNServerResourceModel
 
 	srv, err := r.InfinityClient.Config().GetTURNServer(ctx, resourceID)
@@ -222,12 +223,12 @@ func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, p
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("TURN server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.Address = types.StringValue(srv.Address)
@@ -238,7 +239,7 @@ func (r *InfinityTURNServerResource) read(ctx context.Context, resourceID int, p
 	data.SecretKey = types.StringValue(secretKey) // The server does not return the secret key, so we use the provided one
 
 	if srv.Port != nil {
-		data.Port = types.Int32Value(int32(*srv.Port))
+		data.Port = types.Int32Value(int32(*srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 	} else {
 		data.Port = types.Int32Null()
 	}

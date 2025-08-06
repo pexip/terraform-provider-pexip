@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip.com/pexip/pexip"
+      source  = "pexip"
       version = "0.0.1"
     }
   }

@@ -5,9 +5,15 @@ This directory contains the CI/CD workflows for the Terraform Provider for Pexip
 ## Workflow Architecture
 
 ```
+Triggered:
 ┌─────────────┐    ┌───────────────┐    ┌────────────────────────┐
 │   test.yml  │ -> │  release.yml  │ -> │  publish-assets.yml    │
 └─────────────┘    └───────────────┘    └────────────────────────┘
+
+Scheduled:
+┌──────────┐    ┌────────────────────────┐ 
+│   cron   │ -> │  integration-test.yml  │
+└──────────┘    └────────────────────────┘
 ```
 
 ## Local Development

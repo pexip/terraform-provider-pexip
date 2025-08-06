@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"strconv"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -213,23 +214,23 @@ func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int, n
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
-		return nil, fmt.Errorf("Teams proxy with ID %d not found", resourceID)
+	if srv.ResourceURI == "" {
+		return nil, fmt.Errorf("teams proxy with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.Address = types.StringValue(srv.Address)
-	data.Port = types.Int32Value(int32(srv.Port))
+	data.Port = types.Int32Value(int32(srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 	data.AzureTenant = types.StringValue(srv.AzureTenant)
 	if srv.EventhubID != nil {
 		data.EventhubID = types.StringValue(*srv.EventhubID)
 	} else {
 		data.EventhubID = types.StringNull()
 	}
-	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances))
+	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances)) // #nosec G115 -- API values are expected to be within int32 range
 	data.NotificationsEnabled = types.BoolValue(srv.NotificationsEnabled)
 	data.NotificationsQueue = types.StringValue(notificationsQueue) // The server does not return the notifications queue, so we use the provided one
 

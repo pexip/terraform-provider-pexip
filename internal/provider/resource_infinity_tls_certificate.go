@@ -3,9 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -245,12 +246,12 @@ func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID in
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("TLS certificate with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Certificate = types.StringValue(srv.Certificate)
 	data.PrivateKey = types.StringValue(privateKey) // The privateKey property of the TLS certificate is not returned by the API, so we need to set it manually
 	data.PrivateKeyPassphrase = types.StringValue(srv.PrivateKeyPassphrase)

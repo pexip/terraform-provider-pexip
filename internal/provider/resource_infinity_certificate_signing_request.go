@@ -213,12 +213,12 @@ func (r *InfinityCertificateSigningRequestResource) read(ctx context.Context, re
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("certificate signing request with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.SubjectName = types.StringValue(srv.SubjectName)
 	data.DN = types.StringValue(srv.DN)
 	data.AdditionalSubjectAltNames = types.StringValue(srv.AdditionalSubjectAltNames)

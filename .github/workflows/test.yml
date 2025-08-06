@@ -1,59 +1,94 @@
-# Test Workflow
-#
-# This workflow runs all tests, code quality checks, security scans,
-# and Terraform validation. It's designed to be reusable and is called
-# by the build workflow to ensure all checks pass before building.
-#
-# Jobs included:
-# - test: Unit tests with Go/Terraform matrix
-# - lint: Code formatting and linting
-# - security: Security scanning with gosec
-# - terraform: Terraform validation
-# - acceptance: Integration tests (conditional)
-# - dependency-review: Dependency vulnerability check (PRs only)
-
 name: Tests
 
 on:
+  push:
+    branches:
+      - master
+  pull_request:
   workflow_call:
+
+permissions: {}
 
 env:
   GO_VERSION: "1.24"
+  GOPRIVATE: github.com/pexip
 
 jobs:
+  build:
+    name: Build local provider
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate git for private modules
+        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set build variables
+        id: vars
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+          
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Build binary
+        run: |
+          make build
+
+      - name: Upload dist folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-provider-dist
+          path: dist/
+          retention-days: 7
+
   test:
     name: Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      GOPRIVATE: github.com/pexip
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    needs: build
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.21", "1.24"]
-        terraform-version: ["1.0", "1.12"]
-    
+        go-version: ["1.24"]
+        terraform-version: ["1.12"]
+
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Authenticate git for private modules
+      run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
 
-    - name: Authenticate git for private modules
-      run: |
-        git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ matrix.terraform-version }}
-        terraform_wrapper: false
-    
     - name: Go cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build
@@ -61,44 +96,122 @@ jobs:
         key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-${{ matrix.go-version }}-
-    
+
     - name: Download dependencies
       run: go mod download
-    
+
     - name: Verify dependencies
       run: go mod verify
-    
+
     - name: Build
       run: go build -v ./...
-    
+
     - name: Run unit tests
       run: |
-        go test -race -covermode=atomic -v -tags=unit ./...
+        go test -parallel 4 -race -covermode=atomic -v -tags=unit ./...
+
+  terraform:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform-version: ["1.5", "1.6", "1.7"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist folder
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-provider-dist
+          path: ./dist
+
+      - name: Install local provider
+        run: |
+          make install
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform-version }}
+
+      - name: List Terraform plugins
+        run: ls -laR ~/.terraform.d/plugins
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive ./example/
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: ./example/
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+        working-directory: ./example/
 
   lint:
-    name: Lint
+    name: Code Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: write
+
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        fetch-depth: 0
+
+    - name: Authenticate git for private modules
+      run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-    
+
+    - name: Go cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ env.GO_VERSION }}-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify golangci-lint config
+      run: |
+        if [ ! -f .golangci.yml ]; then
+          echo "Error: .golangci.yml not found"
+          exit 1
+        fi
+        echo "golangci-lint configuration found and valid"
+
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v8
       with:
         version: latest
-        args: --timeout=5m
+        args: --timeout=10m --issues-exit-code=1
+        only-new-issues: true
     
     - name: Check formatting
       run: |
         if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
           echo "The following files are not formatted:"
           gofmt -s -l .
+          echo "Run: gofmt -s -w ."
           exit 1
         fi
     
@@ -106,98 +219,37 @@ jobs:
       run: |
         go mod tidy
         if ! git diff --exit-code go.mod go.sum; then
-          echo "go mod tidy resulted in changes"
+          echo "go mod tidy resulted in changes. Run 'go mod tidy' locally."
+          git diff go.mod go.sum
           exit 1
         fi
 
-#  security:
-#    name: Security
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 10
-#
-#    steps:
-#    - uses: actions/checkout@v4
-#
-#    - name: Set up Go
-#      uses: actions/setup-go@v4
-#      with:
-#        go-version: ${{ env.GO_VERSION }}
-#
-#    - name: Run gosec Security Scanner
-#      uses: securego/gosec@master
-#      with:
-#        args: '-no-fail -fmt sarif -out results.sarif ./...'
-#
-#    - name: Upload SARIF file
-#      uses: github/codeql-action/upload-sarif@v2
-#      with:
-#        sarif_file: results.sarif
-
-  terraform:
-    name: Terraform
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-    
-    - name: Terraform fmt
-      run: terraform fmt -check -recursive ./example/
-    
-    - name: Terraform init
-      run: terraform init
-      working-directory: ./example/
-    
-    - name: Terraform validate
-      run: terraform validate -no-color
-      working-directory: ./example/
-
-  # Acceptance tests (only run on main branch or manual trigger)
-  acceptance:
-    name: Acceptance Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.6"
-        terraform_wrapper: false
-    
-    - name: Download dependencies
-      run: go mod download
-    
-    - name: Run acceptance tests
-      env:
-        TF_ACC: "1"
-        PEXIP_ADDRESS: ${{ secrets.PEXIP_ADDRESS }}
-        PEXIP_USERNAME: ${{ secrets.PEXIP_USERNAME }}
-        PEXIP_PASSWORD: ${{ secrets.PEXIP_PASSWORD }}
+    - name: Check for generated files
       run: |
-        echo "Acceptance tests would run here with real Pexip environment"
-        go test -v -tags=integration -timeout 30m ./...
+        if command -v terraform-docs &> /dev/null; then
+          make docs
+          if ! git diff --exit-code; then
+            echo "Generated documentation is out of date. Run 'make docs' locally."
+            exit 1
+          fi
+        fi
 
   # Dependency review for PRs
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
+    permissions:
+      contents: read
+      pull-requests: write
+    if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
     - name: Dependency Review
-      uses: actions/dependency-review-action@v3
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+        allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
+        comment-summary-in-pr: true

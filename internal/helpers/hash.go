@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"hash/crc32"
+	"math"
 	"math/big"
 
 	"github.com/GehirnInc/crypt"
@@ -38,7 +39,7 @@ func DjangoPassword(password string) (string, error) {
 	return DjangoPasswordWithSalt(password, salt, rounds)
 }
 
-func DjangoPasswordWithSalt(password string, salt string, rounds int) (string, error) {
+func DjangoPasswordWithSalt(password, salt string, rounds int) (string, error) {
 	const prefix = "pbkdf2_sha256"
 
 	// Generate PBKDF2 hash
@@ -99,4 +100,12 @@ func Sha512CryptWithSalt(password, salt string, rounds int) (string, error) {
 func Sha512CryptVerify(hash, password string) error {
 	c := crypt.New(crypt.SHA512)
 	return c.Verify(hash, []byte(password))
+}
+
+// SafeInt32 safely converts an int to int32, checking for overflow
+func SafeInt32(value int) (int32, error) {
+	if value > math.MaxInt32 || value < math.MinInt32 {
+		return 0, fmt.Errorf("integer overflow: value %d cannot be safely converted to int32", value)
+	}
+	return int32(value), nil
 }

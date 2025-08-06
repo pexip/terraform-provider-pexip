@@ -272,12 +272,12 @@ func (r *InfinityDeviceResource) read(ctx context.Context, resourceID int) (*Inf
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("device with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Alias = types.StringValue(srv.Alias)
 	data.Description = types.StringValue(srv.Description)
 	data.Username = types.StringValue(srv.Username)

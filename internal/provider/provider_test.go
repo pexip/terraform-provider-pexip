@@ -1,11 +1,12 @@
 package provider
 
 import (
+	"os"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"os"
-	"testing"
 )
 
 func getTestProtoV5ProviderFactories(client InfinityClient) map[string]func() (tfprotov5.ProviderServer, error) {

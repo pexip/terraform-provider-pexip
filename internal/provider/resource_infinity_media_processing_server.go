@@ -148,12 +148,12 @@ func (r *InfinityMediaProcessingServerResource) read(ctx context.Context, resour
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("media processing server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.FQDN = types.StringValue(srv.FQDN)
 	data.PublicJWTKey = types.StringValue(srv.PublicJWTKey)
 

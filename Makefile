@@ -12,7 +12,6 @@ OS_ARCH            := $(GO_OS)_$(GO_ARCH)
 GIT_BRANCH         :=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
-GO_LINT_CHECKS     := govet ineffassign staticcheck deadcode unused
 
 .PHONY: prepare lint check build-dev build install test testacc fmt clean
 
@@ -22,7 +21,7 @@ prepare:
 	mkdir -p $(BUILD_DIR)
 
 lint:
-	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run --disable-all $(foreach check,$(GO_LINT_CHECKS), -E $(check)) $(foreach issue,$(GO_LINT_EXCLUDE_ISSUES), -e $(issue)) $(GO_LINT_TRAIL)
+	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run
 
 check: lint test
 
@@ -32,13 +31,14 @@ build-dev:
 build: prepare
 	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersionn=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
 
-install: build
+install:
 	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
 	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
+	chmod +x ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
 	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
 
 test: prepare
-	go test -v -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
+	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
 
 testacc: export TF_ACC=true
 testacc: prepare

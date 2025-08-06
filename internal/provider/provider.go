@@ -21,6 +21,7 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38/history"
 	"github.com/pexip/go-infinity-sdk/v38/interfaces"
 	"github.com/pexip/go-infinity-sdk/v38/status"
+
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
 )
@@ -120,7 +121,7 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 			infinity.WithMaxRetries(2),
 			infinity.WithTransport(&http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: data.Insecure.ValueBool(),
+					InsecureSkipVerify: data.Insecure.ValueBool(), // #nosec G402 -- This is intentionally configurable for testing environments
 					MinVersion:         tls.VersionTLS12,
 				},
 				MaxIdleConns:        30,

@@ -242,7 +242,7 @@ func (r *InfinityRegistrationResource) read(ctx context.Context) (*InfinityRegis
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("registration configuration not found")
 	}
 
@@ -251,17 +251,18 @@ func (r *InfinityRegistrationResource) read(ctx context.Context) (*InfinityRegis
 	data.RefreshStrategy = types.StringValue(srv.RefreshStrategy)
 
 	// Set refresh values based on strategy, null for unused strategies
-	if srv.RefreshStrategy == "adaptive" {
+	switch srv.RefreshStrategy {
+	case "adaptive":
 		data.AdaptiveMinRefresh = types.Int64Value(int64(srv.AdaptiveMinRefresh))
 		data.AdaptiveMaxRefresh = types.Int64Value(int64(srv.AdaptiveMaxRefresh))
 		data.MaximumMinRefresh = types.Int64Null()
 		data.MaximumMaxRefresh = types.Int64Null()
-	} else if srv.RefreshStrategy == "maximum" {
+	case "maximum":
 		data.MaximumMinRefresh = types.Int64Value(int64(srv.MaximumMinRefresh))
 		data.MaximumMaxRefresh = types.Int64Value(int64(srv.MaximumMaxRefresh))
 		data.AdaptiveMinRefresh = types.Int64Null()
 		data.AdaptiveMaxRefresh = types.Int64Null()
-	} else {
+	default:
 		// For other strategies or when not set, all strategy-specific fields are null
 		data.AdaptiveMinRefresh = types.Int64Null()
 		data.AdaptiveMaxRefresh = types.Int64Null()

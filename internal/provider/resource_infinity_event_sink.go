@@ -3,9 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -205,17 +206,17 @@ func (r *InfinityEventSinkResource) read(ctx context.Context, resourceID int, pa
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("event sink with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.URL = types.StringValue(srv.URL)
 	data.BulkSupport = types.BoolValue(srv.BulkSupport)
 	data.VerifyTLSCertificate = types.BoolValue(srv.VerifyTLSCertificate)
-	data.Version = types.Int32Value(int32(srv.Version))
+	data.Version = types.Int32Value(int32(srv.Version)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Password = types.StringValue(password)
 
 	if srv.Description != nil {

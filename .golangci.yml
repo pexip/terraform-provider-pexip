@@ -1,91 +1,11 @@
+version: "2"
 run:
-  timeout: 5m
   issues-exit-code: 1
   tests: true
-  skip-dirs:
-    - vendor
-
-output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-linters-settings:
-  govet:
-    check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/hashicorp/terraform-plugin-log/tflog).Trace
-          - (github.com/hashicorp/terraform-plugin-log/tflog).Debug
-          - (github.com/hashicorp/terraform-plugin-log/tflog).Info
-          - (github.com/hashicorp/terraform-plugin-log/tflog).Warn
-          - (github.com/hashicorp/terraform-plugin-log/tflog).Error
-  
-  golint:
-    min-confidence: 0.8
-  
-  gofmt:
-    simplify: true
-  
-  goimports:
-    local-prefixes: github.com/pexip/terraform-provider-pexip
-  
-  gocyclo:
-    min-complexity: 10
-  
-  maligned:
-    suggest-new: true
-  
-  dupl:
-    threshold: 100
-  
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-  
-  misspell:
-    locale: US
-  
-  lll:
-    line-length: 120
-    tab-width: 1
-  
-  unused:
-    check-exported: false
-  
-  unparam:
-    check-exported: false
-  
-  nakedret:
-    max-func-lines: 30
-  
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
-  
-  gocritic:
-    enabled-tags:
-      - performance
-      - style
-      - experimental
-    disabled-checks:
-      - wrapperFunc
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - hugeParam
-  
-  funlen:
-    lines: 60
-    statements: 40
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
-    - deadcode
     - depguard
     - dogsled
     - dupl
@@ -95,68 +15,122 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
-    - golint
-    - gomnd
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
-    - interfacer
-    - lll
     - misspell
     - nakedret
     - noctx
     - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
-
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "github.com/sirupsen/logrus"
+              desc: "logging is allowed only by logutils.Log"
+          allow:
+            - $gostd
+            - github.com/hashicorp/terraform-plugin-framework/
+            - github.com/hashicorp/terraform-plugin-framework-validators/
+            - github.com/hashicorp/terraform-plugin-log/
+            - github.com/hashicorp/terraform-plugin-sdk/
+            - github.com/pexip/go-infinity-sdk/
+            - github.com/pexip/terraform-provider-pexip/
+            - github.com/stretchr/testify/
+            - github.com/GehirnInc/crypt
+            - github.com/GehirnInc/crypt/
+            - golang.org/x/crypto/
+            - github.com/hashicorp/terraform-plugin-go/
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 60
+      statements: 40
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - wrapperFunc
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - hugeParam
+      enabled-tags:
+        - performance
+        - style
+        - experimental
+    gocyclo:
+      min-complexity: 10
+    govet:
+      settings:
+        printf:
+          funcs:
+            - (github.com/hashicorp/terraform-plugin-log/tflog).Trace
+            - (github.com/hashicorp/terraform-plugin-log/tflog).Debug
+            - (github.com/hashicorp/terraform-plugin-log/tflog).Info
+            - (github.com/hashicorp/terraform-plugin-log/tflog).Warn
+            - (github.com/hashicorp/terraform-plugin-log/tflog).Error
+    misspell:
+      locale: US
+      ignore-rules:
+        - licence
+        - licences
+    nakedret:
+      max-func-lines: 30
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    unparam:
+      check-exported: false
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+          - funlen
+          - gochecknoinits
+          - goconst
+          - gocyclo
+          - gosec
+        path: _test\.go
+      - linters:
+          - govet
+        text: 'shadow: declaration of "err"'
+      - linters:
+          - gosec
+        text: 'G204:'
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - funlen
-        - goconst
-        - gochecknoinits
-        - gomnd
-    
-    # Exclude known linters from partially hard-to-fix issues
-    - linters:
-        - lll
-      source: "^//go:generate "
-    
-    # Exclude shadow checking on the variable named err
-    - linters:
-        - govet
-      text: 'shadow: declaration of "err"'
-    
-    # Exclude certain gosec rules
-    - linters:
-        - gosec
-      text: "G204:"  # Subprocess launched with variable
-    
-    # Exclude gomnd for test files
-    - linters:
-        - gomnd
-      path: _test\.go
-
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
   new: false
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/pexip/terraform-provider-pexip
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
