@@ -490,8 +490,8 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Client TURN Servers
 	var clientTurnServers []string
-	for i := range srv.ClientTURNServers {
-		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", srv.ClientTURNServers[i].ID))
+	for _, turn := range srv.ClientTURNServers {
+		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
 	}
 	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
