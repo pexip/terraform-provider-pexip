@@ -80,6 +80,7 @@ linters:
       ignore-rules:
         - licence
         - licences
+        - signalling
     nakedret:
       max-func-lines: 30
     prealloc:
