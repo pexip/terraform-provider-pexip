@@ -204,7 +204,7 @@ func TestInfinitySystemLocation(t *testing.T) {
 				"/api/admin/configuration/v1/turn_server/2/",
 			},
 			EventSinks: []config.EventSink{
-				{ID: 3, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
+				{ID: 3, ResourceURI: "/api/admin/configuration/v1/event_sink/3/"},
 			},
 			STUNServer:  &stunServer,
 			ResourceURI: "/api/admin/configuration/v1/system_location/123/",
