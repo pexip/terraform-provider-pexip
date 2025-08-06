@@ -81,6 +81,9 @@ linters:
             - (github.com/hashicorp/terraform-plugin-log/tflog).Error
     misspell:
       locale: US
+      ignore-words:
+        - licence
+        - licences
     nakedret:
       max-func-lines: 30
     prealloc:
