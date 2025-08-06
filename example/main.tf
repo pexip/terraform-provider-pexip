@@ -41,11 +41,10 @@ module "gcp-infinity-manager" {
   snmp_trap_host        = "${var.environment}-snmp-trap.local"
 }
 
-/*
 module "gcp-infinity-node" {
   source                = "./gcp-infinity-node"
   count                 = var.infinity_node_count
-  index                 = count.index
+  index                 = count.index + 1
   vm_image_name         = var.vm_image_node_name
   machine_type          = var.infinity_node_machine_type
   cpu_platform          = var.infinity_node_cpu_platform
@@ -66,10 +65,9 @@ module "gcp-infinity-node" {
   subnetwork_mask = "255.255.255.255" // Use /32 for single IP address for GCP
   password        = var.infinity_password
   node_type       = "CONFERENCING"
-  system_location = pexip_infinity_system_location.AMS.id
+  system_location = pexip_infinity_system_location.example-location-1.id
 
   depends_on = [
     module.gcp-infinity-manager
   ]
 }
-*/

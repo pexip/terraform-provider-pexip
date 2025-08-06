@@ -61,9 +61,9 @@ type InfinitySystemLocationResourceModel struct {
 	EventSinks                  types.Set    `tfsdk:"event_sinks"`
 	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
 	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
-	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out1"`
-	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out2"`
-	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out3"`
+	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out_1"`
+	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out_2"`
+	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out_3"`
 }
 
 func getStringList(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
@@ -257,17 +257,17 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "Whether BDPM scan quarantine is enabled.",
 			},
-			"live_captions_dial_out1": schema.StringAttribute{
+			"live_captions_dial_out_1": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 1 URI.",
 			},
-			"live_captions_dial_out2": schema.StringAttribute{
+			"live_captions_dial_out_2": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 2 URI.",
 			},
-			"live_captions_dial_out3": schema.StringAttribute{
+			"live_captions_dial_out_3": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Live captions dial out 3 URI.",
@@ -497,7 +497,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Client TURN Servers
 	var clientTurnServers []string
 	for _, turn := range srv.ClientTURNServers {
-		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
+		clientTurnServers = append(clientTurnServers, turn)
 	}
 	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
@@ -508,7 +508,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Client STUN Servers
 	var clientStunServers []string
 	for _, stun := range srv.ClientSTUNServers {
-		clientStunServers = append(clientStunServers, fmt.Sprintf("/api/admin/configuration/v1/stun_server/%d/", stun.ID))
+		clientStunServers = append(clientStunServers, stun)
 	}
 	clientStunSet, diags := types.SetValueFrom(ctx, types.StringType, clientStunServers)
 	if diags.HasError() {
@@ -614,6 +614,86 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	}
 	if !plan.MTU.IsNull() {
 		updateRequest.MTU = int(plan.MTU.ValueInt32())
+	}
+	if !plan.H323GateKeeper.IsNull() && !plan.H323GateKeeper.IsUnknown() {
+		value := plan.H323GateKeeper.ValueString()
+		updateRequest.H323Gatekeeper = &value
+	}
+	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
+		value := plan.SNMPNetworkManagementSystem.ValueString()
+		updateRequest.SNMPNetworkManagementSystem = &value
+	}
+	if !plan.SIPProxy.IsNull() && !plan.SIPProxy.IsUnknown() {
+		value := plan.SIPProxy.ValueString()
+		updateRequest.SIPProxy = &value
+	}
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		value := plan.HTTPProxy.ValueString()
+		updateRequest.HTTPProxy = &value
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		value := plan.MSSIPProxy.ValueString()
+		updateRequest.MSSIPProxy = &value
+	}
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
+		value := plan.TeamsProxy.ValueString()
+		updateRequest.TeamsProxy = &value
+	}
+	if !plan.TURNServer.IsNull() && !plan.TURNServer.IsUnknown() {
+		value := plan.TURNServer.ValueString()
+		updateRequest.TURNServer = &value
+	}
+	if !plan.STUNServer.IsNull() && !plan.STUNServer.IsUnknown() {
+		value := plan.STUNServer.ValueString()
+		updateRequest.STUNServer = &value
+	}
+	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
+		updateRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
+	}
+	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
+		value := int(plan.MediaQOS.ValueInt32())
+		updateRequest.MediaQoS = &value
+	}
+	if !plan.SignallingQOS.IsNull() && !plan.SignallingQOS.IsUnknown() {
+		value := int(plan.SignallingQOS.ValueInt32())
+		updateRequest.SignallingQoS = &value
+	}
+	if !plan.TranscodingLocation.IsNull() && !plan.TranscodingLocation.IsUnknown() {
+		value := plan.TranscodingLocation.ValueString()
+		updateRequest.TranscodingLocation = &value
+	}
+	if !plan.OverflowLocation1.IsNull() && !plan.OverflowLocation1.IsUnknown() {
+		value := plan.OverflowLocation1.ValueString()
+		updateRequest.OverflowLocation1 = &value
+	}
+	if !plan.OverflowLocation2.IsNull() && !plan.OverflowLocation2.IsUnknown() {
+		value := plan.OverflowLocation2.ValueString()
+		updateRequest.OverflowLocation2 = &value
+	}
+	if !plan.LocalMSSIPDomain.IsNull() && !plan.LocalMSSIPDomain.IsUnknown() {
+		updateRequest.LocalMSSIPDomain = plan.LocalMSSIPDomain.ValueString()
+	}
+	if !plan.PolicyServer.IsNull() && !plan.PolicyServer.IsUnknown() {
+		value := plan.PolicyServer.ValueString()
+		updateRequest.PolicyServer = &value
+	}
+	if !plan.BDPMPINChecksEnabled.IsNull() && !plan.BDPMPINChecksEnabled.IsUnknown() {
+		updateRequest.BDPMPinChecksEnabled = plan.BDPMPINChecksEnabled.ValueString()
+	}
+	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
+		updateRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
+	}
+	if !plan.LiveCaptionsDialOut1.IsNull() && !plan.LiveCaptionsDialOut1.IsUnknown() {
+		value := plan.LiveCaptionsDialOut1.ValueString()
+		updateRequest.LiveCaptionsDialOut1 = &value
+	}
+	if !plan.LiveCaptionsDialOut2.IsNull() && !plan.LiveCaptionsDialOut2.IsUnknown() {
+		value := plan.LiveCaptionsDialOut2.ValueString()
+		updateRequest.LiveCaptionsDialOut2 = &value
+	}
+	if !plan.LiveCaptionsDialOut3.IsNull() && !plan.LiveCaptionsDialOut3.IsUnknown() {
+		value := plan.LiveCaptionsDialOut3.ValueString()
+		updateRequest.LiveCaptionsDialOut3 = &value
 	}
 
 	_, err := r.InfinityClient.Config().UpdateSystemLocation(ctx, resourceID, updateRequest)
