@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 locals {
   hostname         = "${var.environment}-worker-${var.index}"
   check_status_url = "https://${local.hostname}.${local.domain}/api/client/v2/status"

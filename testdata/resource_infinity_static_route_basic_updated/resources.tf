@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_static_route" "static_route-test" {
   name    = "static_route-test"
   address = "10.0.0.0" // Updated address

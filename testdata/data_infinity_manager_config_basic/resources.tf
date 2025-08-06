@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 data "pexip_infinity_manager_config" "master" {
   hostname              = "test-mgr1"
   domain                = "dev.vcops.tech"

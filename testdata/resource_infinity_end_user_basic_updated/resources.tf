@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_end_user" "end-user-test" {
   primary_email_address = "updated@example.com"                    // Updated email
   first_name            = "Jane"                                   // Updated first name
