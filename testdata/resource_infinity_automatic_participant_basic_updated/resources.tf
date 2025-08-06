@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_automatic_participant" "automatic-participant-test" {
   alias                 = "automatic-participant-updated"     // Updated value
   description           = "Updated Test AutomaticParticipant" // Updated description

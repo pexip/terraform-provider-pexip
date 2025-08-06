@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_gateway_routing_rule" "gateway_routing_rule-test" {
   name               = "gateway_routing_rule-test"
   description        = "Updated Test GatewayRoutingRule" // Updated description

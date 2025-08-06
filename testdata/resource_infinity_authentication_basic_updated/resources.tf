@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_authentication" "authentication-test" {
   source                       = "updated-value" // Updated value
   client_certificate           = "updated-value" // Updated value

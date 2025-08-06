@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "tls_private_key" "manager_private_key" {
   algorithm = "RSA"
   rsa_bits  = 2048

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_event_sink" "event-sink-test" {
   name        = "test-event-sink"
   description = "Test Event Sink"

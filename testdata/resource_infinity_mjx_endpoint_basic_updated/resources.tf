@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_mjx_endpoint" "mjx_endpoint-test" {
   name                                = "mjx_endpoint-test"
   description                         = "Updated Test MjxEndpoint"   // Updated description

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_registration" "registration-test" {
   enable                        = false           // Updated to false
   refresh_strategy              = "maximum"       // Updated value
