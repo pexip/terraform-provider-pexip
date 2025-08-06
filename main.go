@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+
 	"github.com/pexip/terraform-provider-pexip/internal/log"
 	pexipProvider "github.com/pexip/terraform-provider-pexip/internal/provider"
 	"github.com/pexip/terraform-provider-pexip/internal/version"
-	"os"
 )
 
 func createProvider() func() provider.Provider {
-	return func() provider.Provider {
-		return pexipProvider.New()
-	}
+	return pexipProvider.New
 }
 
 func main() {

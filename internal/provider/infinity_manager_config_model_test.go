@@ -1,9 +1,10 @@
 package provider
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestInfinityManagerConfigModel(t *testing.T) {

@@ -1,14 +1,16 @@
 package provider
 
 import (
-	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/pexip/go-infinity-sdk/v38/types"
-	"github.com/stretchr/testify/mock"
 	"os"
 	"testing"
 
+	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/pexip/go-infinity-sdk/v38/types"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
+
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
@@ -32,8 +34,8 @@ func TestInfinityTLSCertificate(t *testing.T) {
 	mockState := &config.TLSCertificate{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/tls_certificate/123/",
-		Certificate: string(tlsCertificate),
-		PrivateKey:  string(tlsPrivateKey),
+		Certificate: tlsCertificate,
+		PrivateKey:  tlsPrivateKey,
 		Nodes:       []string{}, // Start with empty slice (empty list in Terraform)
 	}
 
@@ -71,7 +73,7 @@ func TestInfinityTLSCertificate(t *testing.T) {
 	testInfinityTLSCertificate(t, client, tlsPrivateKey, tlsCertificate)
 }
 
-func testInfinityTLSCertificate(t *testing.T, client InfinityClient, privateKey string, certificate string) {
+func testInfinityTLSCertificate(t *testing.T, client InfinityClient, privateKey, certificate string) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
@@ -95,5 +97,4 @@ func testInfinityTLSCertificate(t *testing.T, client InfinityClient, privateKey 
 			},
 		},
 	})
-
 }

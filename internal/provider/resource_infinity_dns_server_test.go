@@ -8,8 +8,9 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/go-infinity-sdk/v38/config"
 	"github.com/pexip/go-infinity-sdk/v38/types"
-	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
 func TestInfinityDNSServer(t *testing.T) {

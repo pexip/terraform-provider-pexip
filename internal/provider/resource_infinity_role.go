@@ -140,16 +140,16 @@ func (r *InfinityRoleResource) read(ctx context.Context, resourceID int) (*Infin
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("role with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 
 	// Convert permissions to types.Set, but keep as null if empty and not originally specified
-	if srv.Permissions != nil && len(srv.Permissions) > 0 {
+	if len(srv.Permissions) > 0 {
 		permissionsSetValue, diags := types.SetValueFrom(ctx, types.StringType, srv.Permissions)
 		if diags.HasError() {
 			return nil, fmt.Errorf("error converting permissions: %v", diags)

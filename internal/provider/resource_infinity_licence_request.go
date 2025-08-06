@@ -152,7 +152,7 @@ func (r *InfinityLicenceRequestResource) read(ctx context.Context, sequenceNumbe
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("licence request with sequence number %s not found", sequenceNumber)
 	}
 

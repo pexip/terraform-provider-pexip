@@ -1,13 +1,15 @@
 package provider
 
 import (
-	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/stretchr/testify/mock"
 	"os"
 	"testing"
 
+	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
+
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
@@ -47,7 +49,8 @@ func TestInfinityRegistration(t *testing.T) {
 		if updateRequest.RefreshStrategy != "" {
 			mockState.RefreshStrategy = updateRequest.RefreshStrategy
 			// Update refresh-related fields based on strategy
-			if updateRequest.RefreshStrategy == "maximum" {
+			switch updateRequest.RefreshStrategy {
+			case "maximum":
 				if updateRequest.MaximumMinRefresh != nil {
 					mockState.MaximumMinRefresh = *updateRequest.MaximumMinRefresh
 				}
@@ -57,7 +60,7 @@ func TestInfinityRegistration(t *testing.T) {
 				// Reset adaptive fields when switching to maximum
 				mockState.AdaptiveMinRefresh = 0
 				mockState.AdaptiveMaxRefresh = 0
-			} else if updateRequest.RefreshStrategy == "adaptive" {
+			case "adaptive":
 				if updateRequest.AdaptiveMinRefresh != nil {
 					mockState.AdaptiveMinRefresh = *updateRequest.AdaptiveMinRefresh
 				}

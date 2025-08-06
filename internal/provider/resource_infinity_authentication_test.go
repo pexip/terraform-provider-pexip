@@ -1,13 +1,16 @@
 package provider
 
 import (
-	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/stretchr/testify/mock"
+	"context"
 	"os"
 	"testing"
 
+	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
+
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
@@ -19,7 +22,7 @@ func TestInfinityAuthentication_URLPattern(t *testing.T) {
 	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything).Return(nil).Once()
 
 	// Call the method to verify URL pattern
-	_, _ = client.Config().GetAuthentication(nil)
+	_, _ = client.Config().GetAuthentication(context.TODO())
 
 	// Verify the expectations were met
 	client.AssertExpectations(t)
@@ -33,7 +36,7 @@ func TestInfinityAuthentication_UpdateURLPattern(t *testing.T) {
 	client.On("PutJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Once()
 
 	// Call the method to verify URL pattern
-	_, _ = client.Config().UpdateAuthentication(nil, &config.AuthenticationUpdateRequest{})
+	_, _ = client.Config().UpdateAuthentication(context.TODO(), &config.AuthenticationUpdateRequest{})
 
 	// Verify the expectations were met
 	client.AssertExpectations(t)

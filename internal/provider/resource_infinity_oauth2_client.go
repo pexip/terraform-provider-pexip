@@ -142,7 +142,7 @@ func (r *InfinityOAuth2ClientResource) read(ctx context.Context, clientID string
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("OAuth2 client with ID %s not found", clientID)
 	}
 

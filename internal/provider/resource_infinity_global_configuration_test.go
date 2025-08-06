@@ -1,13 +1,15 @@
 package provider
 
 import (
-	"github.com/pexip/go-infinity-sdk/v38/config"
-	"github.com/stretchr/testify/mock"
 	"os"
 	"testing"
 
+	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
+
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 

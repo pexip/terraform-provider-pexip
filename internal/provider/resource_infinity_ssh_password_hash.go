@@ -3,6 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"math"
+	"strconv"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -12,9 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/pexip/terraform-provider-pexip/internal/helpers"
-	"math"
-	"strconv"
 )
 
 var (
@@ -116,7 +118,7 @@ func (r *InfinitySSHPasswordHashResource) Read(ctx context.Context, req resource
 // hashPassword hashes the password using SHA-512 with a salt and rounds.
 func (r *InfinitySSHPasswordHashResource) hashPassword(ctx context.Context, data *InfinitySSHPasswordHashResourceModel) error {
 	// Generate a random salt if not provided
-	if data.Salt.IsNull() || len(data.Salt.ValueString()) == 0 {
+	if data.Salt.IsNull() || data.Salt.ValueString() == "" {
 		salt, err := helpers.GenerateRandomAlphanumeric(16)
 		if err != nil {
 			return err

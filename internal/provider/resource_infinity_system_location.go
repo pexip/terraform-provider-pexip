@@ -434,14 +434,14 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("system location with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Description = types.StringValue(srv.Description)
-	data.MTU = types.Int32Value(int32(srv.MTU))
+	data.MTU = types.Int32Value(int32(srv.MTU)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 
 	// Convert DNS servers from SDK to Terraform format
@@ -490,7 +490,8 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Client TURN Servers
 	var clientTurnServers []string
-	for _, turn := range srv.ClientTURNServers {
+	for i := range srv.ClientTURNServers {
+		turn := &srv.ClientTURNServers[i]
 		clientTurnServers = append(clientTurnServers, fmt.Sprintf("/api/admin/configuration/v1/turn_server/%d/", turn.ID))
 	}
 	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
@@ -522,8 +523,8 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Booleans and Ints
 	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
-	data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
-	data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
+	data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))           // #nosec G115 -- API values are expected to be within int32 range
+	data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS)) // #nosec G115 -- API values are expected to be within int32 range
 	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
 	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
 	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)

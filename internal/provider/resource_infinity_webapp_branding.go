@@ -160,7 +160,7 @@ func (r *InfinityWebappBrandingResource) read(ctx context.Context, name string) 
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("webapp branding with name %s not found", name)
 	}
 

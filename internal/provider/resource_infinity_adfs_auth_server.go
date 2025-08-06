@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+
+	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 )
 
 var (
@@ -174,12 +176,16 @@ func (r *InfinityADFSAuthServerResource) read(ctx context.Context, resourceID in
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("ADFS auth server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	resourceID32, err := helpers.SafeInt32(resourceID)
+	if err != nil {
+		return nil, fmt.Errorf("resource ID conversion error: %w", err)
+	}
+	data.ResourceID = types.Int32Value(resourceID32)
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.ClientID = types.StringValue(srv.ClientID)

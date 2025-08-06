@@ -49,9 +49,7 @@ func isValidDomain(domain string) bool {
 	}
 
 	// Remove trailing dot if present (FQDN)
-	if strings.HasSuffix(domain, ".") {
-		domain = domain[:len(domain)-1]
-	}
+	domain = strings.TrimSuffix(domain, ".")
 
 	// Split into labels
 	labels := strings.Split(domain, ".")
@@ -64,7 +62,7 @@ func isValidDomain(domain string) bool {
 
 	for _, label := range labels {
 		// Label length check
-		if len(label) == 0 || len(label) > 63 {
+		if label == "" || len(label) > 63 {
 			return false
 		}
 
