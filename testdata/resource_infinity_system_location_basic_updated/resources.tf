@@ -12,6 +12,6 @@ resource "pexip_infinity_system_location" "main-location" {
   ntp_servers         = ["/api/admin/configuration/v1/ntp_server/1/"]
   client_stun_servers = ["/api/admin/configuration/v1/stun_server/2/"] # Updated STUN server
   client_turn_servers = ["/api/admin/configuration/v1/turn_server/2/"] # Updated TURN server
-  event_sinks         = ["/api/admin/configuration/v1/event_sink/1/"] # Updated event sink
-  stun_server = "/api/admin/configuration/v1/stun_server/2/"
+  event_sinks         = ["/api/admin/configuration/v1/event_sink/1/"]  # Updated event sink
+  stun_server         = "/api/admin/configuration/v1/stun_server/2/"
 }

@@ -58,7 +58,7 @@ resource "pexip_infinity_system_location" "example-location-1" {
 }
 
 resource "pexip_infinity_system_location" "example-location-2" {
-  name        = "Example Location 2"
+  name = "Example Location 2"
 
   depends_on = [
     module.gcp-infinity-manager,
@@ -66,7 +66,7 @@ resource "pexip_infinity_system_location" "example-location-2" {
 }
 
 resource "pexip_infinity_system_location" "example-location-3" {
-  name        = "Example Location 3"
+  name = "Example Location 3"
 
   depends_on = [
     module.gcp-infinity-manager,
@@ -74,22 +74,22 @@ resource "pexip_infinity_system_location" "example-location-3" {
 }
 
 resource "pexip_infinity_system_location" "example-edge-location" {
-  name        = "Example Edge Location"
-  description = "Example Edge Location"
+  name                 = "Example Edge Location"
+  description          = "Example Edge Location"
   transcoding_location = pexip_infinity_system_location.example-location-1.id
-  overflow_location1 = pexip_infinity_system_location.example-location-2.id
-  overflow_location2 = pexip_infinity_system_location.example-location-3.id
+  overflow_location1   = pexip_infinity_system_location.example-location-2.id
+  overflow_location2   = pexip_infinity_system_location.example-location-3.id
   depends_on = [
     module.gcp-infinity-manager,
   ]
 }
 
 resource "pexip_infinity_system_location" "test-location" {
-  name        = "TEST LOCATION"
-  description = "Set every parameter to test the system location"
-  mtu         = 1460
-  dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
-  ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
+  name                           = "TEST LOCATION"
+  description                    = "Set every parameter to test the system location"
+  mtu                            = 1460
+  dns_servers                    = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
+  ntp_servers                    = [pexip_infinity_ntp_server.ntp1.id]
   syslog_servers                 = [pexip_infinity_syslog_server.syslog-server-test.id]
   stun_server                    = pexip_infinity_stun_server.stun-server-test1.id
   turn_server                    = pexip_infinity_turn_server.turn-server-test1.id
