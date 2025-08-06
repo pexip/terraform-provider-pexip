@@ -21,7 +21,7 @@ The official Terraform provider for [Pexip Infinity](https://www.pexip.com/produ
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.21 (for development)
-- Pexip Infinity Manager >= v37 with API access
+- Pexip Infinity Manager >= v38 with API access
 - Valid authentication credentials for Pexip Infinity Manager
 
 ## Installation
@@ -620,43 +620,6 @@ resource "pexip_infinity_worker_vm" "workers" {
 }
 ```
 
-## Version Compatibility
-
-| Provider Version | Terraform Version | Pexip Infinity Version | Go Version | Status |
-|------------------|-------------------|------------------------|------------|---------|
-| `~> 0.1` | `>= 1.0` | `>= v37` | `>= 1.21` | Active |
-| `~> 0.2` | `>= 1.0` | `>= v38` | `>= 1.21` | Planned |
-
-## Migration Guide
-
-### From v0.0.x to v0.1.x
-
-- Provider source changed from `pexip.com/pexip/pexip` to `pexip/pexip`
-- Added `insecure` provider argument for SSL certificate handling
-- Improved resource naming consistency
-- Enhanced validation and error handling
-
-```hcl
-# Before (v0.0.x)
-terraform {
-  required_providers {
-    pexip = {
-      source = "pexip.com/pexip/pexip"
-    }
-  }
-}
-
-# After (v0.1.x)
-terraform {
-  required_providers {
-    pexip = {
-      source  = "registry.terraform.io/pexip/pexip"
-      version = "~> 0.1"
-    }
-  }
-}
-```
-
 ## Best Practices
 
 ### Security
@@ -680,17 +643,6 @@ terraform {
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the coding standards
-4. Add comprehensive tests for new functionality
-5. Ensure all tests pass (`make test && make testacc`)
-6. Run code quality checks (`make lint && make fmt`)
-7. Update documentation as needed
-8. Commit your changes (`git commit -m 'Add amazing feature'`)
-9. Push to the branch (`git push origin feature/amazing-feature`)
-10. Submit a pull request
-
 ### Development Guidelines
 
 - Follow [Go best practices](https://golang.org/doc/effective_go.html)
@@ -703,7 +655,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## Support
 
 ### Community Support
-- [GitHub Discussions](https://github.com/pexip/terraform-provider-pexip/discussions) - Community Q&A
+- [Discussions](https://github.com/pexip/terraform-provider-pexip/discussions) - Community Q&A
 - [GitHub Issues](https://github.com/pexip/terraform-provider-pexip/issues) - Bug reports and feature requests
 
 ### Documentation
