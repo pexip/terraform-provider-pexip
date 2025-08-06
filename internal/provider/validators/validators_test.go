@@ -62,6 +62,7 @@ func testNullAndUnknown(t *testing.T, v validator.String) {
 }
 
 func TestEmailValidator(t *testing.T) {
+	t.Parallel()
 	v := Email()
 
 	tests := []struct {
@@ -99,6 +100,7 @@ func TestEmailValidator(t *testing.T) {
 }
 
 func TestIPAddressValidator(t *testing.T) {
+	t.Parallel()
 	v := IPAddress()
 
 	tests := []struct {
@@ -137,6 +139,7 @@ func TestIPAddressValidator(t *testing.T) {
 }
 
 func TestDomainValidator(t *testing.T) {
+	t.Parallel()
 	v := Domain()
 
 	tests := []struct {
@@ -176,6 +179,7 @@ func TestDomainValidator(t *testing.T) {
 }
 
 func TestURLValidator(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		value       string
@@ -212,6 +216,7 @@ func TestURLValidator(t *testing.T) {
 }
 
 func TestNetmaskValidator(t *testing.T) {
+	t.Parallel()
 	v := Netmask()
 
 	tests := []struct {

@@ -20,6 +20,7 @@ func intPtr(i int) *int {
 }
 
 func TestInfinityHTTPProxy(t *testing.T) {
+	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
 	// Create a mock client and set up expectations

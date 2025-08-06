@@ -15,6 +15,7 @@ import (
 )
 
 func TestInfinityAutomaticParticipant(t *testing.T) {
+	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
 	client := infinity.NewClientMock()

@@ -8,6 +8,7 @@ import (
 )
 
 func TestInfinityManagerConfigModel(t *testing.T) {
+	t.Parallel()
 	config := InfinityManagerConfigModel{
 		ID:                  types.StringValue("test-id"),
 		Hostname:            types.StringValue("manager-1"),

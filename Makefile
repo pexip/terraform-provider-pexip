@@ -38,7 +38,7 @@ install:
 	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
 
 test: prepare
-	go test -v -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
+	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
 
 testacc: export TF_ACC=true
 testacc: prepare

@@ -15,6 +15,7 @@ import (
 )
 
 func TestInfinityAuthentication_URLPattern(t *testing.T) {
+	t.Parallel()
 	// This test specifically verifies that the URL pattern is correct
 	client := infinity.NewClientMock()
 
@@ -29,6 +30,7 @@ func TestInfinityAuthentication_URLPattern(t *testing.T) {
 }
 
 func TestInfinityAuthentication_UpdateURLPattern(t *testing.T) {
+	t.Parallel()
 	// This test specifically verifies that the UpdateAuthentication URL pattern is correct
 	client := infinity.NewClientMock()
 
@@ -43,6 +45,7 @@ func TestInfinityAuthentication_UpdateURLPattern(t *testing.T) {
 }
 
 func TestInfinityAuthentication(t *testing.T) {
+	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
 	client := infinity.NewClientMock()
