@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 	"net"
 	"net/mail"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 )
 
 type InfinityManagerConfigModel struct {
@@ -76,10 +78,7 @@ func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig 
 func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.Append(c.setDefaults(ctx)...)
-	if diags.HasError() {
-		return diags
-	}
+	c.setDefaults()
 
 	if c.Hostname.IsNull() && !c.Hostname.IsUnknown() {
 		diags.AddAttributeError(
@@ -202,24 +201,20 @@ func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnost
 	return diags
 }
 
-func (c *InfinityManagerConfigModel) setDefaults(ctx context.Context) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+func (c *InfinityManagerConfigModel) setDefaults() {
 	if c.ErrorReports.IsNull() {
 		c.ErrorReports = types.BoolValue(false)
 	}
 	if c.EnableAnalytics.IsNull() {
 		c.EnableAnalytics = types.BoolValue(false)
 	}
-
-	return diags
 }
 
 func prepareOutput(output []byte) string {
-	return strings.Replace(string(output), "\n", "", -1)
+	return strings.ReplaceAll(string(output), "\n", "")
 }
 
-func (c *InfinityManagerConfigModel) update(ctx context.Context) diag.Diagnostics {
+func (c *InfinityManagerConfigModel) update() diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	fullOutput, err := json.MarshalIndent(c.toOuterConfig(), "", "")

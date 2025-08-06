@@ -157,16 +157,16 @@ func (r *InfinitySTUNServerResource) read(ctx context.Context, resourceID int) (
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("STUN server with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.Address = types.StringValue(srv.Address)
-	data.Port = types.Int32Value(int32(srv.Port))
+	data.Port = types.Int32Value(int32(srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 
 	return &data, nil
 }

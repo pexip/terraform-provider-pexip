@@ -75,9 +75,7 @@ func isValidEmailDomain(domain string) bool {
 	}
 
 	// Remove trailing dot if present (FQDN)
-	if strings.HasSuffix(domain, ".") {
-		domain = domain[:len(domain)-1]
-	}
+	domain = strings.TrimSuffix(domain, ".")
 
 	// Split into labels
 	labels := strings.Split(domain, ".")
@@ -90,7 +88,7 @@ func isValidEmailDomain(domain string) bool {
 
 	for _, label := range labels {
 		// Label length check
-		if len(label) == 0 || len(label) > 63 {
+		if label == "" || len(label) > 63 {
 			return false
 		}
 
@@ -116,7 +114,7 @@ func isValidEmailDomain(domain string) bool {
 // isValidLocalPart validates the local part (before @) of an email address
 func isValidLocalPart(localPart string) bool {
 	// Length check (RFC 5321 limits to 64 characters)
-	if len(localPart) == 0 || len(localPart) > 64 {
+	if localPart == "" || len(localPart) > 64 {
 		return false
 	}
 

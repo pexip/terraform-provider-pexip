@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+
 	"github.com/pexip/go-infinity-sdk/v38/util"
 )
 
@@ -218,12 +219,12 @@ func (r *InfinityScheduledConferenceResource) read(ctx context.Context, resource
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("scheduled conference with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Conference = types.StringValue(srv.Conference)
 	data.StartTime = types.StringValue(srv.StartTime.Format(time.RFC3339))
 	data.EndTime = types.StringValue(srv.EndTime.Format(time.RFC3339))

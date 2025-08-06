@@ -142,12 +142,12 @@ func (r *InfinitySIPCredentialResource) read(ctx context.Context, resourceID int
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("SIP credential with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Realm = types.StringValue(srv.Realm)
 	data.Username = types.StringValue(srv.Username)
 	data.Password = types.StringValue(srv.Password)

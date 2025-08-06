@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -220,7 +221,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID string, entitlementID string) (*InfinityLicenceResourceModel, error) {
+func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID, entitlementID string) (*InfinityLicenceResourceModel, error) {
 	var data InfinityLicenceResourceModel
 
 	srv, err := r.InfinityClient.Config().GetLicence(ctx, fulfillmentID)
@@ -228,11 +229,11 @@ func (r *InfinityLicenceResource) read(ctx context.Context, fulfillmentID string
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("licence with fulfillment ID %s not found", fulfillmentID)
 	}
 
-	if len(entitlementID) > 0 {
+	if entitlementID != "" {
 		data.EntitlementID = types.StringValue(entitlementID)
 	} else {
 		data.EntitlementID = types.StringValue(srv.EntitlementID)

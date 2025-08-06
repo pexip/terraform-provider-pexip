@@ -4,12 +4,14 @@ package provider
 
 import (
 	"crypto/tls"
-	"github.com/pexip/terraform-provider-pexip/internal/test"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 
 	"github.com/pexip/go-infinity-sdk/v38"
 )

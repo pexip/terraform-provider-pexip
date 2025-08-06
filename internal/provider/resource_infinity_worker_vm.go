@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+
 	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
@@ -523,12 +525,12 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("worker VM with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Config = types.StringValue(config)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)

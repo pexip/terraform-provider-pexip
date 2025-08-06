@@ -183,12 +183,12 @@ func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int, pa
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("HTTP proxy with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.Address = types.StringValue(srv.Address)
 	data.Protocol = types.StringValue(srv.Protocol)
@@ -196,7 +196,7 @@ func (r *InfinityHTTPProxyResource) read(ctx context.Context, resourceID int, pa
 	data.Password = types.StringValue(password) // The server does not return the password, so we use the provided one
 
 	if srv.Port != nil {
-		data.Port = types.Int32Value(int32(*srv.Port))
+		data.Port = types.Int32Value(int32(*srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 	} else {
 		data.Port = types.Int32Null()
 	}

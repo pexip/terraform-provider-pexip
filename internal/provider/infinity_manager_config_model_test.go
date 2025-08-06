@@ -1,12 +1,14 @@
 package provider
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestInfinityManagerConfigModel(t *testing.T) {
+	t.Parallel()
 	config := InfinityManagerConfigModel{
 		ID:                  types.StringValue("test-id"),
 		Hostname:            types.StringValue("manager-1"),

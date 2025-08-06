@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,7 +17,7 @@ const (
 )
 
 func GetTestdataLocation() (string, error) {
-	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	cmdOut, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get base directory: %v", err)
 	}
@@ -63,7 +64,12 @@ func loadTestFiles(t *testing.T, baseDir string, files ...string) string {
 	var combined strings.Builder
 	for _, file := range files {
 		fullPath := filepath.Join(baseDir, file)
-		data, err := os.ReadFile(fullPath)
+		// Validate that the file path is safe and within expected directory
+		cleanPath := filepath.Clean(fullPath)
+		if !strings.HasPrefix(cleanPath, filepath.Clean(baseDir)) {
+			t.Fatalf("unsafe file path: %s is outside base directory %s", file, baseDir)
+		}
+		data, err := os.ReadFile(cleanPath) // #nosec G304 -- Path is validated above
 		if err != nil {
 			// Bug Fix: The original code was missing the error variable in the format string.
 			t.Fatalf("failed to load test file %s: %v", file, err)
@@ -75,7 +81,7 @@ func loadTestFiles(t *testing.T, baseDir string, files ...string) string {
 }
 
 func GetGitBasePath() (string, error) {
-	output, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	output, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +97,7 @@ func FindFileInGitRoot(filename string) ([]string, error) {
 	return FindFileInPath(basePath, filename)
 }
 
-func FindFileInPath(path string, filename string) ([]string, error) {
+func FindFileInPath(path, filename string) ([]string, error) {
 	var err error
 	var found []string
 

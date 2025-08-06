@@ -2,7 +2,6 @@ package version
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -64,13 +63,13 @@ func NewVersion(version string) (*SemVer, error) {
 	dotParts := strings.SplitN(version, ".", 3)
 
 	if len(dotParts) != 3 {
-		return nil, errors.New(fmt.Sprintf("%s is not in dotted-tri format", version))
+		return nil, fmt.Errorf("%s is not in dotted-tri format", version)
 	}
 
 	v.Metadata = splitOff(&dotParts[2], "+")
 	v.PreRelease = PreRelease(splitOff(&dotParts[2], "-"))
 
-	parsed := make([]int64, 3, 3)
+	parsed := make([]int64, 3)
 
 	for i, v := range dotParts[:3] {
 		val, err := strconv.ParseInt(v, 10, 64)
@@ -129,7 +128,7 @@ func (p *PreRelease) Slice() []string {
 	return strings.Split(preRelease, ".")
 }
 
-func preReleaseCompare(versionA SemVer, versionB SemVer) int {
+func preReleaseCompare(versionA, versionB SemVer) int {
 	a := versionA.PreRelease
 	b := versionB.PreRelease
 
@@ -145,7 +144,7 @@ func preReleaseCompare(versionA SemVer, versionB SemVer) int {
 	return recursivePreReleaseCompare(a.Slice(), b.Slice())
 }
 
-func recursiveCompare(versionA []int64, versionB []int64) int {
+func recursiveCompare(versionA, versionB []int64) int {
 	if len(versionA) == 0 {
 		return 0
 	}

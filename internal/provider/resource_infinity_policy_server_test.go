@@ -8,11 +8,13 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/go-infinity-sdk/v38/config"
 	"github.com/pexip/go-infinity-sdk/v38/types"
-	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
 func TestInfinityPolicyServer(t *testing.T) {
+	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
 	// Create a mock client and set up expectations
@@ -104,5 +106,4 @@ func testInfinityPolicyServer(t *testing.T, client InfinityClient) {
 			},
 		},
 	})
-
 }

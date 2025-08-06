@@ -5,14 +5,19 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions: {}
+
 env:
   GO_VERSION: "1.24"
+  GOPRIVATE: github.com/pexip
   PROVIDER_NAME: "pexip"
 
 jobs:
   publish:
     name: Build and Upload Assets
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     strategy:
       matrix:
@@ -27,8 +32,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Authenticate git for private modules
-        run: |
-          git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -50,6 +56,9 @@ jobs:
           echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
           echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
           echo "USER=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Download dependencies
+        run: go mod download
 
       - name: Build binary
         env:

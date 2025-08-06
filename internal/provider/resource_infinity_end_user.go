@@ -274,12 +274,12 @@ func (r *InfinityEndUserResource) read(ctx context.Context, resourceID int) (*In
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
+	if srv.ResourceURI == "" {
 		return nil, fmt.Errorf("end user with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.PrimaryEmailAddress = types.StringValue(srv.PrimaryEmailAddress)
 	data.FirstName = types.StringValue(srv.FirstName)
 	data.LastName = types.StringValue(srv.LastName)

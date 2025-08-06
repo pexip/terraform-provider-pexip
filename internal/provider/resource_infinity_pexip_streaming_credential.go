@@ -134,12 +134,12 @@ func (r *InfinityPexipStreamingCredentialResource) read(ctx context.Context, res
 		return nil, err
 	}
 
-	if len(srv.ResourceURI) == 0 {
-		return nil, fmt.Errorf("Pexip Streaming credential with ID %d not found", resourceID)
+	if srv.ResourceURI == "" {
+		return nil, fmt.Errorf("pexip Streaming credential with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Kid = types.StringValue(srv.Kid)
 	data.PublicKey = types.StringValue(srv.PublicKey)
 
