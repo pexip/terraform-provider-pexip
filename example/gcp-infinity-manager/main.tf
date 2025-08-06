@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 locals {
   hostname         = "${var.environment}-manager"
   check_status_url = "https://${local.hostname}.${local.domain}/admin/login/"

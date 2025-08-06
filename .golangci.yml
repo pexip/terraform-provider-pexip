@@ -10,7 +10,6 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - funlen
     - gochecknoinits
     - goconst
     - gocritic
@@ -51,9 +50,6 @@ linters:
             - github.com/hashicorp/terraform-plugin-go/
     dupl:
       threshold: 100
-    funlen:
-      lines: 60
-      statements: 40
     goconst:
       min-len: 3
       min-occurrences: 3
@@ -98,7 +94,6 @@ linters:
       - linters:
           - dupl
           - errcheck
-          - funlen
           - gochecknoinits
           - goconst
           - gocyclo

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "pexip_infinity_mjx_integration" "mjx_integration-test" {
   name                           = "mjx_integration-test"
   description                    = "Test MjxIntegration"

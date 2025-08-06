@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 resource "google_compute_firewall" "allow_ssh" {
   name    = "allow-ssh-${var.project_id}"
   network = data.google_compute_network.default.name
