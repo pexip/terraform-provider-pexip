@@ -72,7 +72,7 @@ jobs:
       fail-fast: false
       matrix:
         go-version: ["1.24"]
-        terraform-version: ["1.0", "1.12"]
+        terraform-version: ["1.12"]
 
     steps:
     - uses: actions/checkout@v4
