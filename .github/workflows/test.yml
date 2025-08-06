@@ -83,12 +83,12 @@ jobs:
         GH_PAT: ${{ secrets.GH_PAT }}
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
 
     - name: Go cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build
@@ -111,12 +111,16 @@ jobs:
         go test -race -covermode=atomic -v -tags=unit ./...
 
   terraform:
-    name: Terraform
+    name: Terraform Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform-version: ["1.5", "1.6", "1.7"]
 
     steps:
       - uses: actions/checkout@v4
@@ -133,6 +137,8 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform-version }}
 
       - name: List Terraform plugins
         run: ls -laR ~/.terraform.d/plugins
@@ -148,16 +154,24 @@ jobs:
         run: terraform validate -no-color
         working-directory: ./example/
 
+      - name: Terraform plan (dry run)
+        run: terraform plan -no-color
+        working-directory: ./example/
+        continue-on-error: true
+
   lint:
-    name: Lint
+    name: Code Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: read
+      checks: write
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Authenticate git for private modules
       run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
@@ -165,34 +179,44 @@ jobs:
         GH_PAT: ${{ secrets.GH_PAT }}
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
 
     - name: Go cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-${{ matrix.go-version }}-
+          ${{ runner.os }}-go-${{ env.GO_VERSION }}-
 
     - name: Download dependencies
       run: go mod download
+
+    - name: Verify golangci-lint config
+      run: |
+        if [ ! -f .golangci.yml ]; then
+          echo "Error: .golangci.yml not found"
+          exit 1
+        fi
+        echo "golangci-lint configuration found and valid"
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v8
       with:
         version: latest
-        args: --timeout=5m
+        args: --timeout=10m --issues-exit-code=1
+        only-new-issues: true
     
     - name: Check formatting
       run: |
         if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
           echo "The following files are not formatted:"
           gofmt -s -l .
+          echo "Run: gofmt -s -w ."
           exit 1
         fi
     
@@ -200,8 +224,19 @@ jobs:
       run: |
         go mod tidy
         if ! git diff --exit-code go.mod go.sum; then
-          echo "go mod tidy resulted in changes"
+          echo "go mod tidy resulted in changes. Run 'go mod tidy' locally."
+          git diff go.mod go.sum
           exit 1
+        fi
+
+    - name: Check for generated files
+      run: |
+        if command -v terraform-docs &> /dev/null; then
+          make docs
+          if ! git diff --exit-code; then
+            echo "Generated documentation is out of date. Run 'make docs' locally."
+            exit 1
+          fi
         fi
 
 #  security:
@@ -231,11 +266,18 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
+    permissions:
+      contents: read
+      pull-requests: write
+    if: github.event_name == 'pull_request'
     
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
     
     - name: Dependency Review
-      uses: actions/dependency-review-action@v3
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+        allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
+        comment-summary-in-pr: true
