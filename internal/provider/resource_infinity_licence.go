@@ -193,8 +193,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	fulfillmentID := ""
-	for i := range listResponse.Objects {
-		licence := &listResponse.Objects[i]
+	for _, licence := range listResponse.Objects {
 		if licence.EntitlementID == strings.Replace(plan.EntitlementID.ValueString(), " ", "", -1) {
 			fulfillmentID = licence.FulfillmentID
 			break
