@@ -37,9 +37,9 @@ resource "pexip_infinity_syslog_server" "syslog-server-test" {
   ]
 }
 
-resource "pexip_infinity_system_location" "AMS" {
-  name        = "AMS"
-  description = "AMS always on"
+resource "pexip_infinity_system_location" "example-location-1" {
+  name        = "Example Location 1"
+  description = "Example Location 1"
   mtu         = 1460
   dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
   ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
@@ -51,13 +51,39 @@ resource "pexip_infinity_system_location" "AMS" {
   ]
 }
 
-resource "pexip_infinity_system_location" "TEST-AMS" {
-  name        = "TEST AMS"
+resource "pexip_infinity_system_location" "example-location-2" {
+  name        = "Example Location 2"
+
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+}
+
+resource "pexip_infinity_system_location" "example-location-3" {
+  name        = "Example Location 3"
+
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+}
+
+resource "pexip_infinity_system_location" "example-edge-location" {
+  name        = "Example Edge Location"
+  description = "Example Edge Location"
+  transcoding_location = pexip_infinity_system_location.example-location-1.id
+  overflow_location1 = pexip_infinity_system_location.example-location-2.id
+  overflow_location2 = pexip_infinity_system_location.example-location-3.id
+  depends_on = [
+    module.gcp-infinity-manager,
+  ]
+}
+
+resource "pexip_infinity_system_location" "test-location" {
+  name        = "TEST LOCATION"
   description = "Set every parameter to test the system location"
   mtu         = 1460
   dns_servers = [pexip_infinity_dns_server.dns-cloudflare.id, pexip_infinity_dns_server.dns-google-2.id]
   ntp_servers = [pexip_infinity_ntp_server.ntp1.id]
-  // need a syslog server to for worker vm to register properly
   syslog_servers                 = [pexip_infinity_syslog_server.syslog-server-test.id]
   stun_server                    = pexip_infinity_stun_server.stun-server-test1.id
   turn_server                    = pexip_infinity_turn_server.turn-server-test1.id
@@ -77,14 +103,13 @@ resource "pexip_infinity_system_location" "TEST-AMS" {
   use_relay_candidates_only      = true
   snmp_network_management_system = pexip_infinity_snmp_network_management_system.snmp-nms-test2.id
   policy_server                  = pexip_infinity_policy_server.policy-server-test.id
-  live_captions_dial_out_1        = pexip_infinity_system_location.AMS.id
-  //live_captions_dial_out_2 = pexip_infinity_system_location.AMS.id
-  //live_captions_dial_out__3 = pexip_infinity_system_location.AMS.id
-
   // These locations must already exist before being set
-  //transcoding_location = pexip_infinity_system_location.AMS.id
-  //overflow_location1 = pexip_infinity_system_location.AMS.id
-  //overflow_location2 = pexip_infinity_system_location.AMS.id
+  //transcoding_location           = pexip_infinity_system_location.example-location-1.id
+  //overflow_location1             = pexip_infinity_system_location.example-location-2.id
+  //overflow_location2             = pexip_infinity_system_location.example-location-3.id
+  //live_captions_dial_out_1       = pexip_infinity_system_location.example-location-1.id
+  //live_captions_dial_out_2       = pexip_infinity_system_location.example-location-2.id
+  //live_captions_dial_out_3       = pexip_infinity_system_location.example-location-3.id
 
   depends_on = [
     module.gcp-infinity-manager,
