@@ -19,7 +19,6 @@ linters:
     - gosec
     - govet
     - ineffassign
-    - lll
     - misspell
     - nakedret
     - noctx
@@ -80,9 +79,6 @@ linters:
             - (github.com/hashicorp/terraform-plugin-log/tflog).Info
             - (github.com/hashicorp/terraform-plugin-log/tflog).Warn
             - (github.com/hashicorp/terraform-plugin-log/tflog).Error
-    lll:
-      line-length: 120
-      tab-width: 1
     misspell:
       locale: US
     nakedret:
@@ -105,9 +101,6 @@ linters:
           - gocyclo
           - gosec
         path: _test\.go
-      - linters:
-          - lll
-        source: '^//go:generate '
       - linters:
           - govet
         text: 'shadow: declaration of "err"'
