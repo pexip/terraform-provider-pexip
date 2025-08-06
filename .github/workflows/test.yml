@@ -154,11 +154,6 @@ jobs:
         run: terraform validate -no-color
         working-directory: ./example/
 
-      - name: Terraform plan (dry run)
-        run: terraform plan -no-color
-        working-directory: ./example/
-        continue-on-error: true
-
   lint:
     name: Code Quality
     runs-on: ubuntu-latest
