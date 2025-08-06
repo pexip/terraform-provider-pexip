@@ -615,6 +615,86 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	if !plan.MTU.IsNull() {
 		updateRequest.MTU = int(plan.MTU.ValueInt32())
 	}
+	if !plan.H323GateKeeper.IsNull() && !plan.H323GateKeeper.IsUnknown() {
+		value := plan.H323GateKeeper.ValueString()
+		updateRequest.H323Gatekeeper = &value
+	}
+	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
+		value := plan.SNMPNetworkManagementSystem.ValueString()
+		updateRequest.SNMPNetworkManagementSystem = &value
+	}
+	if !plan.SIPProxy.IsNull() && !plan.SIPProxy.IsUnknown() {
+		value := plan.SIPProxy.ValueString()
+		updateRequest.SIPProxy = &value
+	}
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		value := plan.HTTPProxy.ValueString()
+		updateRequest.HTTPProxy = &value
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		value := plan.MSSIPProxy.ValueString()
+		updateRequest.MSSIPProxy = &value
+	}
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
+		value := plan.TeamsProxy.ValueString()
+		updateRequest.TeamsProxy = &value
+	}
+	if !plan.TURNServer.IsNull() && !plan.TURNServer.IsUnknown() {
+		value := plan.TURNServer.ValueString()
+		updateRequest.TURNServer = &value
+	}
+	if !plan.STUNServer.IsNull() && !plan.STUNServer.IsUnknown() {
+		value := plan.STUNServer.ValueString()
+		updateRequest.STUNServer = &value
+	}
+	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
+		updateRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
+	}
+	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
+		value := int(plan.MediaQOS.ValueInt32())
+		updateRequest.MediaQoS = &value
+	}
+	if !plan.SignallingQOS.IsNull() && !plan.SignallingQOS.IsUnknown() {
+		value := int(plan.SignallingQOS.ValueInt32())
+		updateRequest.SignallingQoS = &value
+	}
+	if !plan.TranscodingLocation.IsNull() && !plan.TranscodingLocation.IsUnknown() {
+		value := plan.TranscodingLocation.ValueString()
+		updateRequest.TranscodingLocation = &value
+	}
+	if !plan.OverflowLocation1.IsNull() && !plan.OverflowLocation1.IsUnknown() {
+		value := plan.OverflowLocation1.ValueString()
+		updateRequest.OverflowLocation1 = &value
+	}
+	if !plan.OverflowLocation2.IsNull() && !plan.OverflowLocation2.IsUnknown() {
+		value := plan.OverflowLocation2.ValueString()
+		updateRequest.OverflowLocation2 = &value
+	}
+	if !plan.LocalMSSIPDomain.IsNull() && !plan.LocalMSSIPDomain.IsUnknown() {
+		updateRequest.LocalMSSIPDomain = plan.LocalMSSIPDomain.ValueString()
+	}
+	if !plan.PolicyServer.IsNull() && !plan.PolicyServer.IsUnknown() {
+		value := plan.PolicyServer.ValueString()
+		updateRequest.PolicyServer = &value
+	}
+	if !plan.BDPMPINChecksEnabled.IsNull() && !plan.BDPMPINChecksEnabled.IsUnknown() {
+		updateRequest.BDPMPinChecksEnabled = plan.BDPMPINChecksEnabled.ValueString()
+	}
+	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
+		updateRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
+	}
+	if !plan.LiveCaptionsDialOut1.IsNull() && !plan.LiveCaptionsDialOut1.IsUnknown() {
+		value := plan.LiveCaptionsDialOut1.ValueString()
+		updateRequest.LiveCaptionsDialOut1 = &value
+	}
+	if !plan.LiveCaptionsDialOut2.IsNull() && !plan.LiveCaptionsDialOut2.IsUnknown() {
+		value := plan.LiveCaptionsDialOut2.ValueString()
+		updateRequest.LiveCaptionsDialOut2 = &value
+	}
+	if !plan.LiveCaptionsDialOut3.IsNull() && !plan.LiveCaptionsDialOut3.IsUnknown() {
+		value := plan.LiveCaptionsDialOut3.ValueString()
+		updateRequest.LiveCaptionsDialOut3 = &value
+	}
 
 	_, err := r.InfinityClient.Config().UpdateSystemLocation(ctx, resourceID, updateRequest)
 	if err != nil {
