@@ -18,7 +18,7 @@ permissions: {}
 
 env:
   GO_VERSION: "1.24"
-  GO_PRIVATE: github.com/pexip
+  GOPRIVATE: github.com/pexip
   PROVIDER_NAME: "pexip"
 
 jobs:
