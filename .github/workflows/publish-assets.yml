@@ -55,7 +55,7 @@ jobs:
       - name: Set build variables
         id: vars
         run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${{ inputs.version }}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
           BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
