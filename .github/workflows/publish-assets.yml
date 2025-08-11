@@ -65,11 +65,14 @@ jobs:
           VERSION="${VERSION#v}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_v${VERSION}"
           if [ "${{ matrix.goos }}" = "windows" ]; then
             BINARY_NAME="${BINARY_NAME}.exe"
           fi
           echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+
+          ZIP_ARCHIVE_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}.zip"
+          echo "zip_archive_name=${ZIP_ARCHIVE_NAME}" >> $GITHUB_OUTPUT
           
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
@@ -91,13 +94,13 @@ jobs:
 
       - name: Package binary
         run: |
-          zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}"
+          zip -j "dist/${{ steps.vars.outputs.zip_archive_name }}" "dist/${{ steps.vars.outputs.binary_name }}"
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.vars.outputs.binary_name }}
-          path: "dist/${{ steps.vars.outputs.binary_name }}"
+          name: ${{ steps.vars.outputs.zip_archive_name }}
+          path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
           retention-days: 7
 
   upload:
@@ -125,7 +128,7 @@ jobs:
       - name: Generate SHA256 checksum
         run: |
           cd dist
-          shasum -a 256 *.zip > terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+          shasum -a 256 *.zip > terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
 
       - name: Import GPG key
         run: |
@@ -136,14 +139,14 @@ jobs:
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
-            --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig \
-            --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+            --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS.sig \
+            --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
 
       - name: Upload SHA256SUMS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS"
-          path: "dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS"
+          name: "terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS"
+          path: "dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS"
           retention-days: 7
 
       - name: Upload assets to release
@@ -152,5 +155,5 @@ jobs:
           tag_name: ${{ inputs.version }}
           files: |
             dist/*.zip
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig
+            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
+            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS.sig
