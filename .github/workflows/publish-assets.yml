@@ -112,8 +112,8 @@ jobs:
     permissions:
       contents: write
     env:
-      MANIFEST: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
-      SHA256SUMS: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
+      MANIFEST: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
+      SHA256SUMS: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
 
     steps:
       - name: Download build artifacts
