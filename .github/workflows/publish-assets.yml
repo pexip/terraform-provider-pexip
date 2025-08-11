@@ -37,6 +37,12 @@ jobs:
             goos: windows
 
     steps:
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "Error: Version must be in format v0.0.0 or v0.0.0-suffix (e.g., v1.2.3, v1.2.3-beta.1)"
+            exit 1
+          fi
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -79,17 +85,11 @@ jobs:
           mkdir -p dist
           go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${USER}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
 
-      - name: Package binary
-        run: |
-          cd dist
-          ls -la .
-          zip "${{ steps.vars.outputs.binary_name }}.zip" "${{ steps.vars.outputs.binary_name }}"
-
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
         with:
           name: "${{ steps.vars.outputs.binary_name }}.zip"
-          path: "dist/${{ steps.vars.outputs.binary_name }}.zip"
+          path: "dist/${{ steps.vars.outputs.binary_name }}"
           retention-days: 7
 
   upload:
@@ -130,9 +130,17 @@ jobs:
             --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig \
             --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
 
+      - name: Upload SHA256SUMS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS"
+          path: "dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS"
+          retention-days: 7
+
       - name: Upload assets to release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 #v2.3.2
         with:
+          tag_name: ${{ inputs.version }}
           files: |
             dist/*.zip
             dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
