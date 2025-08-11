@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Download build artifacts
@@ -157,3 +157,4 @@ jobs:
             dist/*.zip
             dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
             dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS.sig
+          token: ${{ secrets.GITHUB_TOKEN }}
