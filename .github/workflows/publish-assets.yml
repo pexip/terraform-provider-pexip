@@ -89,7 +89,6 @@ jobs:
       - name: Package binary
         run: |
           ls -laR dist
-          cd dist
           if [[ "${{ matrix.goos }}" == "windows" ]]; then
             zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}.exe"
           else
