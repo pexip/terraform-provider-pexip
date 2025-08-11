@@ -29,6 +29,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.vars.outputs.version }}
+      provider_name: ${{ env.PROVIDER_NAME }}
 
     strategy:
       matrix:
@@ -112,8 +113,8 @@ jobs:
     permissions:
       contents: write
     env:
-      MANIFEST: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
-      SHA256SUMS: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
+      MANIFEST: "terraform-provider-${{ needs.build.outputs.provider_name }}_${{ needs.build.outputs.version }}_manifest.json"
+      SHA256SUMS: "terraform-provider-${{ needs.build.outputs.provider_name }}_${{ needs.build.outputs.version }}_SHA256SUMS"
 
     steps:
       - name: Download build artifacts
