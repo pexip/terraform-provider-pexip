@@ -1,0 +1,109 @@
+name: Build Terraform Provider
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Release version (v0.0.0)
+        required: true
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: Release version (v0.0.0)
+        required: true
+      goos:
+        type: string
+        description: Operating system (linux, darwin, windows)
+        required: false
+        default: linux
+      goarch:
+        type: string
+        description: Architecture (amd64, arm64)
+        required: false
+        default: amd64
+
+permissions: {}
+
+env:
+  GO_VERSION: "1.24"
+  GOPRIVATE: github.com/pexip
+  PROVIDER_NAME: "pexip"
+
+jobs:
+  build:
+    name: Build Terraform Provider
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+      provider_name: ${{ env.PROVIDER_NAME }}
+
+    steps:
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "Error: Version must be in format v0.0.0 or v0.0.0-suffix (e.g., v1.2.3, v1.2.3-beta.1)"
+            exit 1
+          fi
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.version }}
+
+      - name: Authenticate git for private modules
+        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set build variables
+        id: vars
+        run: |
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_v${VERSION}"
+          if [ "${{ inputs.goos }}" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
+
+          ZIP_ARCHIVE_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ inputs.goos }}_${{ inputs.goarch }}.zip"
+          echo "zip_archive_name=${ZIP_ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+          
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build binary
+        env:
+          GOOS: ${{ inputs.goos }}
+          GOARCH: ${{ inputs.goarch }}
+        run: |
+          mkdir -p dist
+          go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${{ github.actor }}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
+
+      - name: Package binary
+        run: |
+          zip -j "dist/${{ steps.vars.outputs.zip_archive_name }}" "dist/${{ steps.vars.outputs.binary_name }}"
+
+      - name: Upload packaged binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.zip_archive_name }}
+          path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
+          retention-days: 7
