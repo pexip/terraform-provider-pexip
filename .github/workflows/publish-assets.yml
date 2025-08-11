@@ -66,6 +66,9 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
           BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
           echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
           
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
@@ -88,12 +91,7 @@ jobs:
 
       - name: Package binary
         run: |
-          ls -laR dist
-          if [[ "${{ matrix.goos }}" == "windows" ]]; then
-            zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}.exe"
-          else
-            zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}"
-          fi
+          zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}"
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
