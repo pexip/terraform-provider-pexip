@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
 
     strategy:
       matrix:
@@ -110,8 +112,8 @@ jobs:
     permissions:
       contents: write
     env:
-      MANIFEST: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
-      SHA256SUMS: "terraform-provider-${{ PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
+      MANIFEST: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
+      SHA256SUMS: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
 
     steps:
       - name: Download build artifacts
@@ -153,16 +155,19 @@ jobs:
             }' > "${{ env.MANIFEST }}"
 
       - name: Generate SHA256 checksum
+        shell: bash
         run: |
           cd dist
           shasum -a 256 *.zip > terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
 
       - name: Import GPG key
+        shell: bash
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
 
       - name: Sign checksum file
+        shell: bash
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
