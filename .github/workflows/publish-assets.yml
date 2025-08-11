@@ -111,6 +111,7 @@ jobs:
       contents: write
     env:
       MANIFEST: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
+      SHA256SUMS: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
 
     steps:
       - name: Download build artifacts
@@ -167,14 +168,14 @@ jobs:
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
-            --armor --output terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS.sig \
-            --detach-sign terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
+            --armor --output ${{ env.SHA256SUMS }}.sig \
+            --detach-sign ${{ env.SHA256SUMS }}
 
       - name: Upload SHA256SUMS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
-          path: "dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
+          name: ${{ env.SHA256SUMS }}
+          path: "dist/${{ env.SHA256SUMS }}"
           retention-days: 7
 
       - name: Upload assets to release
@@ -183,6 +184,7 @@ jobs:
           tag_name: ${{ inputs.version }}
           files: |
             dist/*.zip
-            dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
-            dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS.sig
+            dist/${{ env.SHA256SUMS }}
+            dist/${{ env.SHA256SUMS }}.sig
+            dist/${{ env.MANIFEST }}
           token: ${{ secrets.GITHUB_TOKEN }}
