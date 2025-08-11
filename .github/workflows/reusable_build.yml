@@ -1,12 +1,6 @@
 name: Build Terraform Provider
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        type: string
-        description: Release version (v0.0.0)
-        required: true
   workflow_call:
     inputs:
       version:
