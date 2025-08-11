@@ -30,12 +30,12 @@ build-dev:
 
 build: prepare
 	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
+	chmod +x $(BUILD_DIR)/$(NAME)_$(VERSION)
+	zip -j $(BUILD_DIR)/$(NAME)_$(VERSION)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
 
 install:
-	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)
-	mv $(BUILD_DIR)/$(NAME)_$(VERSION) ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
-	chmod +x ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME)
-	cp ~/.terraform.d/plugins/pexip.com/pexip/pexip/$(VERSION)/$(OS_ARCH)/$(NAME) ~/.terraform.d/plugins/pexip.com/pexip/pexip
+	mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip
+	unzip -o $(BUILD_DIR)/$(NAME)_$(VERSION)_$(OS_ARCH).zip -d ~/.terraform.d/plugins/pexip.com/pexip/pexip
 
 test: prepare
 	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
@@ -50,3 +50,24 @@ fmt:
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf ~/.terraform.d/plugins/pexip.com/pexip/pexip
+
+.PHONY: generate-manifest
+generate-manifest: prepare
+	cd $(BUILD_DIR) && \
+	VERSION_VALUE="$(VERSION)"; \
+	VERSION_VALUE="$${VERSION_VALUE#v}"; \
+	PROVIDER_VALUE="$(PROVIDER_NAME)"; \
+	MANIFEST="terraform-provider-$${PROVIDER_VALUE}_$${VERSION_VALUE}_manifest.json"; \
+	PLATFORMS_JSON="["; \
+	first=1; \
+	for f in terraform-provider-$${PROVIDER_VALUE}_$${VERSION_VALUE}_*.zip; do \
+	  sha=$$(shasum -a 256 "$$f" | awk '{print $$1}'); \
+	  base=$${f%.zip}; \
+	  os_arch=$${base#terraform-provider-$${PROVIDER_VALUE}_$${VERSION_VALUE}_}; \
+	  os=$${os_arch%_*}; \
+	  arch=$${os_arch#$$os_}; \
+	  entry=$$(jq -n --arg os "$$os" --arg arch "$$arch" --arg filename "$$f" --arg shasum "$$sha" '{os:$os, arch:$arch, filename:$filename, shasum:$shasum}'); \
+	  if [ $$first -eq 1 ]; then PLATFORMS_JSON="[$$entry"; first=0; else PLATFORMS_JSON="$$PLATFORMS_JSON,$$entry"; fi; \
+	done; \
+	PLATFORMS_JSON="$$PLATFORMS_JSON]"; \
+	jq -n --arg version "$$VERSION_VALUE" --argjson platforms "$$PLATFORMS_JSON" '{version:$version, protocols:["5.0"], platforms:$platforms}' > "$$MANIFEST"

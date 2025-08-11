@@ -134,27 +134,7 @@ jobs:
       - name: Generate manifest JSON
         shell: bash
         run: |
-          cd dist
-          PLATFORMS=()
-          for zipfile in terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_*.zip; do
-            filename="$zipfile"
-            base="${zipfile%.zip}"
-            os_arch="${base#terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_}"
-            os="${os_arch%_*}"
-            arch="${os_arch#${os}_}"
-            sha256sum=$(shasum -a 256 "$zipfile" | awk '{print $1}')
-            PLATFORMS+=("{\"os\":\"$os\",\"arch\":\"$arch\",\"filename\":\"$filename\",\"shasum\":\"$sha256sum\"}")
-          done
-          platforms_json=$(printf ",%s" "${PLATFORMS[@]}")
-          platforms_json="[${platforms_json:1}]"
-          jq -n \
-            --arg version "${{ needs.build.outputs.version }}" \
-            --argjson platforms "$platforms_json" \
-            '{
-              version: $version,
-              protocols: ["5.0"],
-              platforms: $platforms
-            }' > "${{ env.MANIFEST }}"
+          make generate-manifest VERSION=${{ inputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
 
       - name: Upload MANIFEST artifact
         uses: actions/upload-artifact@v4

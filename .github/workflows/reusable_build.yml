@@ -89,8 +89,7 @@ jobs:
           GOOS: ${{ inputs.goos }}
           GOARCH: ${{ inputs.goarch }}
         run: |
-          mkdir -p dist
-          go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${{ github.actor }}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
+          make build
 
       - name: Package binary
         run: |
