@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Reusable Build Step
-        uses: ./.github./worflows/reusable_build.yml
+        uses: ./.github/workflows/reusable_build.yml
         with:
           version: ${{ inputs.version }}
           goos: ${{ matrix.goos }}
