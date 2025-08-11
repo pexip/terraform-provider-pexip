@@ -1,7 +1,6 @@
 # Terraform Provider for Pexip Infinity
 
 [![Build Status](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml/badge.svg)](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pexip/terraform-provider-pexip)](https://goreportcard.com/report/github.com/pexip/terraform-provider-pexip)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The official Terraform provider for [Pexip Infinity](https://www.pexip.com/products/infinity/) enables comprehensive Infrastructure as Code management of your Pexip video conferencing platform. Manage everything from basic node configurations to advanced integrations with Microsoft 365, Google Workspace, and external authentication systems.
