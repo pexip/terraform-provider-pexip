@@ -86,10 +86,19 @@ jobs:
           mkdir -p dist
           go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${USER}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
 
+      - name: Package binary
+        run: |
+          cd dist
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then
+            zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}.exe"
+          else
+            zip -j "dist/${{ steps.vars.outputs.binary_name }}.zip" "dist/${{ steps.vars.outputs.binary_name }}"
+          fi
+
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ steps.vars.outputs.binary_name }}.zip"
+          name: ${{ steps.vars.outputs.binary_name }}
           path: "dist/${{ steps.vars.outputs.binary_name }}"
           retention-days: 7
 
