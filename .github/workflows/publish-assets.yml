@@ -7,6 +7,20 @@ on:
         type: string
         description: Release version (v0.0.0)
         required: true
+      pre_release:
+        type: boolean
+        default: false
+        description: Pre-release?
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: Release version (v0.0.0)
+        required: true
+      pre_release:
+        type: boolean
+        default: false
+        description: Pre-release?
 
 permissions: {}
 
@@ -33,6 +47,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.version }}
 
       - name: Authenticate git for private modules
         run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
