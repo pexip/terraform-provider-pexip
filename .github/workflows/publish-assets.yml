@@ -109,12 +109,15 @@ jobs:
     needs: build
     permissions:
       contents: write
+    env:
+      MANIFEST: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_manifest.json"
 
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           path: build_artifacts
+
 
       - name: Flatten artifacts into ./dist
         shell: bash
@@ -125,10 +128,35 @@ jobs:
             mv "$d"/*.zip dist/
           done
 
+      - name: Generate manifest JSON
+        shell: bash
+        run: |
+          cd dist
+          PLATFORMS=()
+          for zipfile in terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_*.zip; do
+            filename="$zipfile"
+            base="${zipfile%.zip}"
+            os_arch="${base#terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_}"
+            os="${os_arch%_*}"
+            arch="${os_arch#${os}_}"
+            sha256sum=$(shasum -a 256 "$zipfile" | awk '{print $1}')
+            PLATFORMS+=("{\"os\":\"$os\",\"arch\":\"$arch\",\"filename\":\"$filename\",\"shasum\":\"$sha256sum\"}")
+          done
+          platforms_json=$(printf ",%s" "${PLATFORMS[@]}")
+          platforms_json="[${platforms_json:1}]"
+          jq -n \
+            --arg version "${{ needs.build.outputs.version }}" \
+            --argjson platforms "$platforms_json" \
+            '{
+              version: $version,
+              protocols: ["5.0"],
+              platforms: $platforms
+            }' > "${{ env.MANIFEST }}"
+
       - name: Generate SHA256 checksum
         run: |
           cd dist
-          shasum -a 256 *.zip > terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
+          shasum -a 256 *.zip > terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
 
       - name: Import GPG key
         run: |
@@ -139,14 +167,14 @@ jobs:
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
-            --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS.sig \
-            --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
+            --armor --output terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS.sig \
+            --detach-sign terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
 
       - name: Upload SHA256SUMS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS"
-          path: "dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS"
+          name: "terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
+          path: "dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS"
           retention-days: 7
 
       - name: Upload assets to release
@@ -155,6 +183,6 @@ jobs:
           tag_name: ${{ inputs.version }}
           files: |
             dist/*.zip
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ needs.build.outputs.version }}_SHA256SUMS.sig
+            dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
+            dist/terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS.sig
           token: ${{ secrets.GITHUB_TOKEN }}
