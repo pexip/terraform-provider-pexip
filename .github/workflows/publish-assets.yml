@@ -82,6 +82,7 @@ jobs:
       - name: Package binary
         run: |
           cd dist
+          ls -la .
           zip "${{ steps.vars.outputs.binary_name }}.zip" "${{ steps.vars.outputs.binary_name }}"
 
       - name: Upload packaged binary
