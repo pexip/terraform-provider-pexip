@@ -7,20 +7,12 @@ on:
         type: string
         description: Release version (v0.0.0)
         required: true
-      pre_release:
-        type: boolean
-        default: false
-        description: Pre-release?
   workflow_call:
     inputs:
       version:
         type: string
         description: Release version (v0.0.0)
         required: true
-      pre_release:
-        type: boolean
-        default: false
-        description: Pre-release?
 
 permissions: {}
 
