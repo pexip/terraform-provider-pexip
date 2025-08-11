@@ -44,7 +44,7 @@ jobs:
         uses: ./.github./worflows/reusable_build.yml
         with:
           version: ${{ inputs.version }}
-          goos: ${{ matrix.goos. }}
+          goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
 
 #      - name: Validate version format
