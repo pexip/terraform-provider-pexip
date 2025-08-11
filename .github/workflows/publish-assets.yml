@@ -1,9 +1,12 @@
 name: Build and Publish Terraform Provider
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Release version (v0.0.0)
+        required: true
 
 permissions: {}
 
