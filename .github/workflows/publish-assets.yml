@@ -88,7 +88,7 @@ jobs:
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-provider-dist
+          name: "${{ steps.vars.outputs.binary_name }}.zip"
           path: "dist/${{ steps.vars.outputs.binary_name }}.zip"
           retention-days: 7
 
