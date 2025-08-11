@@ -52,7 +52,7 @@ jobs:
           ref: refs/tags/${{ inputs.version }}
 
       - name: Reusable Build Step
-        uses: ./.github/workflows/reusable_build.yml
+        uses: .github/workflows/reusable_build.yml
         with:
           version: ${{ inputs.version }}
           goos: ${{ matrix.goos }}

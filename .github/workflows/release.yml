@@ -42,7 +42,7 @@ jobs:
 
   upload-assets:
     needs: release
-    uses: ./.github./worflows/publish-assets.yml
+    uses: .github/workflows/publish-assets.yml
     with:
       version: ${{ inputs.version }}
       pre_release: ${{ inputs.pre_release }}
