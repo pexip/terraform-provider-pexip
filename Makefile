@@ -67,7 +67,7 @@ package: build
 	@zip -j $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) $(BUILD_DIR)/$(BINARY_NAME)
 
 # Install the provider for local Terraform use
-install: build
+install:
 	@echo "Installing $(NAME) version $(VERSION_NO_V) for $(OS_ARCH)..."
 	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION_NO_V)/$(OS_ARCH)
 	@cp $(BUILD_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION_NO_V)/$(OS_ARCH)/$(NAME)
