@@ -25,7 +25,7 @@ first=1
 
 # Use nullglob to prevent errors if no files match
 shopt -s nullglob
-files=(terraform-provider-${PROVIDER}_v${VERSION_VALUE}_*.zip)
+files=(terraform-provider-${PROVIDER}_${VERSION_VALUE}_*.zip)
 shopt -u nullglob
 
 

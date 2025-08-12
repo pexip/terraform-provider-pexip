@@ -31,7 +31,7 @@ build-dev:
 
 build: prepare
 	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
-	zip -j $(BUILD_DIR)/$(NAME)_$(VERSION)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
+	zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
 
 install:
 	mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
