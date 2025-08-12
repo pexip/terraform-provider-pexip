@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Set environment variables
         run: |
-          VERSION_NO_V="${{ inputs.version }#v}"
+          VERSION_NO_V="${{ inputs.version }}#v}"
           echo "MANIFEST=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_manifest.json" >> $GITHUB_ENV
           echo "SHA256SUMS=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_SHA256SUMS" >> $GITHUB_ENV
 
