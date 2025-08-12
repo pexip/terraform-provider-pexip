@@ -90,7 +90,8 @@ jobs:
           GOARCH: ${{ inputs.goarch }}
         run: |
           make build VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
-          ls -laR .
+          make package VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
+          ls -laR dist
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4

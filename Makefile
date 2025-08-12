@@ -16,7 +16,7 @@ GIT_BRANCH         :=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
 
-.PHONY: prepare lint build install test testacc clean manifest
+.PHONY: prepare lint build package install test testacc clean manifest
 
 all: testacc build
 
@@ -29,6 +29,8 @@ lint:
 build: prepare
 	@echo "Building $(NAME) version $(VERSION) for $(OS_ARCH)..."
 	@go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
+
+package: build
 	@zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
 
 install:
