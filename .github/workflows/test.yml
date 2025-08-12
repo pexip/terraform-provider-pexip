@@ -100,11 +100,11 @@ jobs:
 
   terraform:
     name: Terraform Validation
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -116,7 +116,7 @@ jobs:
       - name: Download dist folder
         uses: actions/download-artifact@v4
         with:
-          name: terraform-provider-dist
+          name: ${{ needs.build.outputs.zip_archive_name }}
           path: ./dist
 
       - name: Install local provider

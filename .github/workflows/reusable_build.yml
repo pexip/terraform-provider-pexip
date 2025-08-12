@@ -34,6 +34,8 @@ jobs:
     outputs:
       version: ${{ steps.vars.outputs.version }}
       provider_name: ${{ env.PROVIDER_NAME }}
+      binary_name: ${{ steps.vars.outputs.binary_name }}
+      zip_archive_name: ${{ steps.vars.outputs.zip_archive_name }}
 
     steps:
       - name: Validate version format
