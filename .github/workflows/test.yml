@@ -14,35 +14,14 @@ env:
   GOPRIVATE: github.com/pexip
 
 jobs:
-  pre-build:
-    name: Pre-build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      version: ${{ steps.vars.outputs.version }}
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Generate version
-      id: vars
-      run: |
-        VERSION=$(make version)
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-        echo "::notice title=Generated Version::${VERSION}"
-
   build:
     name: Build local provider
-    needs: pre-build
     permissions:
       contents: read
 
     uses: ./.github/workflows/reusable_build.yml
     with:
-      version: ${{ needs.pre-build.outputs.version }}
+      version: "v0.0.1"
 
   test:
     name: Test
