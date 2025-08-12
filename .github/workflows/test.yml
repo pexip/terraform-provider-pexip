@@ -114,7 +114,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.zip_archive_name }}
-          path: ./dist
+          path: ./build_artifacts
+
+      - name: Flatten artifacts into ./dist
+        shell: bash
+        run: |
+          mkdir -p dist
+          for d in build_artifacts/*; do
+            mv "$d"/*.zip dist/
+          done
 
       - name: Install local provider
         run: |
