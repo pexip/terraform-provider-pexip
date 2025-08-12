@@ -87,13 +87,12 @@ jobs:
           GOOS: ${{ inputs.goos }}
           GOARCH: ${{ inputs.goarch }}
         run: |
-          make package VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
+          make build VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
           ls -la dist
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.vars.outputs.zip_archive_name }}
-          path: "dist/*"
-#          path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
+          path: "dist/${{ steps.vars.outputs.binary_name }}"
           retention-days: 7
