@@ -50,7 +50,7 @@ install:
 	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
 	@unzip -o $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) -d ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
 
-install2:
+install2: install
 	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION)/$(OS_ARCH)
 	cp ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION)/$(OS_ARCH)/$(NAME)
 

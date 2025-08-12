@@ -126,7 +126,7 @@ jobs:
 
       - name: Install local provider
         run: |
-          make install
+          make install2
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
