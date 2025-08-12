@@ -491,9 +491,9 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	if !plan.MaintenanceModeReason.IsNull() {
 		createRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
 	}
-	if !plan.TLSCertificate.IsNull() {
-		createRequest.TLSCertificate = plan.TLSCertificate.ValueString()
-	}
+	//if !plan.TLSCertificate.IsNull() {
+	//	createRequest.TLSCertificate = plan.TLSCertificate.ValueString()
+	//}
 
 	createResponse, err := r.InfinityClient.Config().CreateWorkerVM(ctx, createRequest)
 	if err != nil {
@@ -677,9 +677,9 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.MaintenanceModeReason.IsNull() {
 		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
 	}
-	if !plan.TLSCertificate.IsNull() {
-		updateRequest.TLSCertificate = plan.TLSCertificate.ValueString()
-	}
+	//if !plan.TLSCertificate.IsNull() {
+	//	updateRequest.TLSCertificate = plan.TLSCertificate.ValueString()
+	//}
 
 	_, err := r.InfinityClient.Config().UpdateWorkerVM(ctx, resourceID, updateRequest)
 	if err != nil {
