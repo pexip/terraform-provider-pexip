@@ -47,14 +47,11 @@ jobs:
     needs: build
     permissions:
       contents: write
+    env:
+      MANIFEST: "terraform-provider-${{ needs.build.outputs.provider_name }}_${{ needs.build.outputs.version }}_manifest.json"
+      SHA256SUMS: "terraform-provider-${{ needs.build.outputs.provider_name }}_${{ needs.build.outputs.version }}_SHA256SUMS"
 
     steps:
-      - name: Set environment variables
-        run: |
-          VERSION_NO_V="${{ inputs.version }#v}"
-          echo "MANIFEST=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_manifest.json" >> $GITHUB_ENV
-          echo "SHA256SUMS=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_SHA256SUMS" >> $GITHUB_ENV
-
       - name: Checkout
         uses: actions/checkout@v4
 
