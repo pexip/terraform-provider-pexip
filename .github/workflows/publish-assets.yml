@@ -7,6 +7,12 @@ on:
         type: string
         description: Release version (v0.0.0)
         required: true
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: Release version (v0.0.0)
+        required: true
 
 permissions: {}
 
@@ -16,9 +22,8 @@ env:
   PROVIDER_NAME: "pexip"
 
 jobs:
-  publish:
-    name: Build and Upload Assets
-    runs-on: ubuntu-latest
+  build:
+    name: Build Assets
     permissions:
       contents: read
 
@@ -30,73 +35,89 @@ jobs:
           - goarch: arm64
             goos: windows
 
+    uses: ./.github/workflows/reusable_build.yml
+    with:
+      version: ${{ inputs.version }}
+      goos: ${{ matrix.goos }}
+      goarch: ${{ matrix.goarch }}
+
+  upload:
+    name: Upload Assets
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
     steps:
-      - name: Checkout code
+      - name: Set environment variables
+        run: |
+          VERSION="${{ inputs.version }}"
+          VERSION_NO_V="${VERSION#v}"
+          echo "MANIFEST=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_manifest.json" >> $GITHUB_ENV
+          echo "SHA256SUMS=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_SHA256SUMS" >> $GITHUB_ENV
+
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Authenticate git for private modules
-        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
+          path: build_artifacts
 
-      - name: Set build variables
-        id: vars
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
-          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
-          
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
-          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Build binary
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
+      - name: Flatten artifacts into ./dist
+        shell: bash
         run: |
           mkdir -p dist
-          go build -ldflags "-X main.commit=${GIT_BRANCH}@${GIT_REVISION}${GIT_REVISION_DIRTY} -X internal/version.appBuildTime=${BUILD_TIME} -X internal/version.appVersion=${VERSION} -X internal/version.appBuildUser=${USER}" -o "dist/${{ steps.vars.outputs.binary_name }}" .
+          for d in build_artifacts/*; do
+            mv "$d"/*.zip dist/
+          done
+          ls -laR dist/
 
-      - name: Package binary
+      - name: Generate manifest JSON
+        shell: bash
         run: |
-          cd dist
-          zip "${{ steps.vars.outputs.binary_name }}.zip" "${{ steps.vars.outputs.binary_name }}"
+          make manifest VERSION=${{ inputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
+
+      - name: Upload MANIFEST artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.MANIFEST }}
+          path: "dist/${{ env.MANIFEST }}"
+          retention-days: 7
 
       - name: Generate SHA256 checksum
+        shell: bash
         run: |
           cd dist
-          shasum -a 256 *.zip > terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+          shasum -a 256 *.zip > ${{ env.SHA256SUMS }}
 
       - name: Import GPG key
+        shell: bash
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
 
       - name: Sign checksum file
+        shell: bash
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
-            --armor --output terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig \
-            --detach-sign terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
+            --armor --output ${{ env.SHA256SUMS }}.sig \
+            --detach-sign ${{ env.SHA256SUMS }}
 
-      - name: Upload release assets
+      - name: Upload SHA256SUMS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SHA256SUMS }}
+          path: "dist/${{ env.SHA256SUMS }}"
+          retention-days: 7
+
+      - name: Upload assets to release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 #v2.3.2
         with:
+          tag_name: ${{ inputs.version }}
           files: |
             dist/*.zip
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS
-            dist/terraform-provider-${{env.PROVIDER_NAME}}_${{ steps.vars.outputs.version }}_SHA256SUMS.sig
+            dist/${{ env.SHA256SUMS }}
+            dist/${{ env.SHA256SUMS }}.sig
+            dist/${{ env.MANIFEST }}
+          token: ${{ secrets.GITHUB_TOKEN }}

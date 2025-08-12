@@ -16,50 +16,12 @@ env:
 jobs:
   build:
     name: Build local provider
-    runs-on: ubuntu-latest
     permissions:
       contents: read
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate git for private modules
-        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Set build variables
-        id: vars
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
-          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
-          
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
-          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
-
-      - name: Build binary
-        run: |
-          make build
-
-      - name: Upload dist folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-provider-dist
-          path: dist/
-          retention-days: 7
+    uses: ./.github/workflows/reusable_build.yml
+    with:
+      version: "v0.0.1"
 
   test:
     name: Test
@@ -76,6 +38,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Authenticate git for private modules
       run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
@@ -112,11 +76,11 @@ jobs:
 
   terraform:
     name: Terraform Validation
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -128,12 +92,20 @@ jobs:
       - name: Download dist folder
         uses: actions/download-artifact@v4
         with:
-          name: terraform-provider-dist
-          path: ./dist
+          name: ${{ needs.build.outputs.zip_archive_name }}
+          path: ./build_artifacts
+
+      - name: Flatten artifacts into ./dist
+        shell: bash
+        run: |
+          mkdir -p dist
+          for d in build_artifacts/*; do
+            mv "$d"/*.zip dist/
+          done
 
       - name: Install local provider
         run: |
-          make install
+          make install2 VERSION=v0.0.1
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3

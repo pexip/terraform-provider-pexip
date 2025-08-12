@@ -39,3 +39,10 @@ jobs:
           version: ${{ inputs.version }}
           pre_release: ${{ inputs.pre_release }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-assets:
+    needs: release
+    uses: ./.github/workflows/publish-assets.yml
+    with:
+      version: ${{ inputs.version }}
+      pre_release: ${{ inputs.pre_release }}
