@@ -11,7 +11,7 @@ BUILD_DIR    := $(ROOT_DIR)/dist
 # Versioning logic:
 _GIT_VERSION := $(shell git describe --tags --always)
 _VERSION_FROM_GIT := $(shell \
-	if echo "$(_GIT_VERSION)" | grep -qE '^v[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then \
+	if echo "$(_GIT_VERSION)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then \
 		echo "$(_GIT_VERSION)"; \
 	else \
 		echo "v0.0.1-$(_GIT_VERSION)"; \
