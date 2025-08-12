@@ -27,11 +27,9 @@ lint:
 	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run
 
 build: prepare
-	@echo "Build directory: $(BUILD_DIR)"
 	@echo "Building $(NAME) version $(VERSION) for $(OS_ARCH)..."
 	@go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
 	@zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
-	@ls -la $(BUILD_DIR)
 
 install:
 	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
