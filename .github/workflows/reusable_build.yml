@@ -89,7 +89,7 @@ jobs:
           GOOS: ${{ inputs.goos }}
           GOARCH: ${{ inputs.goarch }}
         run: |
-          make build
+          make build VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
