@@ -21,13 +21,14 @@ GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --sta
 all: testacc build
 
 prepare:
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 
 lint:
 	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run
 
 build: prepare
 	@echo "Build directory: $(BUILD_DIR)"
+	@ls -la $(BUILD_DIR)
 	@echo "Building $(NAME) version $(VERSION) for $(OS_ARCH)..."
 	@go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
 	@zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
