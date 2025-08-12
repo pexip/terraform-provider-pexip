@@ -91,7 +91,7 @@ jobs:
         run: |
           make build VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
           make package VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
-          ls -laR dist
+          cat Makefile
 
       - name: Upload packaged binary
         uses: actions/upload-artifact@v4
