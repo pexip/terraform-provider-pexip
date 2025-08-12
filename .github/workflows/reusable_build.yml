@@ -45,8 +45,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: refs/tags/${{ inputs.version }}
+#        with:
+#          ref: refs/tags/${{ inputs.version }}
 
       - name: Authenticate git for private modules
         run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
@@ -89,8 +89,6 @@ jobs:
           GOOS: ${{ inputs.goos }}
           GOARCH: ${{ inputs.goarch }}
         run: |
-          make build VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
-          cat Makefile
           make package VERSION=${{ steps.vars.outputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
 
       - name: Upload packaged binary
