@@ -15,7 +15,7 @@ env:
 
 jobs:
   pre-build:
-    name: Pre-build checks
+    name: Pre-build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,6 +32,7 @@ jobs:
       run: |
         VERSION=$(make version)
         echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "::notice title=Generated Version::${VERSION}"
 
   build:
     name: Build local provider
