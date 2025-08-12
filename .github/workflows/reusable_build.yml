@@ -45,8 +45,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-#        with:
-#          ref: refs/tags/${{ inputs.version }}
 
       - name: Authenticate git for private modules
         run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
@@ -96,5 +94,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.vars.outputs.zip_archive_name }}
-          path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
+          path: "dist/*"
+#          path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
           retention-days: 7
