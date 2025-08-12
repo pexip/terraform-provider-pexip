@@ -31,9 +31,6 @@ jobs:
       id: vars
       run: |
         VERSION=$(make version)
-        if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
-          VERSION="v0.0.1-${VERSION}"
-        fi
         echo "version=${VERSION}" >> $GITHUB_OUTPUT
         echo "::notice title=Generated Version::${VERSION}"
 

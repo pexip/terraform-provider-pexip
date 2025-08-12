@@ -4,7 +4,16 @@ DOMAIN       ?= pexip.com
 NAME         := terraform-provider-$(PROVIDER)
 ROOT_DIR     := $(if $(ROOT_DIR),$(ROOT_DIR),$(shell git rev-parse --show-toplevel))
 BUILD_DIR    := $(ROOT_DIR)/dist
-VERSION      ?= $(shell git describe --tags --always)
+
+_GIT_VERSION := $(shell git describe --tags --always)
+_VERSION_FROM_GIT := $(shell \
+	if echo "$(_GIT_VERSION)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then \
+		echo "$(_GIT_VERSION)"; \
+	else \
+		echo "v0.0.1-$(_GIT_VERSION)"; \
+	fi)
+
+VERSION      ?= $(_VERSION_FROM_GIT)
 VERSION_NO_V := $(patsubst v%,%,$(VERSION))
 GITSHA       := $(shell git rev-parse --short HEAD)
 
