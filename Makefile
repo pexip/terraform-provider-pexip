@@ -50,6 +50,10 @@ install:
 	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
 	@unzip -o $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) -d ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
 
+install2:
+	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION)/$(OS_ARCH)
+	cp ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION)/$(OS_ARCH)/$(NAME)
+
 test: prepare
 	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
 
