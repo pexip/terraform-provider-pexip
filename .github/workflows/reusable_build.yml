@@ -71,7 +71,7 @@ jobs:
           fi
           echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
 
-          ZIP_ARCHIVE_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ inputs.goos }}_${{ inputs.goarch }}.zip"
+          ZIP_ARCHIVE_NAME="terraform-provider-${{env.PROVIDER_NAME}}_v${VERSION}_${{ inputs.goos }}_${{ inputs.goarch }}.zip"
           echo "zip_archive_name=${ZIP_ARCHIVE_NAME}" >> $GITHUB_OUTPUT
           
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
