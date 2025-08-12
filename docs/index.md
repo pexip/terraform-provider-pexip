@@ -5,6 +5,8 @@ description: |-
   The Pexip provider enables you to manage Pexip Infinity infrastructure using Infrastructure as Code.
 ---
 
+> **Beta Notice:** This Terraform provider is currently in Beta and is not recommended for production deployments. Please use with caution.
+
 # Pexip Provider
 
 The Pexip Terraform provider enables you to manage [Pexip Infinity](https://www.pexip.com/products/infinity/) infrastructure using Infrastructure as Code. Automate the provisioning and management of Pexip Infinity components including manager configurations and worker nodes.

@@ -1,3 +1,5 @@
+> **Beta Notice:** This Terraform provider is currently in Beta and is not recommended for production deployments. Please use with caution.
+
 # Terraform Provider for Pexip Infinity
 
 [![Build Status](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml/badge.svg)](https://github.com/pexip/terraform-provider-pexip/actions/workflows/test.yml)
