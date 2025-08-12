@@ -60,6 +60,7 @@ jobs:
       - name: Flatten artifacts into ./dist
         shell: bash
         run: |
+          ls -laR build_artifacts
           mkdir -p dist
           for d in build_artifacts/*; do
             mv "$d"/*.zip dist/
