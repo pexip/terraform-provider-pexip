@@ -31,7 +31,7 @@ jobs:
       id: vars
       run: |
         VERSION=$(make version)
-        echo "version=${VERSION}" >> $GITHUB_ENV
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
   build:
     name: Build local provider
