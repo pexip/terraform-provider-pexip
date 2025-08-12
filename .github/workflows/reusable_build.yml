@@ -39,7 +39,7 @@ jobs:
       - name: Validate version format
         run: |
           if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
-            echo "::error title=Validate version format::Version must be in format v0.0.0 or v0.0.0-suffix (e.g., v1.2.3, v1.2.3-beta.1)"
+            echo "::error title=Validate version format::Version must be in format v0.0.0 or v0.0.0-suffix (e.g., v1.2.3, v1.2.3-beta.1), got '${{ inputs.version }}'"
             exit 1
           fi
 
