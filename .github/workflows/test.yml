@@ -14,52 +14,34 @@ env:
   GOPRIVATE: github.com/pexip
 
 jobs:
-  build:
-    name: Build local provider
+  pre-build:
+    name: Pre-build checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Authenticate git for private modules
-        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+    - name: Generate version
+      id: vars
+      run: |
+        VERSION=$(make version)
+        echo "version=${VERSION}" >> $GITHUB_ENV
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
+  build:
+    name: Build local provider
+    needs: pre-build
+    permissions:
+      contents: read
 
-      - name: Set build variables
-        id: vars
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-          BINARY_NAME="terraform-provider-${{env.PROVIDER_NAME}}_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
-          echo "binary_name=${BINARY_NAME}" >> $GITHUB_OUTPUT
-          
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          echo "GIT_REVISION_DIRTY=$(git diff --quiet || echo '-dirty')" >> $GITHUB_ENV
-          echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-          echo "USER=${{ github.actor }}" >> $GITHUB_ENV
-
-      - name: Build binary
-        run: |
-          make build
-
-      - name: Upload dist folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-provider-dist
-          path: dist/
-          retention-days: 7
+    uses: ./.github/workflows/reusable_build.yml
+    with:
+      version: ${{ needs.pre-build.outputs.version }}
 
   test:
     name: Test
@@ -76,6 +58,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Authenticate git for private modules
       run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"

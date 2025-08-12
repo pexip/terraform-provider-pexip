@@ -53,3 +53,6 @@ clean:
 
 manifest: prepare
 	@./generate-manifest.sh $(BUILD_DIR) $(VERSION) $(PROVIDER)
+
+version:
+	@echo $(VERSION)
