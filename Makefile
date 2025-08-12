@@ -16,7 +16,7 @@ GIT_BRANCH         :=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
 
-.PHONY: prepare lint build-dev build install test testacc clean manifest
+.PHONY: prepare lint build install test testacc clean manifest
 
 all: testacc build
 
@@ -26,16 +26,15 @@ prepare:
 lint:
 	$(GO_LINT_HEAD) $(GO_ENV_VARS) golangci-lint run
 
-build-dev:
-	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o ~/.terraform.d/plugins/$(NAME)_$(VERSION) .
-
 build: prepare
-	go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
-	zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
+	@echo "Build directory: $(BUILD_DIR)"
+	@echo "Building $(NAME) version $(VERSION) for $(OS_ARCH)..."
+	@go build -ldflags "-X main.commit=$(GIT_BRANCH)@$(GIT_REVISION)$(GIT_REVISION_DIRTY) -X internal/version.appBuildTime=$(BUILD_TIME) -X internal/version.appVersion=$(VERSION) -X internal/version.appBuildUser=${USER}" -o $(BUILD_DIR)/$(NAME)_$(VERSION) .
+	@zip -j $(BUILD_DIR)/$(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip $(BUILD_DIR)/$(NAME)_$(VERSION)
 
 install:
-	mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
-	unzip -o $(BUILD_DIR)/$(NAME)_$(VERSION)_$(OS_ARCH).zip -d ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
+	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
+	@unzip -o $(BUILD_DIR)/$(NAME)_$(VERSION)_$(OS_ARCH).zip -d ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
 
 test: prepare
 	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
