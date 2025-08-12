@@ -85,7 +85,7 @@ jobs:
         shell: bash
         run: |
           cd dist
-          shasum -a 256 *.zip > terraform-provider-${{ env.PROVIDER_NAME }}_${{ needs.build.outputs.version }}_SHA256SUMS
+          shasum -a 256 *.zip > ${{ env.SHA256SUMS }}
 
       - name: Import GPG key
         shell: bash
