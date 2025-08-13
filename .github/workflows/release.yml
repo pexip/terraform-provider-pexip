@@ -45,4 +45,3 @@ jobs:
     uses: ./.github/workflows/publish-assets.yml
     with:
       version: ${{ inputs.version }}
-      pre_release: ${{ inputs.pre_release }}
