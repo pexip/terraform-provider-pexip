@@ -312,16 +312,3 @@ resource "pexip_infinity_snmp_network_management_system" "snmp-nms-test2" {
     module.gcp-infinity-manager
   ]
 }
-
-// specify a TLS cert and private key from files
-/*
-resource "pexip_infinity_tls_certificate" "tls-cert-test2" {
-  certificate = file("gcp-infinity-manager/test-cert.pem")
-  private_key = file("gcp-infinity-manager/test-key.key")
-
-  depends_on = [
-    google_compute_instance.infinity_manager,
-    null_resource.wait_for_infinity_manager_http
-  ]
-}
-*/

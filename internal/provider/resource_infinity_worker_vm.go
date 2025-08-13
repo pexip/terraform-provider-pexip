@@ -434,8 +434,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The amount of RAM (in megabytes) to assign to this Conferencing Node. Range: 2000 to 64000. Default: 4096.",
 			},
 			"config": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
+				Computed:            true,
+				Sensitive:           true,
 				MarkdownDescription: "Bootstrap configuration for the Infinity Node.",
 			},
 		},
@@ -674,7 +674,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.MaintenanceModeReason.IsNull() {
 		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
 	}
-	
+
 	_, err := r.InfinityClient.Config().UpdateWorkerVM(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
