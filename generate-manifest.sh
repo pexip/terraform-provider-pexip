@@ -19,6 +19,8 @@ fi
 cd "$BUILD_DIR"
 
 VERSION_VALUE="${VERSION#v}"
+SCHEMA_VERSION=1
+PROTOCOLS='["5.0"]'
 MANIFEST="terraform-provider-${PROVIDER}_${VERSION_VALUE}_manifest.json"
 PLATFORMS_JSON="["
 first=1
@@ -31,7 +33,11 @@ shopt -u nullglob
 
 if [ ${#files[@]} -eq 0 ]; then
     echo "No provider zip files found for version ${VERSION_VALUE}. Generating empty manifest." >&2
-    jq -n --arg version "$VERSION_VALUE" --argjson platforms "[]" '{version:$version, protocols:["5.0"], platforms:$platforms}' > "$MANIFEST"
+    jq -n \
+      --argjson version "$SCHEMA_VERSION" \
+      --argjson protocols "$PROTOCOLS" \
+      --argjson platforms "[]" \
+      '{version:$version, protocols:$protocols, platforms:$platforms}' > "$MANIFEST"
     exit 0
 fi
 
@@ -46,6 +52,10 @@ for f in "${files[@]}"; do
 done
 
 PLATFORMS_JSON="$PLATFORMS_JSON]"
-jq -n --arg version "$VERSION_VALUE" --argjson platforms "$PLATFORMS_JSON" '{version:$version, protocols:["5.0"], platforms:$platforms}' > "$MANIFEST"
+jq -n \
+  --argjson version "$SCHEMA_VERSION" \
+  --argjson protocols "$PROTOCOLS" \
+  --argjson platforms "$PLATFORMS_JSON" \
+  '{version:$version, protocols:$protocols, platforms:$platforms}' > "$MANIFEST"
 
 echo "Manifest generated: $MANIFEST"
