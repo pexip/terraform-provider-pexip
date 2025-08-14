@@ -45,5 +45,6 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/publish-assets.yml
+    secrets: inherit
     with:
       version: ${{ inputs.version }}
