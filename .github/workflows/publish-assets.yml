@@ -102,8 +102,8 @@ jobs:
         run: |
           cd dist
           gpg --batch --yes --pinentry-mode loopback --passphrase-file ../passphrase.txt \
-            --armor --output ${{ env.SHA256SUMS }}.sig \
-            --detach-sign ${{ env.SHA256SUMS }}
+            --detach-sign --output ${{ env.SHA256SUMS }}.sig \
+            ${{ env.SHA256SUMS }}
 
       - name: Upload SHA256SUMS artifact
         uses: actions/upload-artifact@v4
