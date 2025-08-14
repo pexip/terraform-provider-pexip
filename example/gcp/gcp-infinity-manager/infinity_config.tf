@@ -36,16 +36,3 @@ resource "pexip_infinity_licence" "license" {
     null_resource.wait_for_infinity_manager_http
   ]
 }
-
-resource "pexip_infinity_snmp_network_management_system" "snmp-nms-test" {
-  address             = var.snmp_trap_host
-  port                = 161
-  name                = "SNMP NMS Test"
-  description         = "Test SNMP NMS"
-  snmp_trap_community = "public-test-trap"
-
-  depends_on = [
-    google_compute_instance.infinity_manager,
-    null_resource.wait_for_infinity_manager_http
-  ]
-}

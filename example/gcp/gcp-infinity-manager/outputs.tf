@@ -15,3 +15,7 @@ output "user_data" {
 output "check_status_url" {
   value = local.check_status_url
 }
+
+output "manager_cert" {
+  value = pexip_infinity_tls_certificate.tls-cert-test
+}

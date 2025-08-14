@@ -435,6 +435,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"config": schema.StringAttribute{
 				Computed:            true,
+				Sensitive:           true,
 				MarkdownDescription: "Bootstrap configuration for the Infinity Node.",
 			},
 		},

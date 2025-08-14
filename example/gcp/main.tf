@@ -38,7 +38,6 @@ module "gcp-infinity-manager" {
   report_errors         = var.infinity_report_errors
   enable_analytics      = var.infinity_enable_analytics
   contact_email_address = var.infinity_contact_email_address
-  snmp_trap_host        = "${var.environment}-snmp-trap.local"
 }
 
 module "gcp-infinity-node" {

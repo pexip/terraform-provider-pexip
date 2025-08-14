@@ -287,7 +287,18 @@ resource "pexip_infinity_policy_server" "policy-server-test" {
   depends_on = [
     module.gcp-infinity-manager,
   ]
+}
 
+resource "pexip_infinity_snmp_network_management_system" "snmp-nms-test1" {
+  address             = "snmp-nms-test1.local"
+  port                = 161
+  name                = "SNMP NMS Test 1"
+  description         = "Test SNMP NMS 1"
+  snmp_trap_community = "public-test-trap"
+
+  depends_on = [
+    module.gcp-infinity-manager
+  ]
 }
 
 resource "pexip_infinity_snmp_network_management_system" "snmp-nms-test2" {
