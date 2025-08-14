@@ -88,7 +88,8 @@ jobs:
         shell: bash
         run: |
           cd dist
-          shasum -a 256 *.zip > ${{ env.SHA256SUMS }}
+          [ -f "${{ env.MANIFEST }}" ] || { echo "Missing manifest: ${{ env.MANIFEST }}"; exit 1; }
+          shasum -a 256 *.zip "${{ env.MANIFEST }}" > ${{ env.SHA256SUMS }}
 
       - name: Import GPG key
         shell: bash
