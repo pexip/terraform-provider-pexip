@@ -35,9 +35,9 @@ if [ ${#files[@]} -eq 0 ]; then
     echo "No provider zip files found for version ${VERSION_VALUE}. Generating empty manifest." >&2
     jq -n \
       --argjson version "$SCHEMA_VERSION" \
-      --argjson protocols "$PROTOCOLS" \
+      --argjson protocol_versions "$PROTOCOLS" \
       --argjson platforms "[]" \
-      '{version:$version, protocols:$protocols, platforms:$platforms}' > "$MANIFEST"
+      '{version:$version, metadata:{protocol_versions:$protocol_versions}, platforms:$platforms}' > "$MANIFEST"
     exit 0
 fi
 
@@ -54,8 +54,8 @@ done
 PLATFORMS_JSON="$PLATFORMS_JSON]"
 jq -n \
   --argjson version "$SCHEMA_VERSION" \
-  --argjson protocols "$PROTOCOLS" \
+  --argjson protocol_versions "$PROTOCOLS" \
   --argjson platforms "$PLATFORMS_JSON" \
-  '{version:$version, protocols:$protocols, platforms:$platforms}' > "$MANIFEST"
+  '{version:$version, metadata:{protocol_versions:$protocol_versions}, platforms:$platforms}' > "$MANIFEST"
 
 echo "Manifest generated: $MANIFEST"
