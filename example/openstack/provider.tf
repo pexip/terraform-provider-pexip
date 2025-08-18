@@ -36,9 +36,9 @@ terraform {
 provider "tls" {}
 
 provider "openstack" {
-  auth_url = var.auth_url
-  user_name = var.openstack_username
-  password = var.openstack_password
+  auth_url    = var.auth_url
+  user_name   = var.openstack_username
+  password    = var.openstack_password
   tenant_name = var.openstack_tenant_name
   domain_name = var.openstack_domain_name
 }

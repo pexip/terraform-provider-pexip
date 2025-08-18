@@ -9,6 +9,6 @@ data "openstack_networking_network_v2" "private-network" {
 }
 
 data "openstack_networking_subnet_v2" "private-subnet" {
-  name   = "netops-private-subnet"
+  name       = "netops-private-subnet"
   network_id = data.openstack_networking_network_v2.private-network.id
 }
