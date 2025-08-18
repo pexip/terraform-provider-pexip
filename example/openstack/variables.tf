@@ -79,24 +79,6 @@ variable "infinity_manager_machine_type" {
   description = "Machine type for Infinity Manager VM"
 }
 
-variable "infinity_node_machine_type" {
-  type        = string
-  default     = "n2d-standard-16"
-  description = "Machine type for Infinity nodes"
-}
-
-variable "infinity_manager_cpu_platform" {
-  type        = string
-  default     = "AMD Milan"
-  description = "Minimum CPU platform for Infinity Manager VM"
-}
-
-variable "infinity_node_cpu_platform" {
-  type        = string
-  default     = "AMD Milan"
-  description = "Minimum CPU platform for Infinity Manager VM"
-}
-
 variable "infinity_username" {
   type        = string
   default     = "admin"

@@ -18,8 +18,8 @@ resource "pexip_infinity_tls_certificate" "tls-cert-test" {
 // specify a TLS cert and private key
 /*
 resource "pexip_infinity_tls_certificate" "tls-cert-test2" {
-  certificate = file("gcp-infinity-manager/test-cert.pem")
-  private_key = file("gcp-infinity-manager/test-key.key")
+  certificate = file("test-cert.pem")
+  private_key = file("test-key.key")
 
   depends_on = [
     openstack_compute_instance_v2.infinity_manager,
