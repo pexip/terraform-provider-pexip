@@ -30,7 +30,6 @@ resource "pexip_infinity_worker_vm" "worker" {
 resource "openstack_compute_instance_v2" "infinity" {
   name            = local.hostname
   flavor_name     = var.flavor_name
-  security_groups = var.security_groups
   user_data = "{\"conferencing_node_config\":${local.user_data}}"
 
   block_device {
@@ -44,6 +43,12 @@ resource "openstack_compute_instance_v2" "infinity" {
 
   network {
     port = openstack_networking_port_v2.infinity-cnf-port.id
+  }
+
+  lifecycle {
+    ignore_changes = [
+      user_data,
+    ]
   }
 }
 

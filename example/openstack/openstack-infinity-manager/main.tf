@@ -37,7 +37,6 @@ data "pexip_infinity_manager_config" "conf" {
 resource "openstack_compute_instance_v2" "infinity_manager" {
   name            = local.hostname
   flavor_name     = var.flavor_name
-  security_groups = var.security_groups
   user_data = "{\"management_node_config\":${local.user_data}}"
 
   block_device {
@@ -53,7 +52,15 @@ resource "openstack_compute_instance_v2" "infinity_manager" {
     port = openstack_networking_port_v2.infinity-mgr-port.id
   }
 
-  depends_on = [ openstack_networking_floatingip_associate_v2.infinity-mgr-fip_assoc ]
+  depends_on = [
+    openstack_networking_floatingip_associate_v2.infinity-mgr-fip_assoc
+  ]
+
+  lifecycle {
+    ignore_changes = [
+      user_data,
+    ]
+  }
 }
 
 resource "null_resource" "wait_for_infinity_manager_http" {
