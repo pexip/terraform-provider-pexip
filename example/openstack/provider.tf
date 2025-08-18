@@ -36,11 +36,11 @@ terraform {
 provider "tls" {}
 
 provider "openstack" {
-  auth_url = ""
-  user_name = "massel"
-  password = "" # export OS_PASSWORD=your-password
-  tenant_name = "pexi_dev" #project
-  domain_name = "pexi"
+  auth_url = var.auth_url
+  user_name = var.openstack_username
+  password = var.openstack_password
+  tenant_name = var.openstack_tenant_name
+  domain_name = var.openstack_domain_name
 }
 
 provider "pexip" {
