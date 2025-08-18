@@ -13,9 +13,9 @@ module "openstack-infinity-manager" {
   flavor_name           = var.mgr_flavor_name
   environment           = var.environment
   region                = var.region
-  image_id              = "5d38832e-e142-456e-88a5-8d9fbfb48784" # pex-mgr-v38"
-  private_network_id    = var.private_network_id
-  private_subnetwork_id = var.private_subnetwork_id_mgr
+  image_id              = var.mgr_node_vm_image_id
+  private_network_name  = var.private_network_name
+  private_subnetwork_name = var.private_subnetwork_name_mgr
   domain                = var.domain
   management_ip_prefix  = var.management_ip_prefix
   floating_ip_pool      = var.mgr_floating_ip_pool
@@ -34,6 +34,8 @@ module "openstack-infinity-manager" {
   report_errors         = var.infinity_report_errors
   enable_analytics      = var.infinity_enable_analytics
   contact_email_address = var.infinity_contact_email_address
+
+  depends_on = [ openstack_networking_secgroup_rule_v2.all-mgmt-https ]
 }
 
 module "openstack-infinity-node" {
@@ -41,22 +43,20 @@ module "openstack-infinity-node" {
   flavor_name           = var.cnf_flavor_name
   count                 = var.infinity_node_count
   index                 = count.index + 1
-  machine_type          = var.infinity_node_machine_type
-  cpu_platform          = var.infinity_node_cpu_platform
   environment           = var.environment
   region                = var.region
-  private_network_id    = var.private_network_id
-  private_subnetwork_id = var.private_subnetwork_id_cnf
+  private_network_name  = var.private_network_name
+  private_subnetwork_name = var.private_subnetwork_name_cnf
   security_groups = [
     openstack_networking_secgroup_v2.infinity-management.id,
     openstack_networking_secgroup_v2.infinity-internode.id,
     openstack_networking_secgroup_v2.infinity-signalling-media.id,
-  ] # Add security groups
+  ]
   floating_ip_pool = var.cnf_floating_ip_pool
   domain           = var.domain
   management_ip_prefix = var.management_ip_prefix
   internode_ip_prefix  = var.internode_ip_prefix
-  image_id             = "5d38832e-e142-456e-88a5-8d9fbfb48784" # pex-cnf-v38"
+  image_id             = var.cnf_node_vm_image_id
 
   password        = var.infinity_password
   node_type       = "CONFERENCING"

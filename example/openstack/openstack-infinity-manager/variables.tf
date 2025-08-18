@@ -14,14 +14,14 @@ variable "region" {
   description = "Region where the manager will be created"
 }
 
-variable "private_network_id" {
+variable "private_network_name" {
   type        = string
-  description = "ID of the GCP private network to use"
+  description = "Name of the OpenStack private network to use"
 }
 
-variable "private_subnetwork_id" {
+variable "private_subnetwork_name" {
   type        = string
-  description = "ID of the GCP private subnetwork to use"
+  description = "Name of the OpenStack private subnetwork to use"
 }
 
 variable "gateway" {

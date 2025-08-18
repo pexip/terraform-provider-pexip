@@ -45,16 +45,14 @@ variable "management_ip_prefix" {
   description = "IP prefix for management access"
 }
 
-variable "vm_image_manager_name" {
+variable "mgr_node_vm_image_id" {
   type        = string
-  default     = "pexip-mgr-v37"
-  description = "Pexip Infinity VM image to use"
+  description = "Pexip Infinity Management node VM image to use"
 }
 
-variable "vm_image_node_name" {
+variable "cnf_node_vm_image_id" {
   type        = string
-  default     = "pexip-cnf-v37"
-  description = "VM image to use"
+  description = "Pexip Infinity Conferencing node VM image to use"
 }
 
 variable "infinity_license_key" {
@@ -173,19 +171,19 @@ variable "cnf_flavor_name" {
   description = "The name of the desired flavor for the Infinity Conferencing Node servers"
 }
 
-variable "private_network_id" {
+variable "private_network_name" {
   type        = string
-  description = "ID of the private network for Infinity Manager and nodes"
+  description = "Name of the private network for Infinity Manager and nodes"
 }
 
-variable "private_subnetwork_id_mgr" {
+variable "private_subnetwork_name_mgr" {
   type        = string
-  description = "ID of the private subnetwork for Infinity Manager"
+  description = "Name of the private subnetwork for Infinity Manager"
 }
 
-variable "private_subnetwork_id_cnf" {
+variable "private_subnetwork_name_cnf" {
   type        = string
-  description = "ID of the private subnetwork for Infinity Conferencing Nodes"
+  description = "Name of the private subnetwork for Infinity Conferencing Nodes"
 }
 
 variable "openstack_username" {

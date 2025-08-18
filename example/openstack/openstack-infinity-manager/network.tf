@@ -5,11 +5,11 @@
  */
 
 data "openstack_networking_network_v2" "mgr-private-network" {
-  name = var.private_network_id
+  name = var.private_network_name
 }
 
 data "openstack_networking_subnet_v2" "mgr-private-subnet" {
-  name = var.private_subnetwork_id
+  name = var.private_subnetwork_name
 }
 
 resource "openstack_networking_floatingip_v2" "infinity-mgr-fip" {

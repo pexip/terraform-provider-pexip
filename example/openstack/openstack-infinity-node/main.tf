@@ -17,7 +17,7 @@ resource "pexip_infinity_ssh_password_hash" "default" {
 resource "pexip_infinity_worker_vm" "worker" {
   name            = local.hostname
   hostname        = local.hostname
-  address         = openstack_networking_port_v2.infinity-cnf-port.fixed_ip[0].ip_address
+  address         = openstack_networking_port_v2.infinity-cnf-port.all_fixed_ips.0
   netmask         = cidrnetmask(data.openstack_networking_subnet_v2.cnf-private-subnet.cidr)
   gateway         = data.openstack_networking_subnet_v2.cnf-private-subnet.gateway_ip
   domain          = var.domain

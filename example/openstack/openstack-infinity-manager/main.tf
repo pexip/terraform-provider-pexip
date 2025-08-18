@@ -21,7 +21,7 @@ resource "pexip_infinity_web_password_hash" "default" {
 data "pexip_infinity_manager_config" "conf" {
   hostname              = local.hostname
   domain                = var.domain
-  ip                    = openstack_networking_port_v2.infinity-mgr-port.fixed_ip[0].ip_address
+  ip                    = openstack_networking_port_v2.infinity-mgr-port.all_fixed_ips.0
   mask                  = cidrnetmask(data.openstack_networking_subnet_v2.mgr-private-subnet.cidr)
   gw                    = data.openstack_networking_subnet_v2.mgr-private-subnet.gateway_ip
   dns                   = var.dns_server
@@ -52,6 +52,8 @@ resource "openstack_compute_instance_v2" "infinity_manager" {
   network {
     port = openstack_networking_port_v2.infinity-mgr-port.id
   }
+
+  depends_on = [ openstack_networking_floatingip_associate_v2.infinity-mgr-fip_assoc ]
 }
 
 resource "null_resource" "wait_for_infinity_manager_http" {
