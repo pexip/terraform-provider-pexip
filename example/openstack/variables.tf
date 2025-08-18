@@ -187,3 +187,24 @@ variable "private_subnetwork_id_cnf" {
   type        = string
   description = "ID of the private subnetwork for Infinity Conferencing Nodes"
 }
+
+variable "openstack_username" {
+  type        = string
+  description = "OpenStack username"
+}
+
+variable "openstack_password" {
+  type        = string
+  sensitive   = true
+  description = "OpenStack password"
+}
+
+variable "openstack_tenant_name" {
+  type        = string
+  description = "OpenStack tenant name (project name)"
+}
+
+variable "openstack_domain_name" {
+  type        = string
+  description = "OpenStack domain name"
+}
