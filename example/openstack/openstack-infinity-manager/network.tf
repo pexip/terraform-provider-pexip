@@ -17,11 +17,11 @@ resource "openstack_networking_floatingip_v2" "infinity-mgr-fip" {
 }
 
 resource "openstack_networking_port_v2" "infinity-mgr-port" {
-  name                = local.hostname
-  network_id          = data.openstack_networking_network_v2.mgr-private-network.id
-  security_group_ids  = var.security_groups
+  name               = local.hostname
+  network_id         = data.openstack_networking_network_v2.mgr-private-network.id
+  security_group_ids = var.security_groups
   fixed_ip {
-    subnet_id  = data.openstack_networking_subnet_v2.mgr-private-subnet.id
+    subnet_id = data.openstack_networking_subnet_v2.mgr-private-subnet.id
   }
 }
 

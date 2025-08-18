@@ -28,9 +28,9 @@ resource "pexip_infinity_worker_vm" "worker" {
 }
 
 resource "openstack_compute_instance_v2" "infinity" {
-  name            = local.hostname
-  flavor_name     = var.flavor_name
-  user_data = "{\"conferencing_node_config\":${local.user_data}}"
+  name        = local.hostname
+  flavor_name = var.flavor_name
+  user_data   = "{\"conferencing_node_config\":${local.user_data}}"
 
   block_device {
     uuid                  = var.image_id

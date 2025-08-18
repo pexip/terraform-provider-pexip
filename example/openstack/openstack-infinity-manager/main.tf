@@ -7,7 +7,7 @@
 locals {
   hostname         = "${var.environment}-manager"
   check_status_url = "https://${openstack_networking_floatingip_v2.infinity-mgr-fip.address}/admin/login/"
-  user_data = jsonencode(data.pexip_infinity_manager_config.conf.management_node_config)
+  user_data        = jsonencode(data.pexip_infinity_manager_config.conf.management_node_config)
 }
 
 resource "pexip_infinity_ssh_password_hash" "default" {
@@ -35,9 +35,9 @@ data "pexip_infinity_manager_config" "conf" {
 }
 
 resource "openstack_compute_instance_v2" "infinity_manager" {
-  name            = local.hostname
-  flavor_name     = var.flavor_name
-  user_data = "{\"management_node_config\":${local.user_data}}"
+  name        = local.hostname
+  flavor_name = var.flavor_name
+  user_data   = "{\"management_node_config\":${local.user_data}}"
 
   block_device {
     uuid                  = var.image_id
