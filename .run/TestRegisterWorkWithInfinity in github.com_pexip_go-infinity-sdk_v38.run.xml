@@ -1,0 +1,24 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TestRegisterWorkWithInfinity in github.com/pexip/go-infinity-sdk/v38" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
+    <module name="go-inifinity-sdk" />
+    <working_directory value="$PROJECT_DIR$/../go-inifinity-sdk" />
+    <envs>
+      <env name="INFINITY_PASSWORD" value="admin" />
+      <env name="INFINITY_URL" value="https://dev-manager.dev.pexip.network" />
+      <env name="INFINITY_USERNAME" value="admin" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/pexip/go-infinity-sdk/v38" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <framework value="gotest" />
+    <pattern value="^\QTestRegisterWorkWithInfinity\E$" />
+    <method v="2" />
+  </configuration>
+</component>
