@@ -7,10 +7,9 @@
 package provider
 
 import (
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
 
 	"github.com/pexip/terraform-provider-pexip/internal/test"
@@ -18,7 +17,6 @@ import (
 
 func TestInfinitySSHPasswordHash(t *testing.T) {
 	t.Parallel()
-	_ = os.Setenv("TF_ACC", "1")
 
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
