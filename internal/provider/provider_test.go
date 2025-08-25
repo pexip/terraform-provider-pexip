@@ -7,12 +7,11 @@
 package provider
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func getTestProtoV5ProviderFactories(client InfinityClient) map[string]func() (tfprotov5.ProviderServer, error) {
@@ -22,8 +21,5 @@ func getTestProtoV5ProviderFactories(client InfinityClient) map[string]func() (t
 }
 
 func TestMain(m *testing.M) {
-	if os.Getenv("TF_ACC") == "" {
-		os.Exit(m.Run())
-	}
 	resource.TestMain(m)
 }
