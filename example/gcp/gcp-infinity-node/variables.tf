@@ -134,4 +134,8 @@ variable "vm_system_memory" {
   description = "Amount of system memory (in MB) for the Infinity Node VM"
 }
 
-
+variable "tls_certificate" {
+  type        = string
+  default     = ""
+  description = "TLS certificate for the Infinity Node"
+}
