@@ -28,6 +28,8 @@ resource "pexip_infinity_worker_vm" "worker" {
   password        = pexip_infinity_ssh_password_hash.default.hash
   node_type       = var.node_type
   system_location = var.system_location
+  tls_certificate = var.tls_certificate
+  static_nat_address = "203.0.113.2"
 
   maintenance_mode        = var.maintenance_mode
   maintenance_mode_reason = var.maintenance_mode_reason

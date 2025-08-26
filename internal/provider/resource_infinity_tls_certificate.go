@@ -88,7 +88,6 @@ func (r *InfinityTLSCertificateResource) Schema(ctx context.Context, req resourc
 			},
 			"certificate": schema.StringAttribute{
 				Required:  true,
-				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
