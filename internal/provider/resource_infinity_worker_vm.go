@@ -304,7 +304,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
-				Sensitive: true,
+				Sensitive: false,
 				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(8),
@@ -334,7 +334,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"snmp_privacy_password": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
-				Sensitive: true,
+				Sensitive: false,
 				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(8),
@@ -458,15 +458,15 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 
 	// create request with required fields and list fields
 	createRequest := &config.WorkerVMCreateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                       plan.Name.ValueString(),
+		Hostname:                   plan.Hostname.ValueString(),
+		Domain:                     plan.Domain.ValueString(),
+		Address:                    plan.Address.ValueString(),
+		Netmask:                    plan.Netmask.ValueString(),
+		Gateway:                    plan.Gateway.ValueString(),
+		SystemLocation:             plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:          sshAuthorizedKeys,
+		StaticRoutes:               staticRoutes,
 	}
 
 	// Set optional fields that have default values
@@ -592,7 +592,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, config string, deployType string, password string, snmpAuthPass string, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -606,8 +606,8 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, wor
 
 	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
-	data.Config = types.StringValue(workerConfig)
+	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.Config = types.StringValue(config)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
@@ -644,6 +644,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, wor
 	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
 	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
 	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
+	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 
 	// Convert SSH authorized keys from SDK to Terraform format
 	var sshAuthorizedKeys []string
@@ -728,15 +729,15 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 
 	// create request with required fields and list fields
 	updateRequest := &config.WorkerVMUpdateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                       plan.Name.ValueString(),
+		Hostname:                   plan.Hostname.ValueString(),
+		Domain:                     plan.Domain.ValueString(),
+		Address:                    plan.Address.ValueString(),
+		Netmask:                    plan.Netmask.ValueString(),
+		Gateway:                    plan.Gateway.ValueString(),
+		SystemLocation:             plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:          sshAuthorizedKeys,
+		StaticRoutes:               staticRoutes,
 	}
 
 	// Set optional fields that have default values
@@ -801,7 +802,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SNMPPrivacyPassword.IsNull() {
 		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
 	}
-
+	
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()
@@ -842,7 +843,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID, plan.Config.ValueString(), plan.DeploymentType.ValueString(), plan.Password.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
+	updatedModel, err := r.read(ctx, resourceID, state.Config.ValueString(), state.DeploymentType.ValueString(), state.Password.ValueString(), state.SNMPAuthenticationPassword.ValueString(), state.SNMPPrivacyPassword.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity worker VM",
