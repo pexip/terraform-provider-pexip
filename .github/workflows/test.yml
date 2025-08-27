@@ -102,14 +102,15 @@ jobs:
           path: ./build_artifacts
 
       - name: Unpack provider in ./dist
+        id: unpack
         shell: bash
         run: |
           mkdir -p dist
           echo "ZIP_FILENAME=$(\
                   find ./build_artifacts -name *.zip -print | head -n1 \
                 )" >> "$GITHUB_OUTPUT"
-          echo Running: "unzip ${{ steps.download.outputs.ZIP_FILENAME }} -d ./dist/"
-          unzip ${{ steps.download.outputs.ZIP_FILENAME }} -d ./dist/
+          echo Running: "unzip ${{ steps.unpack.outputs.ZIP_FILENAME }} -d ./dist/"
+          unzip ${{ steps.unpack.outputs.ZIP_FILENAME }} -d ./dist/
 
       - name: Install local dev override
         run: |
