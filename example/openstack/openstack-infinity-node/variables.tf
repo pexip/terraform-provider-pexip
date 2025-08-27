@@ -146,3 +146,26 @@ variable "internode_ip_prefix" {
   type        = string
   description = "IP prefix for internode IPSec communication"
 }
+
+variable "mgr_public_ip" {
+  type        = string
+  description = "Public IP address of the Infinity Manager"
+}
+
+variable "web_username" {
+  type        = string
+  default     = "admin"
+  description = "Username for Infinity Web interface"
+}
+
+variable "web_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for Infinity Web interface user"
+}
+
+variable "tls_certificate" {
+  type        = string
+  default     = ""
+  description = "TLS certificate for the Infinity Node"
+}
