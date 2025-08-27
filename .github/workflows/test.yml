@@ -101,15 +101,13 @@ jobs:
           name: ${{ needs.build.outputs.zip_archive_name }}
           path: ./build_artifacts
 
-      - name: Unpack provider in ./dist
+      - name: Install build_artifact in ./dist
         id: unpack
         shell: bash
         run: |
           mkdir -p dist
           ZIP_FILENAME=$(find ./build_artifacts -type f -name '*.zip' -print -quit)
-          echo "ZIP_FILENAME=${ZIP_FILENAME}" >> "$GITHUB_OUTPUT"
-          echo "Running: unzip '${ZIP_FILENAME}' -d ./dist/"
-          unzip "${ZIP_FILENAME}" -d ./dist/
+          mv "$ZIP_FILENAME" ./dist/
 
       - name: Install local dev override
         run: |

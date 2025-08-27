@@ -48,7 +48,8 @@ package: build
 
 install:
 	@mkdir -p ~/.terraform.d/plugins
-	@cp $(BUILD_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DEV_BINARY_NAME)
+	unzip -o $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) -d ~/.terraform.d/plugins
+#	@cp $(BUILD_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DEV_BINARY_NAME)
 
 test: prepare
 	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
@@ -60,7 +61,7 @@ testacc: prepare
 clean:
 	@echo Cleaning up build dir and installed binaries...
 	@rm -rf $(BUILD_DIR)
-	@rm -rf ~/.terraform.d/plugins/$(DEV_BINARY_NAME)
+	@rm -rf ~/.terraform.d/plugins/$(BINARY_NAME)
 
 manifest: prepare
 	@./generate-manifest.sh $(BUILD_DIR) $(VERSION) $(PROVIDER)
