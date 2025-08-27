@@ -108,6 +108,7 @@ jobs:
           mkdir -p dist
           ZIP_FILENAME=$(find ./build_artifacts -type f -name '*.zip' -print -quit)
           mv "$ZIP_FILENAME" ./dist/
+          ls -la ./dist
 
       - name: Install local dev override
         run: |
