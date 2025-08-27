@@ -66,7 +66,7 @@ module "gcp-infinity-node" {
   node_type       = "CONFERENCING"
   system_location = pexip_infinity_system_location.example-location-1.id
   tls_certificate = module.gcp-infinity-manager.manager_cert.id
-  
+
   depends_on = [
     module.gcp-infinity-manager
   ]
