@@ -8,8 +8,7 @@ terraform {
   required_version = ">= 1.0"
   required_providers {
     pexip = {
-      source  = "pexip.com/pexip/pexip"
-      version = "0.0.1"
+      source  = "pexip/pexip"
     }
     google = {
       source  = "hashicorp/google"

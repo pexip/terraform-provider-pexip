@@ -101,17 +101,18 @@ jobs:
           name: ${{ needs.build.outputs.zip_archive_name }}
           path: ./build_artifacts
 
-      - name: Flatten artifacts into ./dist
+      - name: Unpack provider in ./dist
         shell: bash
         run: |
           mkdir -p dist
-          for d in build_artifacts/*; do
-            mv "$d"/*.zip dist/
-          done
+          echo "ZIP_FILENAME=$(\
+                  find ./build_artifacts -name *.zip -print | head -n1 \
+                )" >> "$GITHUB_OUTPUT"
+          unzip -o ${{ steps.download.outputs.ZIP_FILENAME }} -d ./dist/
 
-      - name: Install local provider
+      - name: Install local dev override
         run: |
-          make install2 VERSION=v0.0.1
+          make install
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2

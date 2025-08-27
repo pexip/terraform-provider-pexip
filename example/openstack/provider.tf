@@ -7,7 +7,7 @@
 terraform {
   required_providers {
     pexip = {
-      source  = "pexip.com/pexip/pexip"
+      source  = "pexip/pexip"
       version = "0.0.1"
     }
     openstack = {
