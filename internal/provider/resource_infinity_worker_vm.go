@@ -675,7 +675,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
 	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
 	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
-	data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
+	data.MediaPriorityWeight = types.Int64PointerValue(srv.MediaPriorityWeight)
 
 	return &data, nil
 }
