@@ -843,7 +843,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID, state.Config.ValueString(), state.DeploymentType.ValueString(), state.Password.ValueString(), state.SNMPAuthenticationPassword.ValueString(), state.SNMPPrivacyPassword.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
+	updatedModel, err := r.read(ctx, resourceID, plan.Config.ValueString(), plan.DeploymentType.ValueString(), plan.Password.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity worker VM",
