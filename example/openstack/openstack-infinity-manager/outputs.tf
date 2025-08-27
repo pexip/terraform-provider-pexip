@@ -19,3 +19,7 @@ output "check_status_url" {
 output "mgr-public-ip" {
   value = openstack_networking_floatingip_v2.infinity-mgr-fip.address
 }
+
+output "manager_cert" {
+  value = pexip_infinity_tls_certificate.tls-cert-test
+}
