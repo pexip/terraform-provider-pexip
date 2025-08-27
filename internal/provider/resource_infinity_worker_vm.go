@@ -644,7 +644,6 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
 	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
 	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
-	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 
 	// Convert SSH authorized keys from SDK to Terraform format
 	var sshAuthorizedKeys []string
