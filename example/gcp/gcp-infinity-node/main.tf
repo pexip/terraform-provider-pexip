@@ -6,7 +6,7 @@
 
 locals {
   hostname         = "${var.environment}-worker-${var.index}"
-  check_status_url = "https://${local.hostname}.${local.domain}/api/client/v2/status"
+  check_status_url = "https://${var.mgr_public_ip}/api/admin/status/v1/worker_vm/${pexip_infinity_worker_vm.worker.resource_id}/"
 }
 
 data "google_compute_image" "pexip-infinity-node-image" {
@@ -29,7 +29,7 @@ resource "pexip_infinity_worker_vm" "worker" {
   node_type          = var.node_type
   system_location    = var.system_location
   tls_certificate    = var.tls_certificate
-  static_nat_address = "203.0.113.2"
+  static_nat_address = google_compute_address.infinity_node_public_ip.address
 
   maintenance_mode        = var.maintenance_mode
   maintenance_mode_reason = var.maintenance_mode_reason
@@ -104,21 +104,27 @@ resource "null_resource" "wait_for_infinity_node_http" {
   }
 
   provisioner "local-exec" {
-    command     = <<EOT
-      echo "Waiting for Infinity Node (HTTP 200 expected) ..."
-      for i in $(seq 1 60); do
-        status=$(curl --silent --show-error --insecure --location --output /dev/null --write-out "%%{http_code}" ${local.check_status_url})
 
-        if [ "$status" -eq 200 ]; then
-          sleep 10 # Wait for the service to stabilize
-          echo "Infinity Node is ready (HTTP 200)."
+    environment = {
+      PASSWORD = var.web_password
+    }
+
+    command     = <<EOT
+      "Waiting for Infinity Node to sync ..."
+      for i in $(seq 1 60); do
+        status=$(curl --silent --show-error --insecure --location -u ${var.web_username}:$PASSWORD ${local.check_status_url} | jq -r '.sync_status')
+
+        if [ "$status" = "SYNCED" ]; then
+          echo "Infinity Node is synced."
           exit 0
+        else
+          echo "Infinity Node not synced, status: $status"
         fi
 
         sleep 10
       done
 
-      echo "Timed out: Infinity Node did not return HTTP 200" >&2
+      echo "Timed out: unable to connect to Management Node" >&2
       exit 1
     EOT
     interpreter = ["/bin/bash", "-c"]
