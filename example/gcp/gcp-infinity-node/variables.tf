@@ -139,3 +139,26 @@ variable "tls_certificate" {
   default     = ""
   description = "TLS certificate for the Infinity Node"
 }
+
+variable "static_nat_address" {
+  type        = string
+  default     = null
+  description = "Static NAT address for the Infinity Node"
+}
+
+variable "mgr_public_ip" {
+  type        = string
+  description = "Public IP address of the Infinity Manager"
+}
+
+variable "web_username" {
+  type        = string
+  default     = "admin"
+  description = "Username for Infinity Web interface"
+}
+
+variable "web_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for Infinity Web interface user"
+}

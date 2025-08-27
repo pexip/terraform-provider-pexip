@@ -59,13 +59,14 @@ module "gcp-infinity-node" {
     tolist(google_compute_firewall.allow_https.target_tags),
     tolist(google_compute_firewall.allow_inter_node.target_tags)
   )
-
   gateway         = data.google_compute_subnetwork.default.gateway_address
   subnetwork_mask = "255.255.255.255" // Use /32 for single IP address for GCP
   password        = var.infinity_password
   node_type       = "CONFERENCING"
   system_location = pexip_infinity_system_location.example-location-1.id
   tls_certificate = module.gcp-infinity-manager.manager_cert.id
+  mgr_public_ip   = module.gcp-infinity-manager.mgr-public-ip
+  web_password    = var.infinity_password
 
   depends_on = [
     module.gcp-infinity-manager

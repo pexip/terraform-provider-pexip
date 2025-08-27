@@ -19,3 +19,7 @@ output "check_status_url" {
 output "manager_cert" {
   value = pexip_infinity_tls_certificate.tls-cert-test
 }
+
+output "mgr-public-ip" {
+  value = google_compute_address.infinity_manager_public_ip.address
+}
