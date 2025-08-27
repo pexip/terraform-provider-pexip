@@ -106,11 +106,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          echo "ZIP_FILENAME=$(\
-                  find ./build_artifacts -name *.zip -print | head -n1 \
-                )" >> "$GITHUB_OUTPUT"
-          echo Running: "unzip ${{ steps.unpack.outputs.ZIP_FILENAME }} -d ./dist/"
-          unzip ${{ steps.unpack.outputs.ZIP_FILENAME }} -d ./dist/
+          ZIP_FILENAME=$(find ./build_artifacts -name '*.zip' -print -quit)
+          echo "ZIP_FILENAME=${ZIP_FILENAME}" >> "$GITHUB_OUTPUT"
+          echo "Running: unzip '${ZIP_FILENAME}' -d ./dist/"
+          unzip "${ZIP_FILENAME}" -d ./dist/
 
       - name: Install local dev override
         run: |
