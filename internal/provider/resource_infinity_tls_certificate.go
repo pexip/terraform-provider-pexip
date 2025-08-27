@@ -87,7 +87,7 @@ func (r *InfinityTLSCertificateResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The resource integer identifier for the TLS certificate in Infinity",
 			},
 			"certificate": schema.StringAttribute{
-				Required:  true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},

@@ -458,15 +458,15 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 
 	// create request with required fields and list fields
 	createRequest := &config.WorkerVMCreateRequest{
-		Name:                       plan.Name.ValueString(),
-		Hostname:                   plan.Hostname.ValueString(),
-		Domain:                     plan.Domain.ValueString(),
-		Address:                    plan.Address.ValueString(),
-		Netmask:                    plan.Netmask.ValueString(),
-		Gateway:                    plan.Gateway.ValueString(),
-		SystemLocation:             plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys:          sshAuthorizedKeys,
-		StaticRoutes:               staticRoutes,
+		Name:              plan.Name.ValueString(),
+		Hostname:          plan.Hostname.ValueString(),
+		Domain:            plan.Domain.ValueString(),
+		Address:           plan.Address.ValueString(),
+		Netmask:           plan.Netmask.ValueString(),
+		Gateway:           plan.Gateway.ValueString(),
+		SystemLocation:    plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys: sshAuthorizedKeys,
+		StaticRoutes:      staticRoutes,
 	}
 
 	// Set optional fields that have default values
@@ -729,15 +729,15 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 
 	// create request with required fields and list fields
 	updateRequest := &config.WorkerVMUpdateRequest{
-		Name:                       plan.Name.ValueString(),
-		Hostname:                   plan.Hostname.ValueString(),
-		Domain:                     plan.Domain.ValueString(),
-		Address:                    plan.Address.ValueString(),
-		Netmask:                    plan.Netmask.ValueString(),
-		Gateway:                    plan.Gateway.ValueString(),
-		SystemLocation:             plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys:          sshAuthorizedKeys,
-		StaticRoutes:               staticRoutes,
+		Name:              plan.Name.ValueString(),
+		Hostname:          plan.Hostname.ValueString(),
+		Domain:            plan.Domain.ValueString(),
+		Address:           plan.Address.ValueString(),
+		Netmask:           plan.Netmask.ValueString(),
+		Gateway:           plan.Gateway.ValueString(),
+		SystemLocation:    plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys: sshAuthorizedKeys,
+		StaticRoutes:      staticRoutes,
 	}
 
 	// Set optional fields that have default values
@@ -802,7 +802,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SNMPPrivacyPassword.IsNull() {
 		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
 	}
-	
+
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()
