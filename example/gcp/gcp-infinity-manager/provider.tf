@@ -9,6 +9,7 @@ terraform {
   required_providers {
     pexip = {
       source = "pexip/pexip"
+      version = ">= 0.0.1"
     }
     google = {
       source  = "hashicorp/google"
