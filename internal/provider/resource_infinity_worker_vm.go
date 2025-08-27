@@ -304,7 +304,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
-				Sensitive: false,
+				Sensitive: true,
 				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(8),
@@ -334,7 +334,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"snmp_privacy_password": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
-				Sensitive: false,
+				Sensitive: true,
 				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(8),
