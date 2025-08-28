@@ -48,7 +48,7 @@ jobs:
         fetch-depth: 0
 
     - name: Authenticate git for private modules
-      run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
+      run: git config --global url."https://${GH_PAT}@github.com/pexip".insteadOf "https://github.com/pexip"
       env:
         GH_PAT: ${{ secrets.GH_PAT }}
 
