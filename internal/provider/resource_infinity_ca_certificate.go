@@ -87,7 +87,8 @@ func (r *InfinityCACertificateResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "The PEM-encoded CA certificate content.",
 			},
 			"trusted_intermediate": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Whether this CA certificate is trusted as an intermediate certificate.",
 			},
 			"start_date": schema.StringAttribute{
@@ -153,7 +154,6 @@ func (r *InfinityCACertificateResource) Create(ctx context.Context, req resource
 
 	createRequest := &config.CACertificateCreateRequest{
 		Certificate:         plan.Certificate.ValueString(),
-		TrustedIntermediate: plan.TrustedIntermediate.ValueBool(),
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateCACertificate(ctx, createRequest)
