@@ -102,9 +102,9 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"source": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("local", "ldap", "oidc"),
+					stringvalidator.OneOf("LOCAL", "LDAP", "LDAP+LOCAL", "OIDC", "OIDC+LOCAL", "LDAP+OIDC+LOCAL"),
 				},
-				MarkdownDescription: "Authentication source. Valid values: local, ldap, oidc.",
+				MarkdownDescription: "The database to query for administrator authentication and authorization. Valid values: LOCAL, LDAP, LDAP+LOCAL, OIDC, OIDC+LOCAL, LDAP+OIDC+LOCAL.",
 			},
 			"client_certificate": schema.StringAttribute{
 				Optional: true,
@@ -138,10 +138,10 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					validators.URL(false),
+					stringvalidator.LengthAtMost(255),
 				},
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "LDAP server URL (ldap:// or ldaps://).",
+				MarkdownDescription: "The hostname of the LDAP server. Enter a domain name for DNS SRV lookup or an FQDN for DNS A/AAAA lookup, and ensure that it is resolvable over DNS. Maximum length: 255 characters.",
 			},
 			"ldap_base_dn": schema.StringAttribute{
 				Optional:            true,
