@@ -108,10 +108,12 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			},
 			"client_certificate": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default: stringdefault.StaticString("NO"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("disabled", "optional", "required"),
+					stringvalidator.OneOf("NO", "CN", "UPN"),
 				},
-				MarkdownDescription: "Client certificate requirement. Valid values: disabled, optional, required.",
+				MarkdownDescription: "Client certificate requirement. Valid values: NO, CN, UPN.",
 			},
 			"api_oauth2_disable_basic": schema.BoolAttribute{
 				Optional:            true,
@@ -349,7 +351,7 @@ func (r *InfinityAuthenticationResource) Create(ctx context.Context, req resourc
 	}
 
 	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx)
+	model, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity authentication configuration",
@@ -424,7 +426,7 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 	return updateRequest
 }
 
-func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAuthenticationResourceModel, error) {
+func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass string, oidcPass string) (*InfinityAuthenticationResourceModel, error) {
 	var data InfinityAuthenticationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetAuthentication(ctx)
@@ -445,7 +447,7 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 	data.LdapServer = types.StringValue(srv.LdapServer)
 	data.LdapBaseDN = types.StringValue(srv.LdapBaseDN)
 	data.LdapBindUsername = types.StringValue(srv.LdapBindUsername)
-	data.LdapBindPassword = types.StringValue(srv.LdapBindPassword)
+	data.LdapBindPassword = types.StringValue(ldapPass)
 	data.LdapUserSearchDN = types.StringValue(srv.LdapUserSearchDN)
 	data.LdapUserFilter = types.StringValue(srv.LdapUserFilter)
 	data.LdapUserSearchFilter = types.StringValue(srv.LdapUserSearchFilter)
@@ -458,7 +460,7 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 	data.OidcMetadataURL = types.StringValue(srv.OidcMetadataURL)
 	data.OidcMetadata = types.StringValue(srv.OidcMetadata)
 	data.OidcClientID = types.StringValue(srv.OidcClientID)
-	data.OidcClientSecret = types.StringValue(srv.OidcClientSecret)
+	data.OidcClientSecret = types.StringValue(oidcPass)
 	data.OidcPrivateKey = types.StringValue(srv.OidcPrivateKey)
 	data.OidcAuthMethod = types.StringValue(srv.OidcAuthMethod)
 	data.OidcScope = types.StringValue(srv.OidcScope)
@@ -475,7 +477,14 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 }
 
 func (r *InfinityAuthenticationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state, err := r.read(ctx)
+	state := &InfinityAuthenticationResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	
+	state, err := r.read(ctx, state.LdapBindPassword.ValueString(), state.OidcClientSecret.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources
 		if isNotFoundError(err) {
@@ -512,7 +521,7 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx)
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity authentication configuration",
@@ -548,7 +557,7 @@ func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req re
 	tflog.Trace(ctx, "Importing Infinity authentication configuration")
 
 	// Read the resource from the API
-	model, err := r.read(ctx)
+	model, err := r.read(ctx, "", "")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Importing Infinity Authentication Configuration",
