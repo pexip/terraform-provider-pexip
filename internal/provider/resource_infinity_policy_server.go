@@ -53,7 +53,7 @@ type InfinityPolicyServerResourceModel struct {
 	RegistrationConfigurationTemplate  types.String `tfsdk:"registration_configuration_template"`
 	DirectorySearchTemplate            types.String `tfsdk:"directory_search_template"`
 	AvatarConfigurationTemplate        types.String `tfsdk:"avatar_configuration_template"`
-	MediaLocationConfigurationTemplate types.String `tfsdk:"media_location_configuration_template"`
+	InternalMediaLocationPolicyTemplate types.String `tfsdk:"internal_media_location_policy_template"`
 }
 
 func (r *InfinityPolicyServerResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -228,7 +228,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				},
 				MarkdownDescription: "Avatar configuration template. Maximum length: 1000 characters.",
 			},
-			"media_location_configuration_template": schema.StringAttribute{
+			"internal_media_location_policy_template": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
@@ -282,8 +282,8 @@ func (r *InfinityPolicyServerResource) Create(ctx context.Context, req resource.
 	if !plan.ParticipantConfigurationTemplate.IsNull() {
 		createRequest.InternalParticipantPolicyTemplate = plan.ParticipantConfigurationTemplate.ValueString()
 	}
-	if !plan.MediaLocationConfigurationTemplate.IsNull() {
-		createRequest.InternalMediaLocationPolicyTemplate = plan.MediaLocationConfigurationTemplate.ValueString()
+	if !plan.InternalMediaLocationPolicyTemplate.IsNull() {
+		createRequest.InternalMediaLocationPolicyTemplate = plan.InternalMediaLocationPolicyTemplate.ValueString()
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreatePolicyServer(ctx, createRequest)
@@ -352,7 +352,7 @@ func (r *InfinityPolicyServerResource) read(ctx context.Context, resourceID int,
 	data.RegistrationConfigurationTemplate = types.StringNull()
 	data.DirectorySearchTemplate = types.StringNull()
 	data.AvatarConfigurationTemplate = types.StringNull()
-	data.MediaLocationConfigurationTemplate = types.StringValue(srv.InternalMediaLocationPolicyTemplate)
+	data.InternalMediaLocationPolicyTemplate = types.StringValue(srv.InternalMediaLocationPolicyTemplate)
 
 	return &data, nil
 }
@@ -439,8 +439,8 @@ func (r *InfinityPolicyServerResource) Update(ctx context.Context, req resource.
 	if !plan.ParticipantConfigurationTemplate.IsNull() {
 		updateRequest.InternalParticipantPolicyTemplate = plan.ParticipantConfigurationTemplate.ValueString()
 	}
-	if !plan.MediaLocationConfigurationTemplate.IsNull() {
-		updateRequest.InternalMediaLocationPolicyTemplate = plan.MediaLocationConfigurationTemplate.ValueString()
+	if !plan.InternalMediaLocationPolicyTemplate.IsNull() {
+		updateRequest.InternalMediaLocationPolicyTemplate = plan.InternalMediaLocationPolicyTemplate.ValueString()
 	}
 
 	_, err := r.InfinityClient.Config().UpdatePolicyServer(ctx, resourceID, updateRequest)
