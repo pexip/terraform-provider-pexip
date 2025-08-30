@@ -230,7 +230,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID, plan.PrivateKey.ValueString())
+	model, err := r.read(ctx, resourceID, plan.PrivateKey.ValueString(), plan.PrivateKeyPassphrase.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity TLS certificate",
@@ -243,7 +243,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID int, privateKey string) (*InfinityTLSCertificateResourceModel, error) {
+func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID int, privateKey string, privateKeyPass string) (*InfinityTLSCertificateResourceModel, error) {
 	var data InfinityTLSCertificateResourceModel
 
 	srv, err := r.InfinityClient.Config().GetTLSCertificate(ctx, resourceID)
@@ -258,8 +258,8 @@ func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID in
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Certificate = types.StringValue(srv.Certificate)
-	data.PrivateKey = types.StringValue(privateKey) // The privateKey property of the TLS certificate is not returned by the API, so we need to set it manually
-	data.PrivateKeyPassphrase = types.StringValue(srv.PrivateKeyPassphrase)
+	data.PrivateKey = types.StringValue(privateKey) // The privateKey property is not returned by the API, so we need to set it manually
+	data.PrivateKeyPassphrase = types.StringValue(privateKeyPass) // The privateKeyPassphrase is returned blank by the API, so we need to set it manually
 	data.Parameters = types.StringValue(srv.Parameters)
 	data.StartDate = types.StringValue(srv.StartDate.String())
 	data.EndDate = types.StringValue(srv.EndDate.String())
@@ -304,7 +304,7 @@ func (r *InfinityTLSCertificateResource) Read(ctx context.Context, req resource.
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID, state.PrivateKey.ValueString())
+	state, err := r.read(ctx, resourceID, state.PrivateKey.ValueString(), state.PrivateKeyPassphrase.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -363,7 +363,7 @@ func (r *InfinityTLSCertificateResource) Update(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID, plan.PrivateKey.ValueString())
+	updatedModel, err := r.read(ctx, resourceID, plan.PrivateKey.ValueString(), plan.PrivateKeyPassphrase.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity TLS certificate",
@@ -410,7 +410,7 @@ func (r *InfinityTLSCertificateResource) ImportState(ctx context.Context, req re
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity TLS certificate with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID, "")
+	model, err := r.read(ctx, resourceID, "", "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

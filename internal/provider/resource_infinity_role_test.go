@@ -39,7 +39,7 @@ func TestInfinityRole(t *testing.T) {
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/role/123/",
 		Name:        "role-test",
-		Permissions: []string{}, // Empty permissions list
+		Permissions: []config.Permission{}, // Empty permissions list
 	}
 
 	// Mock the GetRole API call for Read operations
@@ -56,7 +56,11 @@ func TestInfinityRole(t *testing.T) {
 		// Update mock state based on request
 		mockState.Name = updateRequest.Name
 		if updateRequest.Permissions != nil {
-			mockState.Permissions = updateRequest.Permissions
+			converted := make([]config.Permission, len(updateRequest.Permissions))
+			for i, perm := range updateRequest.Permissions {
+				converted[i] = config.Permission{Name: perm}
+			}
+			mockState.Permissions = converted
 		}
 
 		// Return updated state
