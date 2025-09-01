@@ -165,7 +165,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "The IPv6 gateway for the management VM.",
 			},
 			"mtu": schema.Int64Attribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.Int64{
 					int64validator.Between(576, 9000),
 				},
@@ -212,7 +212,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "TLS certificate URI for the management VM.",
 			},
 			"enable_ssh": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("yes", "no", "keys_only"),
 				},
@@ -233,7 +233,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Secondary configuration passphrase. This field is sensitive.",
 			},
 			"snmp_mode": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("disabled", "v1v2c", "v3"),
 				},
@@ -271,7 +271,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "SNMP network management system URI.",
 			},
 			"initializing": schema.BoolAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Whether the management VM is in initializing state.",
 			},
 			"primary": schema.BoolAttribute{
@@ -291,6 +291,14 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	// Convert List attributes to []string
+	dnsServers, diags := getStringList(ctx, plan.DNSServers)
+	resp.Diagnostics.Append(diags...)
+	ntpServers, diags := getStringList(ctx, plan.NTPServers)
+	resp.Diagnostics.Append(diags...)
+	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
+	resp.Diagnostics.Append(diags...)
+
 	createRequest := &config.ManagementVMCreateRequest{
 		Name:                       plan.Name.ValueString(),
 		Description:                plan.Description.ValueString(),
@@ -301,6 +309,9 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 		Domain:                     plan.Domain.ValueString(),
 		AlternativeFQDN:            plan.AlternativeFQDN.ValueString(),
 		MTU:                        int(plan.MTU.ValueInt64()),
+		DNSServers:                 dnsServers,
+		NTPServers:                 ntpServers,
+		SyslogServers:              syslogServers,
 		EnableSSH:                  plan.EnableSSH.ValueString(),
 		SSHAuthorizedKeysUseCloud:  plan.SSHAuthorizedKeysUseCloud.ValueBool(),
 		SecondaryConfigPassphrase:  plan.SecondaryConfigPassphrase.ValueString(),
@@ -505,36 +516,38 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int)
 		data.SNMPNetworkManagementSystem = types.StringNull()
 	}
 
-	// Handle list fields
-	if srv.DNSServers != nil {
-		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.DNSServers)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert DNS servers: %s", diags.Errors())
-		}
-		data.DNSServers = serversSet
-	} else {
-		data.DNSServers = types.SetNull(types.StringType)
+	// Convert DNS servers from SDK to Terraform format
+	var dnsServers []string
+	for _, dns := range srv.DNSServers {
+		dnsServers = append(dnsServers, fmt.Sprintf("/api/admin/configuration/v1/dns_server/%d/", dns.ID))
 	}
+	dnsSetValue, diags := types.SetValueFrom(ctx, types.StringType, dnsServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting DNS servers: %v", diags)
+	}
+	data.DNSServers = dnsSetValue
 
-	if srv.NTPServers != nil {
-		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.NTPServers)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert NTP servers: %s", diags.Errors())
-		}
-		data.NTPServers = serversSet
-	} else {
-		data.NTPServers = types.SetNull(types.StringType)
+	// Convert NTP servers from SDK to Terraform format
+	var ntpServers []string
+	for _, ntp := range srv.NTPServers {
+		ntpServers = append(ntpServers, fmt.Sprintf("/api/admin/configuration/v1/ntp_server/%d/", ntp.ID))
 	}
+	ntpSetValue, diags := types.SetValueFrom(ctx, types.StringType, ntpServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting NTP servers: %v", diags)
+	}
+	data.NTPServers = ntpSetValue
 
-	if srv.SyslogServers != nil {
-		serversSet, diags := types.SetValueFrom(ctx, types.StringType, srv.SyslogServers)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert syslog servers: %s", diags.Errors())
-		}
-		data.SyslogServers = serversSet
-	} else {
-		data.SyslogServers = types.SetNull(types.StringType)
+	// Convert Syslog servers from SDK to Terraform format
+	var syslogServers []string
+	for _, syslog := range srv.SyslogServers {
+		syslogServers = append(syslogServers, fmt.Sprintf("/api/admin/configuration/v1/syslog_server/%d/", syslog.ID))
 	}
+	syslogSetValue, diags := types.SetValueFrom(ctx, types.StringType, syslogServers)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting Syslog servers: %v", diags)
+	}
+	data.SyslogServers = syslogSetValue
 
 	if srv.StaticRoutes != nil {
 		routesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.StaticRoutes)
