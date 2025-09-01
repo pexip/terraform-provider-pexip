@@ -592,7 +592,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, config string, deployType string, password string, snmpAuthPass string, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig string, deployType string, password string, snmpAuthPass string, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -607,7 +607,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
-	data.Config = types.StringValue(config)
+	data.Config = types.StringValue(workerConfig)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
