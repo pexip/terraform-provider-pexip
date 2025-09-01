@@ -592,7 +592,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig string, deployType string, password string, snmpAuthPass string, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
