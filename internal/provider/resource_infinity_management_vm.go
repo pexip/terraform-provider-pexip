@@ -11,11 +11,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -44,7 +45,7 @@ type InfinityManagementVMResourceModel struct {
 	AlternativeFQDN             types.String `tfsdk:"alternative_fqdn"`
 	IPV6Address                 types.String `tfsdk:"ipv6_address"`
 	IPV6Gateway                 types.String `tfsdk:"ipv6_gateway"`
-	MTU                         types.Int64  `tfsdk:"mtu"`
+	MTU                         types.Int32  `tfsdk:"mtu"`
 	StaticNATAddress            types.String `tfsdk:"static_nat_address"`
 	DNSServers                  types.Set    `tfsdk:"dns_servers"`
 	NTPServers                  types.Set    `tfsdk:"ntp_servers"`
@@ -164,10 +165,10 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Optional:            true,
 				MarkdownDescription: "The IPv6 gateway for the management VM.",
 			},
-			"mtu": schema.Int64Attribute{
+			"mtu": schema.Int32Attribute{
 				Optional: true,
-				Validators: []validator.Int64{
-					int64validator.Between(576, 9000),
+				Validators: []validator.Int32{
+					int32validator.Between(576, 9000),
 				},
 				MarkdownDescription: "Maximum Transmission Unit (MTU) size. Valid range: 576-9000.",
 			},
@@ -213,10 +214,12 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"enable_ssh": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("yes", "no", "keys_only"),
+					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
-				MarkdownDescription: "SSH access configuration. Valid values: yes, no, keys_only.",
+				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid values are: global, off, on. Defaults to global.",
 			},
 			"ssh_authorized_keys": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -234,10 +237,12 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"snmp_mode": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("DISABLED"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("disabled", "v1v2c", "v3"),
+					stringvalidator.OneOf("DISABLED", "STANDARD", "AUTHPRIV"),
 				},
-				MarkdownDescription: "SNMP mode configuration. Valid values: disabled, v1v2c, v3.",
+				MarkdownDescription: "The SNMP mode.",
 			},
 			"snmp_community": schema.StringAttribute{
 				Optional:            true,
@@ -264,6 +269,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"snmp_system_location": schema.StringAttribute{
 				Optional:            true,
+				Default: stringdefault.StaticString("Virtual machine"),
 				MarkdownDescription: "SNMP system location information.",
 			},
 			"snmp_network_management_system": schema.StringAttribute{
@@ -308,7 +314,7 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 		Hostname:                   plan.Hostname.ValueString(),
 		Domain:                     plan.Domain.ValueString(),
 		AlternativeFQDN:            plan.AlternativeFQDN.ValueString(),
-		MTU:                        int(plan.MTU.ValueInt64()),
+		MTU:                        int(plan.MTU.ValueInt32()),
 		DNSServers:                 dnsServers,
 		NTPServers:                 ntpServers,
 		SyslogServers:              syslogServers,
@@ -465,7 +471,7 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
 	data.AlternativeFQDN = types.StringValue(srv.AlternativeFQDN)
-	data.MTU = types.Int64Value(int64(srv.MTU))
+	data.MTU = types.Int32Value(int32(srv.MTU))
 	data.EnableSSH = types.StringValue(srv.EnableSSH)
 	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 	data.SecondaryConfigPassphrase = types.StringValue(srv.SecondaryConfigPassphrase)
@@ -609,11 +615,118 @@ func (r *InfinityManagementVMResource) Read(ctx context.Context, req resource.Re
 }
 
 func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// Management VMs do not support update operations
-	resp.Diagnostics.AddError(
-		"Update Not Supported",
-		"Management VM resources cannot be updated. To change management VM settings, you must delete and recreate the resource.",
-	)
+	plan := &InfinityManagementVMResourceModel{}
+	state := &InfinityManagementVMResourceModel{}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resourceID := int(state.ResourceID.ValueInt32())
+
+	// Convert List attributes to []string
+	dnsServers, diags := getStringList(ctx, plan.DNSServers)
+	resp.Diagnostics.Append(diags...)
+	ntpServers, diags := getStringList(ctx, plan.NTPServers)
+	resp.Diagnostics.Append(diags...)
+	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateRequest := &config.ManagementVMUpdateRequest{
+		Name:                       plan.Name.ValueString(),
+		Address:                    plan.Address.ValueString(),
+		Netmask:                    plan.Netmask.ValueString(),
+		Gateway:                    plan.Gateway.ValueString(),
+		Hostname:                   plan.Hostname.ValueString(),
+		Domain:                     plan.Domain.ValueString(),
+		DNSServers:                 dnsServers,
+		NTPServers:                 ntpServers,
+		SyslogServers:              syslogServers,
+	}
+
+	// Handle optional pointer fields
+	if !plan.MTU.IsNull() {
+		updateRequest.MTU = int(plan.MTU.ValueInt32())
+	}
+	if !plan.IPV6Address.IsNull() && !plan.IPV6Address.IsUnknown() {
+		addr := plan.IPV6Address.ValueString()
+		updateRequest.IPV6Address = &addr
+	}
+
+	if !plan.IPV6Gateway.IsNull() && !plan.IPV6Gateway.IsUnknown() {
+		gateway := plan.IPV6Gateway.ValueString()
+		updateRequest.IPV6Gateway = &gateway
+	}
+
+	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
+		addr := plan.StaticNATAddress.ValueString()
+		updateRequest.StaticNATAddress = &addr
+	}
+
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		proxy := plan.HTTPProxy.ValueString()
+		updateRequest.HTTPProxy = &proxy
+	}
+
+	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
+		cert := plan.TLSCertificate.ValueString()
+		updateRequest.TLSCertificate = &cert
+	}
+	if !plan.EnableSSH.IsNull() && !plan.EnableSSH.IsUnknown() {
+		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
+	}
+	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
+		nms := plan.SNMPNetworkManagementSystem.ValueString()
+		updateRequest.SNMPNetworkManagementSystem = &nms
+	}
+	if !plan.SNMPMode.IsNull() && !plan.SNMPMode.IsUnknown() {
+		updateRequest.SNMPMode = plan.SNMPMode.ValueString()
+	}
+	if !plan.SNMPCommunity.IsNull() && !plan.SNMPCommunity.IsUnknown() {
+		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
+	}
+	if !plan.SNMPUsername.IsNull() && !plan.SNMPUsername.IsUnknown() {
+		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
+	}
+	if !plan.SNMPAuthenticationPassword.IsNull() && !plan.SNMPAuthenticationPassword.IsUnknown() {
+		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
+	}
+	if !plan.SNMPPrivacyPassword.IsNull() && !plan.SNMPPrivacyPassword.IsUnknown() {
+		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	}
+	if !plan.SNMPSystemContact.IsNull() && !plan.SNMPSystemContact.IsUnknown() {
+		updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
+	}
+	if !plan.SNMPSystemLocation.IsNull() && !plan.SNMPSystemLocation.IsUnknown() {
+		updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
+	}
+
+
+	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, resourceID, updateRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Infinity management VM",
+			fmt.Sprintf("Could not update Infinity management VM: %s", err),
+		)
+		return
+	}
+
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, resourceID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity management VM",
+			fmt.Sprintf("Could not read updated Infinity management VM with ID %d: %s", resourceID, err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityManagementVMResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
