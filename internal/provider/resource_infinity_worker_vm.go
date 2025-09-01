@@ -606,7 +606,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 
 	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Config = types.StringValue(config)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)

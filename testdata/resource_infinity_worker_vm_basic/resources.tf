@@ -31,6 +31,6 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   //node_type               = "CONFERENCING"
   //transcoding             = true
   //password                = "test-value"
-  //maintenance_mode        = true
+  maintenance_mode        = true
   //maintenance_mode_reason = "test-value"
 }

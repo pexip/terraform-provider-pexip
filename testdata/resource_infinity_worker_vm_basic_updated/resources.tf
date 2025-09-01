@@ -29,4 +29,5 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   ssh_authorized_keys_use_cloud = false
   tls_certificate               = "/api/admin/configuration/v1/tls_certificate/1/"
   static_nat_address            = "203.0.113.2"
+  maintenance_mode              = false
 }
