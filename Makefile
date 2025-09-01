@@ -8,13 +8,7 @@ BUILD_DIR    := $(ROOT_DIR)/dist
 
 # Version information
 _GIT_VERSION := $(shell git describe --tags --always)
-_VERSION_FROM_GIT := $(shell \
-	if echo "$(_GIT_VERSION)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then \
-		echo "$(_GIT_VERSION)"; \
-	else \
-		echo "v0.0.1-$(_GIT_VERSION)"; \
-	fi)
-VERSION      ?= $(_VERSION_FROM_GIT)
+VERSION      ?= $(shell if echo "$(_GIT_VERSION)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then echo "$(_GIT_VERSION)"; else echo "v0.0.1-$(_GIT_VERSION)"; fi)
 VERSION_NO_V := $(patsubst v%,%,$(VERSION))
 GITSHA       := $(shell git rev-parse --short HEAD)
 
@@ -28,7 +22,8 @@ GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
 
 # Binary and archive names
-BINARY_NAME ?= $(NAME)_v$(VERSION_NO_V)
+BINARY_NAME      ?= $(NAME)_v$(VERSION_NO_V)
+DEV_BINARY_NAME  ?= $(NAME)
 ZIP_ARCHIVE_NAME ?= $(NAME)_$(VERSION_NO_V)_$(OS_ARCH).zip
 
 # Build flags
@@ -52,12 +47,9 @@ package: build
 	@zip -j $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) $(BUILD_DIR)/$(BINARY_NAME)
 
 install:
-	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
-	@unzip -o $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) -d ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
-
-install2: install
-	@mkdir -p ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION_NO_V)/$(OS_ARCH)
-	@cp ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(BINARY_NAME) ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)/$(VERSION_NO_V)/$(OS_ARCH)/$(NAME)
+	@mkdir -p ~/.terraform.d/plugins
+	unzip -o $(BUILD_DIR)/$(ZIP_ARCHIVE_NAME) -d $(BUILD_DIR)
+	@cp $(BUILD_DIR)/$(BINARY_NAME) ~/.terraform.d/plugins/$(NAME)
 
 test: prepare
 	go test -v -parallel 4 -tags unit -coverprofile=$(BUILD_DIR)/cover.out ./...
@@ -67,8 +59,9 @@ testacc: prepare
 	go test -v -tags integration -coverprofile=$(BUILD_DIR)/cover.out ./...
 
 clean:
-	rm -rf $(BUILD_DIR)
-	rm -rf ~/.terraform.d/plugins/$(DOMAIN)/$(COMPANY)/$(PROVIDER)
+	@echo Cleaning up build dir and installed binaries...
+	@rm -rf $(BUILD_DIR)
+	@rm -rf ~/.terraform.d/plugins/$(NAME)
 
 manifest: prepare
 	@./generate-manifest.sh $(BUILD_DIR) $(VERSION) $(PROVIDER)

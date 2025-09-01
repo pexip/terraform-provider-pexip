@@ -493,7 +493,7 @@ make build
 ```hcl
 provider_installation {
   dev_overrides {
-    "pexip/pexip" = "/path/to/your/terraform-provider-pexip/dist"
+    "pexip/pexip" = "<home dir>/.terraform.d/plugins"
   }
   direct {}
 }

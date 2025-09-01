@@ -34,7 +34,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Setup gcloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
 
       - name: Show current gcloud user
         run: gcloud config list account --format "value(core.account)"
