@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -170,9 +169,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"enable_ssh": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("global"),
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("global", "off", "on"),
+					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
 				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid values are: global, off, on. Defaults to global.",
 			},
@@ -326,9 +325,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"snmp_mode": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("disabled"),
+				Default:  stringdefault.StaticString("DISABLED"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("disabled", "standard", "authpriv"),
+					stringvalidator.OneOf("DISABLED", "STANDARD", "AUTHPRIV"),
 				},
 				MarkdownDescription: "The SNMP mode.",
 			},
@@ -451,24 +450,79 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
+	// Convert List attributes to []string
+	sshAuthorizedKeys, diags := getStringList(ctx, plan.SSHAuthorizedKeys)
+	resp.Diagnostics.Append(diags...)
+	staticRoutes, diags := getStringList(ctx, plan.StaticRoutes)
+	resp.Diagnostics.Append(diags...)
+
+	// create request with required fields and list fields
 	createRequest := &config.WorkerVMCreateRequest{
-		Name:           plan.Name.ValueString(),
-		Hostname:       plan.Hostname.ValueString(),
-		Domain:         plan.Domain.ValueString(),
-		Address:        plan.Address.ValueString(),
-		Netmask:        plan.Netmask.ValueString(),
-		Gateway:        plan.Gateway.ValueString(),
-		SystemLocation: plan.SystemLocation.ValueString(),
+		Name:              plan.Name.ValueString(),
+		Hostname:          plan.Hostname.ValueString(),
+		Domain:            plan.Domain.ValueString(),
+		Address:           plan.Address.ValueString(),
+		Netmask:           plan.Netmask.ValueString(),
+		Gateway:           plan.Gateway.ValueString(),
+		SystemLocation:    plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys: sshAuthorizedKeys,
+		StaticRoutes:      staticRoutes,
 	}
 
-	// Set optional fields
-	if !plan.IPv6Address.IsNull() {
-		ipv6Address := plan.IPv6Address.ValueString()
-		createRequest.IPv6Address = &ipv6Address
+	// Set optional fields that have default values
+	if !plan.AlternativeFQDN.IsNull() {
+		createRequest.AlternativeFQDN = plan.AlternativeFQDN.ValueString()
 	}
-	if !plan.IPv6Gateway.IsNull() {
-		ipv6Gateway := plan.IPv6Gateway.ValueString()
-		createRequest.IPv6Gateway = &ipv6Gateway
+	if !plan.DeploymentType.IsNull() {
+		createRequest.DeploymentType = plan.DeploymentType.ValueString()
+	}
+	if !plan.Description.IsNull() {
+		createRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.EnableDistributedDatabase.IsNull() {
+		createRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
+	}
+	if !plan.EnableSSH.IsNull() {
+		createRequest.EnableSSH = plan.EnableSSH.ValueString()
+	}
+	if !plan.MaintenanceMode.IsNull() {
+		createRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
+	}
+	if !plan.MaintenanceModeReason.IsNull() {
+		createRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
+	}
+	if !plan.NodeType.IsNull() {
+		createRequest.NodeType = plan.NodeType.ValueString()
+	}
+	if !plan.Password.IsNull() {
+		createRequest.Password = plan.Password.ValueString()
+	}
+	if !plan.SNMPAuthenticationPassword.IsNull() {
+		createRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
+	}
+	if !plan.SNMPCommunity.IsNull() {
+		createRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
+	}
+	if !plan.SNMPMode.IsNull() {
+		createRequest.SNMPMode = plan.SNMPMode.ValueString()
+	}
+	if !plan.SNMPPrivacyPassword.IsNull() {
+		createRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	}
+	if !plan.SNMPSystemContact.IsNull() {
+		createRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
+	}
+	if !plan.SNMPSystemLocation.IsNull() {
+		createRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
+	}
+	if !plan.SNMPUsername.IsNull() {
+		createRequest.SNMPUsername = plan.SNMPUsername.ValueString()
+	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		createRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
+	if !plan.Transcoding.IsNull() {
+		createRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
 	if !plan.VMCPUCount.IsNull() {
 		createRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
@@ -476,20 +530,34 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	if !plan.VMSystemMemory.IsNull() {
 		createRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
 	}
-	if !plan.NodeType.IsNull() {
-		createRequest.NodeType = plan.NodeType.ValueString()
+	// Set optional fields that are nullable
+	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
+		value := plan.IPv6Address.ValueString()
+		createRequest.IPv6Address = &value
 	}
-	if !plan.Transcoding.IsNull() {
-		createRequest.Transcoding = plan.Transcoding.ValueBool()
+	if !plan.IPv6Gateway.IsNull() && !plan.IPv6Gateway.IsUnknown() {
+		value := plan.IPv6Gateway.ValueString()
+		createRequest.IPv6Gateway = &value
 	}
-	if !plan.Password.IsNull() {
-		createRequest.Password = plan.Password.ValueString()
+	if !plan.MediaPriorityWeight.IsNull() && !plan.MediaPriorityWeight.IsUnknown() {
+		value := int(plan.MediaPriorityWeight.ValueInt64())
+		createRequest.MediaPriorityWeight = &value
 	}
-	if !plan.MaintenanceMode.IsNull() {
-		createRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
+	if !plan.SecondaryAddress.IsNull() && !plan.SecondaryAddress.IsUnknown() {
+		value := plan.SecondaryAddress.ValueString()
+		createRequest.SecondaryAddress = &value
 	}
-	if !plan.MaintenanceModeReason.IsNull() {
-		createRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
+	if !plan.SecondaryNetmask.IsNull() && !plan.SecondaryNetmask.IsUnknown() {
+		value := plan.SecondaryNetmask.ValueString()
+		createRequest.SecondaryNetmask = &value
+	}
+	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
+		value := plan.StaticNATAddress.ValueString()
+		createRequest.StaticNATAddress = &value
+	}
+	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
+		value := plan.TLSCertificate.ValueString()
+		createRequest.TLSCertificate = &value
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateWorkerVM(ctx, createRequest)
@@ -511,7 +579,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID, string(createResponse.Body), plan.Password.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
+	model, err := r.read(ctx, resourceID, string(createResponse.Body), plan.DeploymentType.ValueString(), plan.Password.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity worker VM",
@@ -524,7 +592,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, config string, password string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -536,62 +604,77 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 		return nil, fmt.Errorf("worker VM with ID %d not found", resourceID)
 	}
 
+	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
-	data.Config = types.StringValue(config)
+	data.Config = types.StringValue(workerConfig)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
 	data.Address = types.StringValue(srv.Address)
 	data.Netmask = types.StringValue(srv.Netmask)
 	data.Gateway = types.StringValue(srv.Gateway)
-	if srv.IPv6Address != nil {
-		data.IPv6Address = types.StringValue(*srv.IPv6Address)
-	} else {
-		data.IPv6Address = types.StringNull()
-	}
-	if srv.IPv6Gateway != nil {
-		data.IPv6Gateway = types.StringValue(*srv.IPv6Gateway)
-	} else {
-		data.IPv6Gateway = types.StringNull()
-	}
+	data.Description = types.StringValue(srv.Description)
 	data.VMCPUCount = types.Int64Value(vm_cpu_count)
 	data.VMSystemMemory = types.Int64Value(vm_system_memory)
 	data.NodeType = types.StringValue(srv.NodeType)
+	// value not returned by API
+	data.DeploymentType = types.StringValue(deployType)
 	data.Transcoding = types.BoolValue(srv.Transcoding)
+	data.CloudBursting = types.BoolValue(srv.CloudBursting)
+	data.Managed = types.BoolValue(srv.Managed)
+	data.ServiceManager = types.BoolValue(srv.ServiceManager)
+	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
+	data.Signalling = types.BoolValue(srv.Signalling)
+	// value not returned by API
 	data.Password = types.StringValue(password)
 	data.MaintenanceMode = types.BoolValue(srv.MaintenanceMode)
 	data.MaintenanceModeReason = types.StringValue(srv.MaintenanceModeReason)
 	data.SystemLocation = types.StringValue(srv.SystemLocation)
+	data.AlternativeFQDN = types.StringValue(srv.AlternativeFQDN)
+	data.EnableDistributedDatabase = types.BoolValue(srv.EnableDistributedDatabase)
+	data.EnableSSH = types.StringValue(srv.EnableSSH)
+	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
+	// Ignore the hashed value from the API
+	data.SNMPAuthenticationPassword = types.StringValue(snmpAuthPass)
+	data.SNMPCommunity = types.StringValue(srv.SNMPCommunity)
+	data.SNMPMode = types.StringValue(srv.SNMPMode)
+	// ignore hashed value returned by API
+	data.SNMPPrivacyPassword = types.StringValue(snmpPrivPass)
+	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
+	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
+	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
 
-	// Set additional fields to their schema default values since they're not returned by the API
-	data.AlternativeFQDN = types.StringValue("")                     // Default: ""
-	data.CloudBursting = types.BoolValue(false)                      // Default: false
-	data.DeploymentType = types.StringValue("MANUAL-PROVISION-ONLY") // Default: "MANUAL-PROVISION-ONLY"
-	data.Description = types.StringValue("")                         // Default: ""
-	data.EnableDistributedDatabase = types.BoolValue(true)           // Default: true
-	data.EnableSSH = types.StringValue("global")                     // Default: "global"
-	data.Managed = types.BoolValue(false)                            // Default: false
-	data.MediaPriorityWeight = types.Int64Value(0)                   // Default: 0
-	data.SecondaryAddress = types.StringNull()                       // Default: nil (nullable)
-	data.SecondaryNetmask = types.StringNull()                       // Default: nil (nullable)
-	data.ServiceManager = types.BoolValue(true)                      // Default: true
-	data.ServicePolicy = types.BoolValue(true)                       // Default: true
-	data.Signalling = types.BoolValue(true)                          // Default: true
-	data.SNMPAuthenticationPassword = types.StringValue("")          // Default: ""
-	data.SNMPCommunity = types.StringValue("public")                 // Default: "public"
-	data.SNMPMode = types.StringValue("disabled")                    // Default: "disabled"
-	data.SNMPPrivacyPassword = types.StringValue("")                 // Default: ""
-	data.SNMPSystemContact = types.StringValue("admin@domain.com")   // Default: "admin@domain.com"
-	data.SNMPSystemLocation = types.StringValue("Virtual machine")   // Default: "Virtual machine"
-	data.SNMPUsername = types.StringValue("")                        // Default: ""
-	data.SSHAuthorizedKeysUseCloud = types.BoolValue(true)           // Default: true
-	data.StaticNATAddress = types.StringNull()                       // Default: nil (nullable)
-	data.TLSCertificate = types.StringNull()                         // Default: nil (nullable)
+	// Convert SSH authorized keys from SDK to Terraform format
+	var sshAuthorizedKeys []string
+	for _, key := range srv.SSHAuthorizedKeys {
+		sshAuthorizedKeys = append(sshAuthorizedKeys, fmt.Sprintf("/api/admin/configuration/v1/ssh_authorized_key/%s/", key))
+	}
+	sshSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshAuthorizedKeys)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting SSH authorized keys: %v", diags)
+	}
+	data.SSHAuthorizedKeys = sshSetValue
 
-	// Initialize list fields to empty lists to match schema types
-	data.SSHAuthorizedKeys, _ = types.SetValue(types.StringType, []attr.Value{})
-	data.StaticRoutes, _ = types.SetValue(types.StringType, []attr.Value{})
+	// Convert static routes from SDK to Terraform format
+	var staticRoutes []string
+	for _, route := range srv.StaticRoutes {
+		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%s/", route))
+	}
+	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting static routes: %v", diags)
+	}
+	data.StaticRoutes = routeSetValue
+
+	// Set nullable fields
+	data.IPv6Address = types.StringPointerValue(srv.IPv6Address)
+	data.IPv6Gateway = types.StringPointerValue(srv.IPv6Gateway)
+	data.TLSCertificate = types.StringPointerValue(srv.TLSCertificate)
+	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
+	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
+	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
+	data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
 
 	return &data, nil
 }
@@ -605,7 +688,7 @@ func (r *InfinityWorkerVMResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID, state.Config.ValueString(), state.Password.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
+	state, err := r.read(ctx, resourceID, state.Config.ValueString(), state.DeploymentType.ValueString(), state.Password.ValueString(), state.SNMPAuthenticationPassword.ValueString(), state.SNMPPrivacyPassword.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -634,39 +717,43 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	updateRequest := &config.WorkerVMUpdateRequest{
-		Name:           plan.Name.ValueString(),
-		Hostname:       plan.Hostname.ValueString(),
-		Domain:         plan.Domain.ValueString(),
-		Address:        plan.Address.ValueString(),
-		Netmask:        plan.Netmask.ValueString(),
-		Gateway:        plan.Gateway.ValueString(),
-		SystemLocation: plan.SystemLocation.ValueString(),
+	// Convert List attributes to []string
+	sshAuthorizedKeys, diags := getStringList(ctx, plan.SSHAuthorizedKeys)
+	resp.Diagnostics.Append(diags...)
+	staticRoutes, diags := getStringList(ctx, plan.StaticRoutes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Set optional fields
-	if !plan.IPv6Address.IsNull() {
-		ipv6Address := plan.IPv6Address.ValueString()
-		updateRequest.IPv6Address = &ipv6Address
+	// create request with required fields and list fields
+	updateRequest := &config.WorkerVMUpdateRequest{
+		Name:              plan.Name.ValueString(),
+		Hostname:          plan.Hostname.ValueString(),
+		Domain:            plan.Domain.ValueString(),
+		Address:           plan.Address.ValueString(),
+		Netmask:           plan.Netmask.ValueString(),
+		Gateway:           plan.Gateway.ValueString(),
+		SystemLocation:    plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys: sshAuthorizedKeys,
+		StaticRoutes:      staticRoutes,
 	}
-	if !plan.IPv6Gateway.IsNull() {
-		ipv6Gateway := plan.IPv6Gateway.ValueString()
-		updateRequest.IPv6Gateway = &ipv6Gateway
+
+	// Set optional fields that have default values
+	if !plan.AlternativeFQDN.IsNull() {
+		updateRequest.AlternativeFQDN = plan.AlternativeFQDN.ValueString()
 	}
-	if !plan.VMCPUCount.IsNull() {
-		updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
+	if !plan.DeploymentType.IsNull() {
+		updateRequest.DeploymentType = plan.DeploymentType.ValueString()
 	}
-	if !plan.VMSystemMemory.IsNull() {
-		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
+	if !plan.Description.IsNull() {
+		updateRequest.Description = plan.Description.ValueString()
 	}
-	if !plan.NodeType.IsNull() {
-		updateRequest.NodeType = plan.NodeType.ValueString()
+	if !plan.EnableDistributedDatabase.IsNull() {
+		updateRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
 	}
-	if !plan.Transcoding.IsNull() {
-		updateRequest.Transcoding = plan.Transcoding.ValueBool()
-	}
-	if !plan.Password.IsNull() {
-		updateRequest.Password = plan.Password.ValueString()
+	if !plan.EnableSSH.IsNull() {
+		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
 	}
 	if !plan.MaintenanceMode.IsNull() {
 		updateRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
@@ -674,7 +761,77 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.MaintenanceModeReason.IsNull() {
 		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
 	}
+	if !plan.NodeType.IsNull() {
+		updateRequest.NodeType = plan.NodeType.ValueString()
+	}
+	if !plan.Password.IsNull() {
+		updateRequest.Password = plan.Password.ValueString()
+	}
+	if !plan.SNMPCommunity.IsNull() {
+		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
+	}
+	if !plan.SNMPMode.IsNull() {
+		updateRequest.SNMPMode = plan.SNMPMode.ValueString()
+	}
+	if !plan.SNMPSystemContact.IsNull() {
+		updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
+	}
+	if !plan.SNMPSystemLocation.IsNull() {
+		updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
+	}
+	if !plan.SNMPUsername.IsNull() {
+		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
+	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
+	if !plan.Transcoding.IsNull() {
+		updateRequest.Transcoding = plan.Transcoding.ValueBool()
+	}
+	if !plan.VMCPUCount.IsNull() {
+		updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
+	}
+	if !plan.VMSystemMemory.IsNull() {
+		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
+	}
 
+	if !plan.SNMPAuthenticationPassword.IsNull() {
+		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
+	}
+	if !plan.SNMPPrivacyPassword.IsNull() {
+		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	}
+
+	// Set optional fields that are nullable
+	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
+		value := plan.IPv6Address.ValueString()
+		updateRequest.IPv6Address = &value
+	}
+	if !plan.IPv6Gateway.IsNull() && !plan.IPv6Gateway.IsUnknown() {
+		value := plan.IPv6Gateway.ValueString()
+		updateRequest.IPv6Gateway = &value
+	}
+	if !plan.MediaPriorityWeight.IsNull() && !plan.MediaPriorityWeight.IsUnknown() {
+		value := int(plan.MediaPriorityWeight.ValueInt64())
+		updateRequest.MediaPriorityWeight = &value
+	}
+	if !plan.SecondaryAddress.IsNull() && !plan.SecondaryAddress.IsUnknown() {
+		value := plan.SecondaryAddress.ValueString()
+		updateRequest.SecondaryAddress = &value
+	}
+	if !plan.SecondaryNetmask.IsNull() && !plan.SecondaryNetmask.IsUnknown() {
+		value := plan.SecondaryNetmask.ValueString()
+		updateRequest.SecondaryNetmask = &value
+	}
+	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
+		value := plan.StaticNATAddress.ValueString()
+		updateRequest.StaticNATAddress = &value
+	}
+	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
+		value := plan.TLSCertificate.ValueString()
+		updateRequest.TLSCertificate = &value
+	}
+	// Send the update request to the management node
 	_, err := r.InfinityClient.Config().UpdateWorkerVM(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -685,7 +842,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID, state.Config.ValueString(), state.Password.ValueString(), state.VMSystemMemory.ValueInt64(), state.VMCPUCount.ValueInt64())
+	updatedModel, err := r.read(ctx, resourceID, plan.Config.ValueString(), plan.DeploymentType.ValueString(), plan.Password.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.VMSystemMemory.ValueInt64(), plan.VMCPUCount.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity worker VM",
@@ -732,7 +889,7 @@ func (r *InfinityWorkerVMResource) ImportState(ctx context.Context, req resource
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity worker VM with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID, "", "", 0, 0)
+	model, err := r.read(ctx, resourceID, "", "", "", "", "", 0, 0)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
