@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -89,6 +90,7 @@ func (r *InfinityCACertificateResource) Schema(ctx context.Context, req resource
 			"trusted_intermediate": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether this CA certificate is trusted as an intermediate certificate.",
 			},
 			"start_date": schema.StringAttribute{
@@ -154,6 +156,7 @@ func (r *InfinityCACertificateResource) Create(ctx context.Context, req resource
 
 	createRequest := &config.CACertificateCreateRequest{
 		Certificate:         plan.Certificate.ValueString(),
+		TrustedIntermediate: plan.TrustedIntermediate.ValueBool(),
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateCACertificate(ctx, createRequest)
@@ -267,13 +270,8 @@ func (r *InfinityCACertificateResource) Update(ctx context.Context, req resource
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.CACertificateUpdateRequest{
-		Certificate: plan.Certificate.ValueString(),
-	}
-
-	// Set boolean pointer field for update
-	if !plan.TrustedIntermediate.IsNull() {
-		trustedIntermediate := plan.TrustedIntermediate.ValueBool()
-		updateRequest.TrustedIntermediate = &trustedIntermediate
+		Certificate:          plan.Certificate.ValueString(),
+		TrustedIntermediate:  plan.TrustedIntermediate.ValueBool(),
 	}
 
 	_, err := r.InfinityClient.Config().UpdateCACertificate(ctx, resourceID, updateRequest)
