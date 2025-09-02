@@ -702,22 +702,23 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 }
 
 func (r *InfinityManagementVMResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &InfinityManagementVMResourceModel{}
+	tflog.Info(ctx, "Setting Infinity management VM to empty state")
 
-	tflog.Info(ctx, "Deleting Infinity management VM")
-
-	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
+	updateRequest := &config.ManagementVMUpdateRequest{
+		DNSServers:                  []string{},
+		NTPServers:                  []string{},
+		SyslogServers:               []string{},
+		SSHAuthorizedKeys:           []string{},
+		StaticRoutes:                []string{},
+		TLSCertificate:              nil,
+		SNMPNetworkManagementSystem: nil,
 	}
 
-	err := r.InfinityClient.Config().DeleteManagementVM(ctx, int(state.ResourceID.ValueInt32()))
-
-	// Ignore 404 Not Found and Lookup errors on delete
+	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, 1, updateRequest)
 	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
-			"Error Deleting Infinity management VM",
-			fmt.Sprintf("Could not delete Infinity management VM with ID %s: %s", state.ID.ValueString(), err),
+			"Error Resetting Infinity management VM configuration",
+			fmt.Sprintf("Could not reset Infinity management VM configuration: %s", err),
 		)
 		return
 	}

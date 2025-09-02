@@ -534,22 +534,8 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 }
 
 func (r *InfinityAuthenticationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// For singleton resources, delete means resetting to default values
-	// We'll reset to local authentication to "delete" the configuration
-	tflog.Info(ctx, "Deleting Infinity authentication configuration (resetting to local)")
-
-	updateRequest := &config.AuthenticationUpdateRequest{
-		Source: "local",
-	}
-
-	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
-	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
-		resp.Diagnostics.AddError(
-			"Error Deleting Infinity authentication configuration",
-			fmt.Sprintf("Could not delete Infinity authentication configuration: %s", err),
-		)
-		return
-	}
+	// For authentication, nothing needs to be done on delete
+	tflog.Info(ctx, "Deleting Infinity authentication configuration is a no-op")
 }
 
 func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
