@@ -132,13 +132,11 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"dns_servers": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of DNS server resource URIs for this system location.",
 			},
 			"ntp_servers": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of NTP server resource URIs for this system location.",
 			},
@@ -150,65 +148,54 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"syslog_servers": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The Syslog servers to be used by Conferencing Nodes deployed in this Location.",
 			},
 			"h323_gatekeeper": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "H.323 Gatekeeper resource URI.",
 			},
 			"snmp_network_management_system": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "SNMP Network Management System resource URI.",
 			},
 			"sip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            false,
 				MarkdownDescription: "SIP Proxy resource URI.",
 			},
 			"http_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "HTTP Proxy resource URI.",
 			},
 			"mssip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Microsoft SIP Proxy resource URI.",
 			},
 			"teams_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Teams Proxy resource URI.",
 			},
 			"turn_server": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "TURN server resource URI.",
 			},
 			"stun_server": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "STUN server resource URI.",
 			},
 			"client_turn_servers": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of client TURN server URIs.",
 			},
 			"client_stun_servers": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of client STUN server URIs.",
 			},
 			"use_relay_candidates_only": schema.BoolAttribute{
 				Optional:            true,
-				Computed:            true,
+				Computed:  true,
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to use relay candidates only.",
 			},
@@ -221,21 +208,19 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"signalling_qos": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             int32default.StaticInt32(0),
 				MarkdownDescription: "Signalling QoS value.",
 			},
 			"transcoding_location": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Transcoding location resource URI.",
 			},
 			"overflow_location1": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Overflow location 1 resource URI.",
 			},
 			"overflow_location2": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Overflow location 2 resource URI.",
 			},
 			"local_mssip_domain": schema.StringAttribute{
@@ -246,12 +231,10 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"policy_server": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Policy server resource URI.",
 			},
 			"event_sinks": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of event sink URIs.",
 			},
@@ -275,17 +258,14 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"live_captions_dial_out_1": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Live captions dial out 1 URI.",
 			},
 			"live_captions_dial_out_2": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Live captions dial out 2 URI.",
 			},
 			"live_captions_dial_out_3": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Live captions dial out 3 URI.",
 			},
 		},
@@ -318,6 +298,7 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	// intialize create request with required fields, list fields, and fields with defaults
 	createRequest := &config.SystemLocationCreateRequest{
 		Name:              plan.Name.ValueString(),
 		DNSServers:        dnsServers,
@@ -326,15 +307,16 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		ClientTURNServers: clientTurnServers,
 		ClientSTUNServers: clientStunServers,
 		EventSinks:        eventSinks,
+		Description:       plan.Description.ValueString(),
+		BDPMPinChecksEnabled: 	plan.BDPMPINChecksEnabled.ValueString(),
+		BDPMScanQuarantineEnabled: plan.BDPMScanQuarantineEnabled.ValueString(),
+		LocalMSSIPDomain:  plan.LocalMSSIPDomain.ValueString(),
+		MTU:               int(plan.MTU.ValueInt32()),
+		UseRelayCandidatesOnly: plan.UseRelayCandidatesOnly.ValueBool(),
 	}
 
+	// All nullable fields
 	// Only set optional fields if they are not null in the plan
-	if !plan.Description.IsNull() {
-		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.MTU.IsNull() {
-		createRequest.MTU = int(plan.MTU.ValueInt32())
-	}
 	if !plan.H323GateKeeper.IsNull() && !plan.H323GateKeeper.IsUnknown() {
 		value := plan.H323GateKeeper.ValueString()
 		createRequest.H323Gatekeeper = &value
@@ -351,10 +333,6 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		value := plan.HTTPProxy.ValueString()
 		createRequest.HTTPProxy = &value
 	}
-	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
-		value := plan.MSSIPProxy.ValueString()
-		createRequest.MSSIPProxy = &value
-	}
 	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
 		value := plan.TeamsProxy.ValueString()
 		createRequest.TeamsProxy = &value
@@ -366,9 +344,6 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	if !plan.STUNServer.IsNull() && !plan.STUNServer.IsUnknown() {
 		value := plan.STUNServer.ValueString()
 		createRequest.STUNServer = &value
-	}
-	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
-		createRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
 	}
 	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
 		value := int(plan.MediaQOS.ValueInt32())
@@ -390,18 +365,9 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		value := plan.OverflowLocation2.ValueString()
 		createRequest.OverflowLocation2 = &value
 	}
-	if !plan.LocalMSSIPDomain.IsNull() && !plan.LocalMSSIPDomain.IsUnknown() {
-		createRequest.LocalMSSIPDomain = plan.LocalMSSIPDomain.ValueString()
-	}
 	if !plan.PolicyServer.IsNull() && !plan.PolicyServer.IsUnknown() {
 		value := plan.PolicyServer.ValueString()
 		createRequest.PolicyServer = &value
-	}
-	if !plan.BDPMPINChecksEnabled.IsNull() && !plan.BDPMPINChecksEnabled.IsUnknown() {
-		createRequest.BDPMPinChecksEnabled = plan.BDPMPINChecksEnabled.ValueString()
-	}
-	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
-		createRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
 	}
 	if !plan.LiveCaptionsDialOut1.IsNull() && !plan.LiveCaptionsDialOut1.IsUnknown() {
 		value := plan.LiveCaptionsDialOut1.ValueString()

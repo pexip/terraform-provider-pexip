@@ -258,6 +258,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			"disabled_codecs": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
 				Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MP4A-LATM_128"),
 					types.StringValue("H264_H_0"),
