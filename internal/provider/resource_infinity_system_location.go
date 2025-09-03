@@ -12,14 +12,17 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/pexip/go-infinity-sdk/v38/config"
 )
 
@@ -35,10 +38,14 @@ type InfinitySystemLocationResourceModel struct {
 	ID                          types.String `tfsdk:"id"`
 	ResourceID                  types.Int32  `tfsdk:"resource_id"`
 	Name                        types.String `tfsdk:"name"`
+	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
+	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
 	Description                 types.String `tfsdk:"description"`
+	LocalMSSIPDomain            types.String `tfsdk:"local_mssip_domain"`
+	MTU                         types.Int32  `tfsdk:"mtu"`
+	UseRelayCandidatesOnly      types.Bool   `tfsdk:"use_relay_candidates_only"`
 	DNSServers                  types.Set    `tfsdk:"dns_servers"`
 	NTPServers                  types.Set    `tfsdk:"ntp_servers"`
-	MTU                         types.Int32  `tfsdk:"mtu"`
 	SyslogServers               types.Set    `tfsdk:"syslog_servers"`
 	H323GateKeeper              types.String `tfsdk:"h323_gatekeeper"`
 	SNMPNetworkManagementSystem types.String `tfsdk:"snmp_network_management_system"`
@@ -50,17 +57,13 @@ type InfinitySystemLocationResourceModel struct {
 	STUNServer                  types.String `tfsdk:"stun_server"`
 	ClientTURNServers           types.Set    `tfsdk:"client_turn_servers"`
 	ClientSTUNServers           types.Set    `tfsdk:"client_stun_servers"`
-	UseRelayCandidatesOnly      types.Bool   `tfsdk:"use_relay_candidates_only"`
 	MediaQOS                    types.Int32  `tfsdk:"media_qos"`
 	SignallingQOS               types.Int32  `tfsdk:"signalling_qos"`
 	TranscodingLocation         types.String `tfsdk:"transcoding_location"`
 	OverflowLocation1           types.String `tfsdk:"overflow_location1"`
 	OverflowLocation2           types.String `tfsdk:"overflow_location2"`
-	LocalMSSIPDomain            types.String `tfsdk:"local_mssip_domain"`
 	PolicyServer                types.String `tfsdk:"policy_server"`
 	EventSinks                  types.Set    `tfsdk:"event_sinks"`
-	BDPMPINChecksEnabled        types.String `tfsdk:"bdpm_pin_checks_enabled"`
-	BDPMScanQuarantineEnabled   types.String `tfsdk:"bdpm_scan_quarantine_enabled"`
 	LiveCaptionsDialOut1        types.String `tfsdk:"live_captions_dial_out_1"`
 	LiveCaptionsDialOut2        types.String `tfsdk:"live_captions_dial_out_2"`
 	LiveCaptionsDialOut3        types.String `tfsdk:"live_captions_dial_out_3"`
@@ -121,6 +124,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -141,6 +145,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"mtu": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             int32default.StaticInt32(1500),
 				MarkdownDescription: "Maximum Transmission Unit for this system location. Range: 512 to 1500.",
 			},
 			"syslog_servers": schema.SetAttribute{
@@ -204,6 +209,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"use_relay_candidates_only": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to use relay candidates only.",
 			},
 			"media_qos": schema.Int32Attribute{
@@ -234,6 +240,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"local_mssip_domain": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Local Microsoft SIP domain.",
 			},
 			"policy_server": schema.StringAttribute{
@@ -248,13 +255,21 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "List of event sink URIs.",
 			},
 			"bdpm_pin_checks_enabled": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
+				},
 				MarkdownDescription: "Whether BDPM PIN checks are enabled.",
 			},
 			"bdpm_scan_quarantine_enabled": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
+				},
 				MarkdownDescription: "Whether BDPM scan quarantine is enabled.",
 			},
 			"live_captions_dial_out_1": schema.StringAttribute{
@@ -525,11 +540,19 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
 	data.TURNServer = types.StringPointerValue(srv.TURNServer)
 	data.STUNServer = types.StringPointerValue(srv.STUNServer)
+	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
 
 	// Booleans and Ints
-	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
-	data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))           // #nosec G115 -- API values are expected to be within int32 range
-	data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS)) // #nosec G115 -- API values are expected to be within int32 range
+	if srv.MediaQoS != nil {
+		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
+	} else {
+		data.MediaQOS = types.Int32Null()
+	}
+	if srv.SignallingQoS != nil {
+		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
+	} else {
+		data.SignallingQOS = types.Int32Null()
+	}
 	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
 	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
 	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
@@ -603,15 +626,14 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		Name:              plan.Name.ValueString(),
 		DNSServers:        dnsServers,
 		NTPServers:        ntpServers,
+		Description:       plan.Description.ValueString(),
 		SyslogServers:     syslogServers,
 		ClientTURNServers: clientTurnServers,
 		ClientSTUNServers: clientStunServers,
 		EventSinks:        eventSinks,
 	}
 
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
+	
 	if !plan.MTU.IsNull() {
 		updateRequest.MTU = int(plan.MTU.ValueInt32())
 	}
@@ -653,6 +675,8 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
 		value := int(plan.MediaQOS.ValueInt32())
 		updateRequest.MediaQoS = &value
+	} else {
+		updateRequest.MediaQoS = nil
 	}
 	if !plan.SignallingQOS.IsNull() && !plan.SignallingQOS.IsUnknown() {
 		value := int(plan.SignallingQOS.ValueInt32())
