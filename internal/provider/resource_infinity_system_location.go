@@ -195,7 +195,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"use_relay_candidates_only": schema.BoolAttribute{
 				Optional:            true,
-				Computed:  true,
+				Computed:            true,
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to use relay candidates only.",
 			},
@@ -298,21 +298,21 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// intialize create request with required fields, list fields, and fields with defaults
+	// initialize create request with required fields, list fields, and fields with defaults
 	createRequest := &config.SystemLocationCreateRequest{
-		Name:              plan.Name.ValueString(),
-		DNSServers:        dnsServers,
-		NTPServers:        ntpServers,
-		SyslogServers:     syslogServers,
-		ClientTURNServers: clientTurnServers,
-		ClientSTUNServers: clientStunServers,
-		EventSinks:        eventSinks,
-		Description:       plan.Description.ValueString(),
-		BDPMPinChecksEnabled: 	plan.BDPMPINChecksEnabled.ValueString(),
+		Name:                      plan.Name.ValueString(),
+		DNSServers:                dnsServers,
+		NTPServers:                ntpServers,
+		SyslogServers:             syslogServers,
+		ClientTURNServers:         clientTurnServers,
+		ClientSTUNServers:         clientStunServers,
+		EventSinks:                eventSinks,
+		Description:               plan.Description.ValueString(),
+		BDPMPinChecksEnabled:      plan.BDPMPINChecksEnabled.ValueString(),
 		BDPMScanQuarantineEnabled: plan.BDPMScanQuarantineEnabled.ValueString(),
-		LocalMSSIPDomain:  plan.LocalMSSIPDomain.ValueString(),
-		MTU:               int(plan.MTU.ValueInt32()),
-		UseRelayCandidatesOnly: plan.UseRelayCandidatesOnly.ValueBool(),
+		LocalMSSIPDomain:          plan.LocalMSSIPDomain.ValueString(),
+		MTU:                       int(plan.MTU.ValueInt32()),
+		UseRelayCandidatesOnly:    plan.UseRelayCandidatesOnly.ValueBool(),
 	}
 
 	// All nullable fields
@@ -328,6 +328,10 @@ func (r *InfinitySystemLocationResource) Create(ctx context.Context, req resourc
 	if !plan.SIPProxy.IsNull() && !plan.SIPProxy.IsUnknown() {
 		value := plan.SIPProxy.ValueString()
 		createRequest.SIPProxy = &value
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		value := plan.MSSIPProxy.ValueString()
+		createRequest.MSSIPProxy = &value
 	}
 	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
 		value := plan.HTTPProxy.ValueString()
@@ -572,8 +576,8 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
+	// Convert List attributes to []string
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
-
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
@@ -589,20 +593,25 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		return
 	}
 
+	// initialize update request with required fields, list fields, and fields with defaults
 	updateRequest := &config.SystemLocationUpdateRequest{
-		Name:              plan.Name.ValueString(),
-		DNSServers:        dnsServers,
-		NTPServers:        ntpServers,
-		Description:       plan.Description.ValueString(),
-		SyslogServers:     syslogServers,
-		ClientTURNServers: clientTurnServers,
-		ClientSTUNServers: clientStunServers,
-		EventSinks:        eventSinks,
+		Name:                      plan.Name.ValueString(),
+		DNSServers:                dnsServers,
+		NTPServers:                ntpServers,
+		SyslogServers:             syslogServers,
+		ClientTURNServers:         clientTurnServers,
+		ClientSTUNServers:         clientStunServers,
+		EventSinks:                eventSinks,
+		Description:               plan.Description.ValueString(),
+		BDPMPinChecksEnabled:      plan.BDPMPINChecksEnabled.ValueString(),
+		BDPMScanQuarantineEnabled: plan.BDPMScanQuarantineEnabled.ValueString(),
+		LocalMSSIPDomain:          plan.LocalMSSIPDomain.ValueString(),
+		MTU:                       int(plan.MTU.ValueInt32()),
+		UseRelayCandidatesOnly:    plan.UseRelayCandidatesOnly.ValueBool(),
 	}
 
-	if !plan.MTU.IsNull() {
-		updateRequest.MTU = int(plan.MTU.ValueInt32())
-	}
+	// All nullable fields
+	// Only set optional fields if they are not null in the plan
 	if !plan.H323GateKeeper.IsNull() && !plan.H323GateKeeper.IsUnknown() {
 		value := plan.H323GateKeeper.ValueString()
 		updateRequest.H323Gatekeeper = &value
@@ -615,13 +624,13 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		value := plan.SIPProxy.ValueString()
 		updateRequest.SIPProxy = &value
 	}
-	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
-		value := plan.HTTPProxy.ValueString()
-		updateRequest.HTTPProxy = &value
-	}
 	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
 		value := plan.MSSIPProxy.ValueString()
 		updateRequest.MSSIPProxy = &value
+	}
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		value := plan.HTTPProxy.ValueString()
+		updateRequest.HTTPProxy = &value
 	}
 	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
 		value := plan.TeamsProxy.ValueString()
@@ -635,14 +644,9 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		value := plan.STUNServer.ValueString()
 		updateRequest.STUNServer = &value
 	}
-	if !plan.UseRelayCandidatesOnly.IsNull() && !plan.UseRelayCandidatesOnly.IsUnknown() {
-		updateRequest.UseRelayCandidatesOnly = plan.UseRelayCandidatesOnly.ValueBool()
-	}
 	if !plan.MediaQOS.IsNull() && !plan.MediaQOS.IsUnknown() {
 		value := int(plan.MediaQOS.ValueInt32())
 		updateRequest.MediaQoS = &value
-	} else {
-		updateRequest.MediaQoS = nil
 	}
 	if !plan.SignallingQOS.IsNull() && !plan.SignallingQOS.IsUnknown() {
 		value := int(plan.SignallingQOS.ValueInt32())
@@ -660,18 +664,9 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		value := plan.OverflowLocation2.ValueString()
 		updateRequest.OverflowLocation2 = &value
 	}
-	if !plan.LocalMSSIPDomain.IsNull() && !plan.LocalMSSIPDomain.IsUnknown() {
-		updateRequest.LocalMSSIPDomain = plan.LocalMSSIPDomain.ValueString()
-	}
 	if !plan.PolicyServer.IsNull() && !plan.PolicyServer.IsUnknown() {
 		value := plan.PolicyServer.ValueString()
 		updateRequest.PolicyServer = &value
-	}
-	if !plan.BDPMPINChecksEnabled.IsNull() && !plan.BDPMPINChecksEnabled.IsUnknown() {
-		updateRequest.BDPMPinChecksEnabled = plan.BDPMPINChecksEnabled.ValueString()
-	}
-	if !plan.BDPMScanQuarantineEnabled.IsNull() && !plan.BDPMScanQuarantineEnabled.IsUnknown() {
-		updateRequest.BDPMScanQuarantineEnabled = plan.BDPMScanQuarantineEnabled.ValueString()
 	}
 	if !plan.LiveCaptionsDialOut1.IsNull() && !plan.LiveCaptionsDialOut1.IsUnknown() {
 		value := plan.LiveCaptionsDialOut1.ValueString()
