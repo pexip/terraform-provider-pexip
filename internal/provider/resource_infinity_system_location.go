@@ -435,7 +435,36 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	data.Description = types.StringValue(srv.Description)
 	data.MTU = types.Int32Value(int32(srv.MTU)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
-
+	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
+	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
+	data.SIPProxy = types.StringPointerValue(srv.SIPProxy)
+	data.HTTPProxy = types.StringPointerValue(srv.HTTPProxy)
+	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
+	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
+	data.TURNServer = types.StringPointerValue(srv.TURNServer)
+	data.STUNServer = types.StringPointerValue(srv.STUNServer)
+	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
+	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
+	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
+	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
+	data.LocalMSSIPDomain = types.StringValue(srv.LocalMSSIPDomain)
+	data.PolicyServer = types.StringPointerValue(srv.PolicyServer)
+	data.BDPMPINChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
+	data.BDPMScanQuarantineEnabled = types.StringValue(srv.BDPMScanQuarantineEnabled)
+	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
+	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
+	data.LiveCaptionsDialOut3 = types.StringPointerValue(srv.LiveCaptionsDialOut3)
+	if srv.MediaQoS != nil {
+		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
+	} else {
+		data.MediaQOS = types.Int32Null()
+	}
+	if srv.SignallingQoS != nil {
+		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
+	} else {
+		data.SignallingQOS = types.Int32Null()
+	}
+	
 	// Convert DNS servers from SDK to Terraform format
 	var dnsServers []string
 	for _, dns := range srv.DNSServers {
@@ -501,39 +530,6 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 		return nil, fmt.Errorf("error converting client STUN servers: %v", diags)
 	}
 	data.ClientSTUNServers = clientStunSet
-
-	// The following fields are set if available in srv, otherwise set to Null
-	data.H323GateKeeper = types.StringPointerValue(srv.H323Gatekeeper)
-	data.SNMPNetworkManagementSystem = types.StringPointerValue(srv.SNMPNetworkManagementSystem)
-	data.SIPProxy = types.StringPointerValue(srv.SIPProxy)
-	data.HTTPProxy = types.StringPointerValue(srv.HTTPProxy)
-	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
-	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
-	data.TURNServer = types.StringPointerValue(srv.TURNServer)
-	data.STUNServer = types.StringPointerValue(srv.STUNServer)
-	data.UseRelayCandidatesOnly = types.BoolValue(srv.UseRelayCandidatesOnly)
-
-	// Booleans and Ints
-	if srv.MediaQoS != nil {
-		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
-	} else {
-		data.MediaQOS = types.Int32Null()
-	}
-	if srv.SignallingQoS != nil {
-		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
-	} else {
-		data.SignallingQOS = types.Int32Null()
-	}
-	data.TranscodingLocation = types.StringPointerValue(srv.TranscodingLocation)
-	data.OverflowLocation1 = types.StringPointerValue(srv.OverflowLocation1)
-	data.OverflowLocation2 = types.StringPointerValue(srv.OverflowLocation2)
-	data.LocalMSSIPDomain = types.StringValue(srv.LocalMSSIPDomain)
-	data.PolicyServer = types.StringPointerValue(srv.PolicyServer)
-	data.BDPMPINChecksEnabled = types.StringValue(srv.BDPMPinChecksEnabled)
-	data.BDPMScanQuarantineEnabled = types.StringValue(srv.BDPMScanQuarantineEnabled)
-	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
-	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
-	data.LiveCaptionsDialOut3 = types.StringPointerValue(srv.LiveCaptionsDialOut3)
 
 	return &data, nil
 }
