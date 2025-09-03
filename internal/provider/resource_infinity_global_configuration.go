@@ -10,10 +10,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -189,50 +194,80 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"bdpm_max_pin_failures_per_window": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(20),
 				MarkdownDescription: "Maximum PIN failures per window for Break-in Defense Policy Manager.",
 			},
 			"bdpm_max_scan_attempts_per_window": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(20),
 				MarkdownDescription: "Maximum scan attempts per window for Break-in Defense Policy Manager.",
 			},
 			"bdpm_pin_checks_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable PIN checks for Break-in Defense Policy Manager.",
 			},
 			"bdpm_scan_quarantine_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable scan quarantine for Break-in Defense Policy Manager.",
 			},
 			"bursting_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable cloud bursting functionality.",
 			},
 			"bursting_min_lifetime": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(50),
 				MarkdownDescription: "Minimum lifetime (minutes) for bursting nodes.",
 			},
 			"bursting_threshold": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(5),
 				MarkdownDescription: "Threshold for bursting node activation.",
 			},
 			"cloud_provider": schema.StringAttribute{
-				Optional:            true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("AWS"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("AWS", "AZURE", "GCP"),
+				},
 				MarkdownDescription: "Cloud provider for bursting (AWS, AZURE, GCP).",
 			},
 			"contact_email_address": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Contact email address for incident reports.",
 			},
 			"content_security_policy_header": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             "",
 				MarkdownDescription: "HTTP Content-Security-Policy header contents.",
 			},
 			"content_security_policy_state": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable HTTP Content-Security-Policy.",
 			},
 			"crypto_mode": schema.StringAttribute{
-				Optional:            true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("besteffort"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("besteffort", "on", "off"),
+				},
 				MarkdownDescription: "Controls media encryption requirements.",
 			},
 			"default_theme": schema.StringAttribute{
@@ -241,16 +276,21 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"default_to_new_webapp": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Deprecated field - use 'default_webapp' instead.",
 			},
 			"default_webapp": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("latest"),
 				MarkdownDescription: "Deprecated field - use 'default_webapp_alias' instead.",
 			},
 			"default_webapp_alias": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Default web app path for conferencing nodes.",
 			},
+			// unique for each deployment, not update by users
 			"deployment_uuid": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Deployment UUID.",
@@ -268,138 +308,206 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"eject_last_participant_backstop_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "Timeout for ejecting last participant.",
 			},
 			"enable_analytics": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable analytics collection.",
 			},
 			"enable_application_api": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable Infinity Client API.",
 			},
 			"enable_breakout_rooms": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable Breakout Rooms feature.",
 			},
 			"enable_chat": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable chat relay between participants.",
 			},
 			"enable_denoise": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable server-side denoising.",
 			},
 			"enable_dialout": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable dialout functionality.",
 			},
 			"enable_directory": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable directory for Infinity Connect clients.",
 			},
 			"enable_edge_non_mesh": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable restricted IPsec routing for Edge Nodes.",
 			},
 			"enable_fecc": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable Far-End Camera Control (FECC).",
 			},
 			"enable_h323": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable H.323 protocol.",
 			},
 			"enable_legacy_dialout_api": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable legacy dialout API.",
 			},
 			"enable_lync_auto_escalate": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable Lync auto escalate.",
 			},
 			"enable_lync_vbss": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable Lync VbSS.",
 			},
 			"enable_mlvad": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable advanced voice activity detection.",
 			},
 			"enable_multiscreen": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable dual screen layouts.",
 			},
 			"enable_push_notifications": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable push notifications (deprecated).",
 			},
 			"enable_rtmp": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable RTMP protocol.",
 			},
 			"enable_sip": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable SIP protocol.",
 			},
 			"enable_sip_udp": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable SIP UDP protocol.",
 			},
 			"enable_softmute": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable Softmute for audio gating.",
 			},
 			"enable_ssh": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable SSH access.",
 			},
 			"enable_turn_443": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable TURN on TCP port 443 for WebRTC.",
 			},
 			"enable_webrtc": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable WebRTC protocol.",
 			},
 			"error_reporting_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable error reporting.",
 			},
 			"error_reporting_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "URL for error reporting.",
+				Computed:            true,
+				Default:             stringdefault.StaticString("https://acr.pexip.com"),
+				MarkdownDescription: "URL for error reporting. Default https://acr.pexip.com",
 			},
 			"es_connection_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(7),
 				MarkdownDescription: "Connection timeout for event sink.",
 			},
 			"es_initial_retry_backoff": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(1),
 				MarkdownDescription: "Initial retry backoff for event sink.",
 			},
 			"es_maximum_deferred_posts": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(1000),
 				MarkdownDescription: "Maximum deferred posts for event sink.",
 			},
 			"es_maximum_retry_backoff": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(1800),
 				MarkdownDescription: "Maximum retry backoff for event sink.",
 			},
 			"es_media_streams_wait": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(1),
 				MarkdownDescription: "Media streams wait time for event sink.",
 			},
 			"es_metrics_update_interval": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(60),
 				MarkdownDescription: "Metrics update interval for event sink.",
 			},
 			"es_short_term_memory_expiration": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(2),
 				MarkdownDescription: "Short term memory expiration for event sink.",
 			},
 			"external_participant_avatar_lookup": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable external participant avatar lookup.",
 			},
 			"gcp_client_email": schema.StringAttribute{
@@ -408,6 +516,8 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"gcp_private_key": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "GCP service account private key.",
 			},
 			"gcp_project_id": schema.StringAttribute{
@@ -416,66 +526,98 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"guests_only_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(60),
 				MarkdownDescription: "Timeout for guests-only conferences.",
 			},
 			"legacy_api_http": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable legacy API HTTP access.",
 			},
 			"legacy_api_username": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Legacy API username.",
 			},
 			"legacy_api_password": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Legacy API password.",
 			},
 			"live_captions_api_gateway": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Live captions API gateway.",
 			},
 			"live_captions_app_id": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Live captions App ID.",
 			},
 			"live_captions_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable live captions.",
 			},
 			"live_captions_public_jwt_key": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Live captions public JWT key.",
 			},
 			"live_captions_vmr_default": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable live captions by default for VMRs.",
 			},
 			"liveview_show_conferences": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Show conferences in Live View.",
 			},
 			"local_mssip_domain": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Local MSSIP domain.",
 			},
 			"logon_banner": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Logon banner text.",
 			},
 			"logs_max_age": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "Maximum age of logs (days).",
 			},
 			"management_qos": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "DSCP value for management traffic.",
 			},
 			"management_session_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "Session timeout for management interface (minutes).",
 			},
 			"management_start_page": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("/admin/conferencingstatus/deploymentgraph/deployment_graph/"),
 				MarkdownDescription: "Start page for management web.",
 			},
 			"max_callrate_in": schema.Int64Attribute{
@@ -486,44 +628,76 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				MarkdownDescription: "Maximum callrate out (kbps).",
 			},
+			"max_pixels_per_second": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("hd"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("sd", "hd", "fullhd"),
+				},
+				MarkdownDescription: "Maximum pixels per second.",
+			},
 			"max_presentation_bandwidth_ratio": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(75),
 				MarkdownDescription: "Maximum percentage of bandwidth for presentation.",
 			},
 			"media_ports_end": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(49999),
 				MarkdownDescription: "End port for media traffic.",
 			},
 			"media_ports_start": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(40000),
 				MarkdownDescription: "Start port for media traffic.",
 			},
 			"ocsp_responder_url": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OCSP responder URL.",
 			},
 			"ocsp_state": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("OFF"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("OFF", "ON", "OVERRIDE"),
+				},
 				MarkdownDescription: "OCSP state.",
 			},
 			"pin_entry_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(120),
 				MarkdownDescription: "Timeout for PIN entry (seconds).",
 			},
 			"pss_customer_id": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Pexip Private Cloud customer ID.",
 			},
 			"pss_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable Pexip Private Cloud connection.",
 			},
 			"pss_gateway": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Pexip Private Cloud gateway URL.",
 			},
 			"pss_token": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Pexip Private Cloud token.",
 			},
 			"resource_uri": schema.StringAttribute{
@@ -532,38 +706,59 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"session_timeout_enabled": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable session timeout for management interface.",
 			},
 			"signalling_ports_end": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(39999),
 				MarkdownDescription: "End port for signalling traffic.",
 			},
 			"signalling_ports_start": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(34000),
 				MarkdownDescription: "Start port for signalling traffic.",
 			},
 			"sip_tls_cert_verify_mode": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("OFF"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("OFF", "ON"),
+				},
 				MarkdownDescription: "SIP TLS certificate verify mode.",
 			},
 			"site_banner": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Site banner text.",
 			},
 			"site_banner_bg": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("#c0c0c0"),
 				MarkdownDescription: "Site banner background color.",
 			},
 			"site_banner_fg": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("#000000"),
 				MarkdownDescription: "Site banner foreground color.",
 			},
 			"teams_enable_powerpoint_render": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable PowerPoint Live content in Teams calls.",
 			},
 			"waiting_for_chair_timeout": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(900),
 				MarkdownDescription: "Timeout for waiting for chair (seconds).",
 			},
 			"global_conference_create_groups": schema.SetAttribute{
