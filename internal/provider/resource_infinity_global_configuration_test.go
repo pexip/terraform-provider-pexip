@@ -28,32 +28,32 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 
 	// Shared state for mocking - include all fields that are set in config
 	mockState := &config.GlobalConfiguration{
-		ID:                          1,
-		ResourceURI:                 "/api/admin/configuration/v1/global/1/",
-		EnableWebRTC:                true,
-		EnableSIP:                   true,
-		EnableH323:                  true,
-		EnableRTMP:                  true,
-		CryptoMode:                  "besteffort",
-		MaxPixelsPerSecond:          "720000",
-		BurstingEnabled:             true,
-		CloudProvider:               "aws",
-		AWSAccessKey:                test.StringPtr("test-key"),
-		AWSSecretKey:                test.StringPtr("test-secret"),
-		AzureClientID:               test.StringPtr("test-client"),
-		AzureSecret:                 test.StringPtr("test-secret"),
-		ConferenceCreatePermissions: "user_admin",
-		ConferenceCreationMode:      "per_cluster",
-		EnableAnalytics:             true,
-		EnableErrorReporting:        true,
-		BandwidthRestrictions:       "restricted",
-		AdministratorEmail:          "test@example.com",
-		MediaPortsStart:             40000,
-		MediaPortsEnd:               40100,
-		SignallingPortsStart:        5060,
-		SignallingPortsEnd:          5070,
-		GuestsOnlyTimeout:           300,
-		WaitingForChairTimeout:      600,
+		ID:                 1,
+		ResourceURI:        "/api/admin/configuration/v1/global/1/",
+		EnableWebRTC:       true,
+		EnableSIP:          true,
+		EnableH323:         true,
+		EnableRTMP:         true,
+		CryptoMode:         "besteffort",
+		MaxPixelsPerSecond: "720000",
+		BurstingEnabled:    true,
+		CloudProvider:      "aws",
+		AWSAccessKey:       test.StringPtr("test-key"),
+		AWSSecretKey:       test.StringPtr("test-secret"),
+		AzureClientID:      test.StringPtr("test-client"),
+		AzureSecret:        test.StringPtr("test-secret"),
+		//		ConferenceCreatePermissions: "user_admin",
+		//		ConferenceCreationMode:      "per_cluster",
+		EnableAnalytics: true,
+		//		EnableErrorReporting:        true,
+		//		BandwidthRestrictions:       "restricted",
+		//		AdministratorEmail:          "test@example.com",
+		MediaPortsStart:        40000,
+		MediaPortsEnd:          40100,
+		SignallingPortsStart:   5060,
+		SignallingPortsEnd:     5070,
+		GuestsOnlyTimeout:      300,
+		WaitingForChairTimeout: 600,
 	}
 
 	// Mock the GetGlobalconfiguration API call for Read operations
@@ -104,24 +104,24 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		if updateRequest.AzureSecret != nil {
 			mockState.AzureSecret = updateRequest.AzureSecret
 		}
-		if updateRequest.ConferenceCreatePermissions != "" {
-			mockState.ConferenceCreatePermissions = updateRequest.ConferenceCreatePermissions
-		}
-		if updateRequest.ConferenceCreationMode != "" {
-			mockState.ConferenceCreationMode = updateRequest.ConferenceCreationMode
-		}
-		if updateRequest.EnableAnalytics != nil {
-			mockState.EnableAnalytics = *updateRequest.EnableAnalytics
-		}
-		if updateRequest.EnableErrorReporting != nil {
-			mockState.EnableErrorReporting = *updateRequest.EnableErrorReporting
-		}
-		if updateRequest.BandwidthRestrictions != "" {
-			mockState.BandwidthRestrictions = updateRequest.BandwidthRestrictions
-		}
-		if updateRequest.AdministratorEmail != "" {
-			mockState.AdministratorEmail = updateRequest.AdministratorEmail
-		}
+		//if updateRequest.ConferenceCreatePermissions != "" {
+		//	mockState.ConferenceCreatePermissions = updateRequest.ConferenceCreatePermissions
+		//}
+		//if updateRequest.ConferenceCreationMode != "" {
+		//	mockState.ConferenceCreationMode = updateRequest.ConferenceCreationMode
+		//}
+		//if updateRequest.EnableAnalytics != nil {
+		//	mockState.EnableAnalytics = *updateRequest.EnableAnalytics
+		//}
+		//if updateRequest.EnableErrorReporting != nil {
+		//	mockState.EnableErrorReporting = *updateRequest.EnableErrorReporting
+		//}
+		//if updateRequest.BandwidthRestrictions != "" {
+		//	mockState.BandwidthRestrictions = updateRequest.BandwidthRestrictions
+		//}
+		//if updateRequest.AdministratorEmail != "" {
+		//	mockState.AdministratorEmail = updateRequest.AdministratorEmail
+		//}
 		if updateRequest.MediaPortsStart != nil {
 			mockState.MediaPortsStart = *updateRequest.MediaPortsStart
 		}

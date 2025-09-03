@@ -37,59 +37,29 @@ func TestInfinitySystemLocation(t *testing.T) {
 	updated := false
 
 	// Mock the GetSystemLocation API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		sysLoc := args.Get(2).(*config.SystemLocation)
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		sysLoc := args.Get(3).(*config.SystemLocation)
 		if updated {
-			mediaQoS := 46
-			signallingQoS := 24
-			h323Gatekeeper := "/api/admin/configuration/v1/h323_gatekeeper/1/"
-			httpProxy := "/api/admin/configuration/v1/http_proxy/1/"
-			liveCaptionsDialOut1 := "/api/admin/configuration/v1/system_location/1/"
-			liveCaptionsDialOut2 := "/api/admin/configuration/v1/system_location/2/"
-			liveCaptionsDialOut3 := "/api/admin/configuration/v1/system_location/3/"
-			localMSSIPDomain := "test-mssip-domain.local"
-			mssipProxy := "/api/admin/configuration/v1/mssip_proxy/1/"
-			overflowLocation1 := "/api/admin/configuration/v1/system_location/1/"
-			overflowLocation2 := "/api/admin/configuration/v1/system_location/2/"
-			policyServer := "/api/admin/configuration/v1/policy_server/1/"
-			sipProxy := "/api/admin/configuration/v1/sip_proxy/1/"
-			snmpNMS := "/api/admin/configuration/v1/snmp_network_management_system/2/"
 			stunServer := "/api/admin/configuration/v1/stun_server/2/"
-			teamsProxy := "/api/admin/configuration/v1/teams_proxy/1/"
-			transcodingLocation := "/api/admin/configuration/v1/system_location/3/"
-			turnServer := "/api/admin/configuration/v1/turn_server/3/"
-			useRelayCandidatesOnly := true
 
 			*sysLoc = config.SystemLocation{
-				ID:               123,
-				Name:             "main",
-				Description:      "Main location for Pexip Infinity System - updated",
-				MTU:              1460,
-				MediaQoS:         &mediaQoS,
-				SignallingQoS:    &signallingQoS,
-				LocalMSSIPDomain: localMSSIPDomain,
+				ID:          123,
+				Name:        "main",
+				Description: "Main location for Pexip Infinity System - updated",
+				MTU:         1460,
 				DNSServers: []config.DNSServer{
 					{ID: 1, ResourceURI: "/api/admin/configuration/v1/dns_server/1/"},
 				},
 				NTPServers: []config.NTPServer{
 					{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
 				},
-				SyslogServers:               []config.SyslogServer{},
-				H323Gatekeeper:              &h323Gatekeeper,
-				SIPProxy:                    &sipProxy,
-				MSSIPProxy:                  &mssipProxy,
-				TeamsProxy:                  &teamsProxy,
-				OverflowLocation1:           &overflowLocation1,
-				OverflowLocation2:           &overflowLocation2,
-				TranscodingLocation:         &transcodingLocation,
-				BDPMPinChecksEnabled:        "ON",
-				BDPMScanQuarantineEnabled:   "ON",
-				UseRelayCandidatesOnly:      useRelayCandidatesOnly,
-				ResourceURI:                 "/api/admin/configuration/v1/system_location/123/",
-				SNMPNetworkManagementSystem: &snmpNMS,
-				HTTPProxy:                   &httpProxy,
-				TURNServer:                  &turnServer,
-				STUNServer:                  &stunServer,
+				SyslogServers:             []config.SyslogServer{},
+				BDPMPinChecksEnabled:      "GLOBAL",
+				BDPMScanQuarantineEnabled: "GLOBAL",
+				UseRelayCandidatesOnly:    false,
+				LocalMSSIPDomain:          "",
+				ResourceURI:               "/api/admin/configuration/v1/system_location/123/",
+				STUNServer:                &stunServer,
 				ClientTURNServers: []string{
 					"/api/admin/configuration/v1/turn_server/2/",
 				},
@@ -99,10 +69,6 @@ func TestInfinitySystemLocation(t *testing.T) {
 				EventSinks: []config.EventSink{
 					{ID: 1, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
 				},
-				PolicyServer:         &policyServer,
-				LiveCaptionsDialOut1: &liveCaptionsDialOut1,
-				LiveCaptionsDialOut2: &liveCaptionsDialOut2,
-				LiveCaptionsDialOut3: &liveCaptionsDialOut3,
 			}
 		} else {
 			mediaQoS := 46
@@ -285,6 +251,10 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "event_sinks.#", "1"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "event_sinks.*", "/api/admin/configuration/v1/event_sink/1/"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "stun_server", "/api/admin/configuration/v1/stun_server/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "bdpm_pin_checks_enabled", "GLOBAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "bdpm_scan_quarantine_enabled", "GLOBAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "use_relay_candidates_only", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "local_mssip_domain", ""),
 				),
 			},
 		},

@@ -10,8 +10,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -254,8 +256,13 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Deployment UUID.",
 			},
 			"disabled_codecs": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
+				ElementType: types.StringType,
+				Optional:    true,
+				Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
+					types.StringValue("MP4A-LATM_128"),
+					types.StringValue("H264_H_0"),
+					types.StringValue("H264_H_1"),
+				})),
 				MarkdownDescription: "Codecs to disable.",
 			},
 			"eject_last_participant_backstop_timeout": schema.Int64Attribute{
@@ -603,33 +610,33 @@ func (r *InfinityGlobalConfigurationResource) Create(ctx context.Context, req re
 
 func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityGlobalConfigurationResourceModel) *config.GlobalConfigurationUpdateRequest {
 	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		CloudProvider:                       plan.CloudProvider.ValueString(),
-		ContactEmailAddress:                 plan.ContactEmailAddress.ValueString(),
-		ContentSecurityPolicyHeader:         plan.ContentSecurityPolicyHeader.ValueString(),
-		CryptoMode:                          plan.CryptoMode.ValueString(),
-		DefaultWebapp:                       plan.DefaultWebapp.ValueString(),
-		DeploymentUUID:                      plan.DeploymentUUID.ValueString(),
-		ErrorReportingURL:                   plan.ErrorReportingURL.ValueString(),
-		LegacyAPIUsername:                   plan.LegacyAPIUsername.ValueString(),
-		LegacyAPIPassword:                   plan.LegacyAPIPassword.ValueString(),
-		LiveCaptionsAPIGateway:              plan.LiveCaptionsAPIGateway.ValueString(),
-		LiveCaptionsAppID:                   plan.LiveCaptionsAppID.ValueString(),
-		LiveCaptionsPublicJWTKey:            plan.LiveCaptionsPublicJWTKey.ValueString(),
-		LocalMssipDomain:                    plan.LocalMssipDomain.ValueString(),
-		LogonBanner:                         plan.LogonBanner.ValueString(),
-		ManagementStartPage:                 plan.ManagementStartPage.ValueString(),
-		MaxPixelsPerSecond:                  plan.MaxPixelsPerSecond.ValueString(),
-		OcspResponderURL:                    plan.OcspResponderURL.ValueString(),
-		OcspState:                           plan.OcspState.ValueString(),
-		PssCustomerID:                       plan.PssCustomerID.ValueString(),
-		PssGateway:                          plan.PssGateway.ValueString(),
-		PssToken:                            plan.PssToken.ValueString(),
-		SipTLSCertVerifyMode:                plan.SipTLSCertVerifyMode.ValueString(),
-		SiteBanner:                          plan.SiteBanner.ValueString(),
-		SiteBannerBg:                        plan.SiteBannerBg.ValueString(),
-		SiteBannerFg:                        plan.SiteBannerFg.ValueString(),
+		CloudProvider:               plan.CloudProvider.ValueString(),
+		ContactEmailAddress:         plan.ContactEmailAddress.ValueString(),
+		ContentSecurityPolicyHeader: plan.ContentSecurityPolicyHeader.ValueString(),
+		CryptoMode:                  plan.CryptoMode.ValueString(),
+		DefaultWebapp:               plan.DefaultWebapp.ValueString(),
+		DeploymentUUID:              plan.DeploymentUUID.ValueString(),
+		ErrorReportingURL:           plan.ErrorReportingURL.ValueString(),
+		LegacyAPIUsername:           plan.LegacyAPIUsername.ValueString(),
+		LegacyAPIPassword:           plan.LegacyAPIPassword.ValueString(),
+		LiveCaptionsAPIGateway:      plan.LiveCaptionsAPIGateway.ValueString(),
+		LiveCaptionsAppID:           plan.LiveCaptionsAppID.ValueString(),
+		LiveCaptionsPublicJWTKey:    plan.LiveCaptionsPublicJWTKey.ValueString(),
+		LocalMssipDomain:            plan.LocalMssipDomain.ValueString(),
+		LogonBanner:                 plan.LogonBanner.ValueString(),
+		ManagementStartPage:         plan.ManagementStartPage.ValueString(),
+		MaxPixelsPerSecond:          plan.MaxPixelsPerSecond.ValueString(),
+		OcspResponderURL:            plan.OcspResponderURL.ValueString(),
+		OcspState:                   plan.OcspState.ValueString(),
+		PssCustomerID:               plan.PssCustomerID.ValueString(),
+		PssGateway:                  plan.PssGateway.ValueString(),
+		PssToken:                    plan.PssToken.ValueString(),
+		SipTLSCertVerifyMode:        plan.SipTLSCertVerifyMode.ValueString(),
+		SiteBanner:                  plan.SiteBanner.ValueString(),
+		SiteBannerBg:                plan.SiteBannerBg.ValueString(),
+		SiteBannerFg:                plan.SiteBannerFg.ValueString(),
 	}
-		
+
 	// handle pointers
 	if !plan.AWSSecretKey.IsNull() {
 		val := plan.AWSSecretKey.ValueString()
@@ -695,10 +702,13 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		val := plan.DefaultWebappAlias.ValueString()
 		updateRequest.DefaultWebappAlias = &val
 	}
-	//if !plan.DisabledCodecs.IsNull() {
-	//	val := plan.DisabledCodecs.
-	//	updateRequest.DisabledCodecs = &val
-	//}
+	if !plan.DisabledCodecs.IsNull() {
+		var disabledCodecs []config.CodecValue
+		for _, v := range plan.DisabledCodecs.Elements() {
+			disabledCodecs = append(disabledCodecs, config.CodecValue{Value: v.String()})
+		}
+		updateRequest.DisabledCodecs = disabledCodecs
+	}
 	if !plan.EjectLastParticipantBackstopTimeout.IsNull() {
 		val := int(plan.EjectLastParticipantBackstopTimeout.ValueInt64())
 		updateRequest.EjectLastParticipantBackstopTimeout = &val
@@ -988,7 +998,7 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 
 func (r *InfinityGlobalConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	state := &InfinityGlobalConfigurationResourceModel{}
-	
+
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1020,10 +1030,10 @@ func (r *InfinityGlobalConfigurationResource) Update(ctx context.Context, req re
 	}
 
 	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		CryptoMode:                  plan.CryptoMode.ValueString(),
-		MaxPixelsPerSecond:          plan.MaxPixelsPerSecond.ValueString(),
-		CloudProvider:               plan.CloudProvider.ValueString(),
-		ContactEmailAddress:         plan.ContactEmailAddress.ValueString(),
+		CryptoMode:          plan.CryptoMode.ValueString(),
+		MaxPixelsPerSecond:  plan.MaxPixelsPerSecond.ValueString(),
+		CloudProvider:       plan.CloudProvider.ValueString(),
+		ContactEmailAddress: plan.ContactEmailAddress.ValueString(),
 	}
 
 	// Handle boolean fields
