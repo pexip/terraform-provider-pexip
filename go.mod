@@ -5,6 +5,7 @@ replace github.com/pexip/go-infinity-sdk/v38 => /Users/mikeassel/Documents/githu
 go 1.24.3
 
 toolchain go1.24.4
+
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/hashicorp/terraform-plugin-framework v1.15.1
@@ -13,7 +14,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/pexip/go-infinity-sdk/v38 v38.0.6
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.40.0
 )
 
