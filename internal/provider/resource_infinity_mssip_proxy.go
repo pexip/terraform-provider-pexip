@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -83,6 +84,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -98,6 +100,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 			"port": schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int32default.StaticInt32(5061),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
@@ -106,10 +109,10 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 			"transport": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("tls"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "tls"),
 				},
-				Default:             stringdefault.StaticString("tls"),
 				MarkdownDescription: "The transport protocol for the MSSIP proxy. Valid values: tcp, tls.",
 			},
 		},

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
@@ -102,6 +103,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 			"port": schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int32default.StaticInt32(3478),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},

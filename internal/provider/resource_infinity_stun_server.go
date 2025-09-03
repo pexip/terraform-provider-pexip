@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -93,7 +94,9 @@ func (r *InfinitySTUNServerResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The address or hostname of the STUN server. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(3478),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
