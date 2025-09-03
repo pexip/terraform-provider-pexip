@@ -166,7 +166,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			},
 			"sip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
+				Computed:            false,
 				MarkdownDescription: "SIP Proxy resource URI.",
 			},
 			"http_proxy": schema.StringAttribute{
@@ -215,6 +215,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 			"media_qos": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             int32default.StaticInt32(0),
 				MarkdownDescription: "Media QoS value.",
 			},
 			"signalling_qos": schema.Int32Attribute{
@@ -633,7 +634,6 @@ func (r *InfinitySystemLocationResource) Update(ctx context.Context, req resourc
 		EventSinks:        eventSinks,
 	}
 
-	
 	if !plan.MTU.IsNull() {
 		updateRequest.MTU = int(plan.MTU.ValueInt32())
 	}

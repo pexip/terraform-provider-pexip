@@ -59,9 +59,7 @@ func TestInfinityCACertificate(t *testing.T) {
 		if updateRequest.Certificate != "" {
 			mockState.Certificate = updateRequest.Certificate
 		}
-		if updateRequest.TrustedIntermediate != nil {
-			mockState.TrustedIntermediate = *updateRequest.TrustedIntermediate
-		}
+		mockState.TrustedIntermediate = updateRequest.TrustedIntermediate
 
 		// Return updated state
 		*caCertificate = *mockState
