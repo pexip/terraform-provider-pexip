@@ -1092,16 +1092,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	}
 	data.DisabledCodecs, _ = types.SetValue(types.StringType, disabledCodecs)
 
-	//var disabledCodecs []attr.Value
-	//for _, v := range srv.DisabledCodecs {
-	//	disabledCodecs = append(disabledCodecs, types.StringValue(v.Value))
-	//}
-	//disabledCodecsSetValue, diags := types.SetValueFrom(ctx, types.StringType, disabledCodecs)
-	//if diags.HasError() {
-	//	return nil, fmt.Errorf("error converting disabled codecs: %v", diags)
-	//}
-	//data.DisabledCodecs = disabledCodecsSetValue
-
 	return &data, nil
 }
 
@@ -1139,6 +1129,10 @@ func (r *InfinityGlobalConfigurationResource) Update(ctx context.Context, req re
 	}
 
 	updateRequest := r.buildUpdateRequest(plan)
+
+	tflog.Debug(ctx, "Debug disabled codecs", map[string]interface{}{
+		"disabled_codecs": updateRequest.DisabledCodecs,
+	})
 
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
 	if err != nil {
