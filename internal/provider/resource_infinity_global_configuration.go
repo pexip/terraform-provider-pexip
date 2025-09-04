@@ -293,6 +293,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			// unique for each deployment, not update by users
 			"deployment_uuid": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Deployment UUID.",
 			},
 			"disabled_codecs": schema.SetAttribute{
