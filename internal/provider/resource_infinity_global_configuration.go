@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+
+	//"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -166,7 +167,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"aws_access_key": schema.StringAttribute{
 				Optional:            true,
-				Sensitive:           true,
 				MarkdownDescription: "The Amazon Web Services access key ID for the AWS user.",
 			},
 			"aws_secret_key": schema.StringAttribute{
@@ -299,11 +299,11 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
-				Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
-					types.StringValue("MP4A-LATM_128"),
-					types.StringValue("H264_H_0"),
-					types.StringValue("H264_H_1"),
-				})),
+				//Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
+				//	types.StringValue("MP4A-LATM_128"),
+				//	types.StringValue("H264_H_0"),
+				//	types.StringValue("H264_H_1"),
+				//})),
 				MarkdownDescription: "Codecs to disable.",
 			},
 			"eject_last_participant_backstop_timeout": schema.Int64Attribute{
@@ -517,6 +517,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			"gcp_private_key": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
+				Sensitive:           false,
 				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "GCP service account private key.",
 			},
@@ -544,6 +545,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			},
 			"legacy_api_password": schema.StringAttribute{
 				Optional:            true,
+				//Sensitive:           true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Legacy API password.",
@@ -611,7 +613,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			"management_session_timeout": schema.Int64Attribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             int64default.StaticInt64(0),
+				Default:             int64default.StaticInt64(30),
 				MarkdownDescription: "Session timeout for management interface (minutes).",
 			},
 			"management_start_page": schema.StringAttribute{
@@ -629,9 +631,9 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Maximum callrate out (kbps).",
 			},
 			"max_pixels_per_second": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("hd"),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("hd"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("sd", "hd", "fullhd"),
 				},
@@ -662,9 +664,9 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "OCSP responder URL.",
 			},
 			"ocsp_state": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("OFF"),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("OFF"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("OFF", "ON", "OVERRIDE"),
 				},
@@ -723,9 +725,9 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Start port for signalling traffic.",
 			},
 			"sip_tls_cert_verify_mode": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("OFF"),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("OFF"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("OFF", "ON"),
 				},
@@ -761,14 +763,169 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Default:             int64default.StaticInt64(900),
 				MarkdownDescription: "Timeout for waiting for chair (seconds).",
 			},
-			"global_conference_create_groups": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "Groups that can create conferences globally.",
-			},
 		},
 		MarkdownDescription: "Manages the global system configuration with the Infinity service. This is a singleton resource - only one global configuration exists per system.",
 	}
+}
+
+func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityGlobalConfigurationResourceModel) *config.GlobalConfigurationUpdateRequest {
+	updateRequest := &config.GlobalConfigurationUpdateRequest{
+		CloudProvider:                       plan.CloudProvider.ValueString(),
+		ContactEmailAddress:                 plan.ContactEmailAddress.ValueString(),
+		ContentSecurityPolicyHeader:         plan.ContentSecurityPolicyHeader.ValueString(),
+		ContentSecurityPolicyState:          plan.ContentSecurityPolicyState.ValueBool(),
+		CryptoMode:                          plan.CryptoMode.ValueString(),
+		DefaultWebapp:                       plan.DefaultWebapp.ValueString(),
+		DeploymentUUID:                      plan.DeploymentUUID.ValueString(),
+		ErrorReportingURL:                   plan.ErrorReportingURL.ValueString(),
+		LegacyAPIUsername:                   plan.LegacyAPIUsername.ValueString(),
+		LegacyAPIPassword:                   plan.LegacyAPIPassword.ValueString(),
+		LiveCaptionsAPIGateway:              plan.LiveCaptionsAPIGateway.ValueString(),
+		LiveCaptionsAppID:                   plan.LiveCaptionsAppID.ValueString(),
+		LiveCaptionsPublicJWTKey:            plan.LiveCaptionsPublicJWTKey.ValueString(),
+		LiveviewShowConferences:             plan.LiveviewShowConferences.ValueBool(),
+		LocalMssipDomain:                    plan.LocalMssipDomain.ValueString(),
+		LogonBanner:                         plan.LogonBanner.ValueString(),
+		ManagementStartPage:                 plan.ManagementStartPage.ValueString(),
+		MaxPixelsPerSecond:                  plan.MaxPixelsPerSecond.ValueString(),
+		OcspResponderURL:                    plan.OcspResponderURL.ValueString(),
+		OcspState:                           plan.OcspState.ValueString(),
+		PssCustomerID:                       plan.PssCustomerID.ValueString(),
+		PssGateway:                          plan.PssGateway.ValueString(),
+		PssToken:                            plan.PssToken.ValueString(),
+		SipTLSCertVerifyMode:                plan.SipTLSCertVerifyMode.ValueString(),
+		SiteBanner:                          plan.SiteBanner.ValueString(),
+		SiteBannerBg:                        plan.SiteBannerBg.ValueString(),
+		SiteBannerFg:                        plan.SiteBannerFg.ValueString(),
+		TeamsEnablePowerpointRender:         plan.TeamsEnablePowerpointRender.ValueBool(),
+		EnableWebRTC:                        plan.EnableWebRTC.ValueBool(),
+		EnableSIP:                           plan.EnableSIP.ValueBool(),
+		EnableH323:                          plan.EnableH323.ValueBool(),
+		EnableRTMP:                          plan.EnableRTMP.ValueBool(),
+		EnableAnalytics:                     plan.EnableAnalytics.ValueBool(),
+		EnableApplicationAPI:                plan.EnableApplicationAPI.ValueBool(),
+		EnableBreakoutRooms:                 plan.EnableBreakoutRooms.ValueBool(),
+		EnableChat:                          plan.EnableChat.ValueBool(),
+		EnableDenoise:                       plan.EnableDenoise.ValueBool(),
+		EnableDialout:                       plan.EnableDialout.ValueBool(),
+		EnableDirectory:                     plan.EnableDirectory.ValueBool(),
+		EnableEdgeNonMesh:                   plan.EnableEdgeNonMesh.ValueBool(),
+		EnableFecc:                          plan.EnableFecc.ValueBool(),
+		EnableLegacyDialoutAPI:              plan.EnableLegacyDialoutAPI.ValueBool(),
+		EnableLyncAutoEscalate:              plan.EnableLyncAutoEscalate.ValueBool(),
+		EnableLyncVbss:                      plan.EnableLyncVbss.ValueBool(),
+		EnableMlvad:                         plan.EnableMlvad.ValueBool(),
+		EnableMultiscreen:                   plan.EnableMultiscreen.ValueBool(),
+		EnablePushNotifications:             plan.EnablePushNotifications.ValueBool(),
+		EnableSoftmute:                      plan.EnableSoftmute.ValueBool(),
+		EnableSSH:                           plan.EnableSSH.ValueBool(),
+		EnableTurn443:                       plan.EnableTurn443.ValueBool(),
+		ErrorReportingEnabled:               plan.ErrorReportingEnabled.ValueBool(),
+		EsConnectionTimeout:                 int(plan.EsConnectionTimeout.ValueInt64()),
+		EsInitialRetryBackoff:               int(plan.EsInitialRetryBackoff.ValueInt64()),
+		EsMaximumDeferredPosts:              int(plan.EsMaximumDeferredPosts.ValueInt64()),
+		EsMaximumRetryBackoff:               int(plan.EsMaximumRetryBackoff.ValueInt64()),
+		EsMediaStreamsWait:                  int(plan.EsMediaStreamsWait.ValueInt64()),
+		EsMetricsUpdateInterval:             int(plan.EsMetricsUpdateInterval.ValueInt64()),
+		EsShortTermMemoryExpiration:         int(plan.EsShortTermMemoryExpiration.ValueInt64()),
+		ExternalParticipantAvatarLookup:     plan.ExternalParticipantAvatarLookup.ValueBool(),
+		GuestsOnlyTimeout:                   int(plan.GuestsOnlyTimeout.ValueInt64()),
+		LegacyAPIHTTP:                       plan.LegacyAPIHTTP.ValueBool(),
+		LiveCaptionsEnabled:                 plan.LiveCaptionsEnabled.ValueBool(),
+		LiveCaptionsVMRDefault:              plan.LiveCaptionsVMRDefault.ValueBool(),
+		LogsMaxAge:                          int(plan.LogsMaxAge.ValueInt64()),
+		ManagementSessionTimeout:            int(plan.ManagementSessionTimeout.ValueInt64()),
+		SessionTimeoutEnabled:               plan.SessionTimeoutEnabled.ValueBool(),
+		WaitingForChairTimeout:              int(plan.WaitingForChairTimeout.ValueInt64()),
+		EjectLastParticipantBackstopTimeout: int(plan.EjectLastParticipantBackstopTimeout.ValueInt64()),
+		MaxPresentationBandwidthRatio:       int(plan.MaxPresentationBandwidthRatio.ValueInt64()),
+		MediaPortsStart:                     int(plan.MediaPortsStart.ValueInt64()),
+		MediaPortsEnd:                       int(plan.MediaPortsEnd.ValueInt64()),
+		SignallingPortsStart:                int(plan.SignallingPortsStart.ValueInt64()),
+		SignallingPortsEnd:                  int(plan.SignallingPortsEnd.ValueInt64()),
+		PinEntryTimeout:                     int(plan.PinEntryTimeout.ValueInt64()),
+		BdpmMaxPinFailuresPerWindow:         int(plan.BdpmMaxPinFailuresPerWindow.ValueInt64()),
+		BdpmMaxScanAttemptsPerWindow:        int(plan.BdpmMaxScanAttemptsPerWindow.ValueInt64()),
+		BdpmPinChecksEnabled:                plan.BdpmPinChecksEnabled.ValueBool(),
+		BdpmScanQuarantineEnabled:           plan.BdpmScanQuarantineEnabled.ValueBool(),
+		BurstingEnabled:                     plan.BurstingEnabled.ValueBool(),
+	}
+
+	if !plan.DisabledCodecs.IsNull() {
+		var disabledCodecs []config.CodecValue
+		for _, v := range plan.DisabledCodecs.Elements() {
+			disabledCodecs = append(disabledCodecs, config.CodecValue{Value: v.String()})
+		}
+		updateRequest.DisabledCodecs = disabledCodecs
+	}
+
+	// handle pointers
+	if !plan.AWSAccessKey.IsNull() && !plan.AWSAccessKey.IsUnknown() {
+		val := plan.AWSAccessKey.ValueString()
+		updateRequest.AWSAccessKey = &val
+	}
+	if !plan.AWSSecretKey.IsNull() && !plan.AWSSecretKey.IsUnknown() {
+		val := plan.AWSSecretKey.ValueString()
+		updateRequest.AWSSecretKey = &val
+	}
+	if !plan.AzureClientID.IsNull() && !plan.AzureClientID.IsUnknown() {
+		val := plan.AzureClientID.ValueString()
+		updateRequest.AzureClientID = &val
+	}
+	if !plan.AzureSecret.IsNull() && !plan.AzureSecret.IsUnknown() {
+		val := plan.AzureSecret.ValueString()
+		updateRequest.AzureSecret = &val
+	}
+	if !plan.AzureSubscriptionID.IsNull() && !plan.AzureSubscriptionID.IsUnknown() {
+		val := plan.AzureSubscriptionID.ValueString()
+		updateRequest.AzureSubscriptionID = &val
+	}
+	if !plan.AzureTenant.IsNull() && !plan.AzureTenant.IsUnknown() {
+		val := plan.AzureTenant.ValueString()
+		updateRequest.AzureTenant = &val
+	}
+	if !plan.BurstingMinLifetime.IsNull() && !plan.BurstingMinLifetime.IsUnknown() {
+		val := int(plan.BurstingMinLifetime.ValueInt64())
+		updateRequest.BurstingMinLifetime = &val
+	}
+	if !plan.BurstingThreshold.IsNull() && !plan.BurstingThreshold.IsUnknown() {
+		val := int(plan.BurstingThreshold.ValueInt64())
+		updateRequest.BurstingThreshold = &val
+	}
+	if !plan.DefaultTheme.IsNull() && !plan.DefaultTheme.IsUnknown() {
+		val := plan.DefaultTheme.ValueString()
+		updateRequest.DefaultTheme = &val
+	}
+	if !plan.DefaultWebappAlias.IsNull() && !plan.DefaultWebappAlias.IsUnknown() {
+		val := plan.DefaultWebappAlias.ValueString()
+		updateRequest.DefaultWebappAlias = &val
+	}
+	if !plan.GcpClientEmail.IsNull() && !plan.GcpClientEmail.IsUnknown() {
+		val := plan.GcpClientEmail.ValueString()
+		updateRequest.GcpClientEmail = &val
+	}
+	if !plan.GcpPrivateKey.IsNull() && !plan.GcpPrivateKey.IsUnknown() {
+		val := plan.GcpPrivateKey.ValueString()
+		updateRequest.GcpPrivateKey = &val
+	}
+	if !plan.GcpProjectID.IsNull() && !plan.GcpProjectID.IsUnknown() {
+		val := plan.GcpProjectID.ValueString()
+		updateRequest.GcpProjectID = &val
+	}
+	if !plan.ManagementQos.IsNull() && !plan.ManagementQos.IsUnknown() {
+		val := int(plan.ManagementQos.ValueInt64())
+		updateRequest.ManagementQos = &val
+	}
+	if !plan.MaxCallrateIn.IsNull() && !plan.MaxCallrateIn.IsUnknown() {
+		val := int(plan.MaxCallrateIn.ValueInt64())
+		updateRequest.MaxCallrateIn = &val
+	}
+	if !plan.MaxCallrateOut.IsNull() && !plan.MaxCallrateOut.IsUnknown() {
+		val := int(plan.MaxCallrateOut.ValueInt64())
+		updateRequest.MaxCallrateOut = &val
+	}
+
+	return updateRequest
 }
 
 func (r *InfinityGlobalConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -792,7 +949,7 @@ func (r *InfinityGlobalConfigurationResource) Create(ctx context.Context, req re
 	}
 
 	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx, plan.AWSSecretKey.ValueString(), plan.AzureSecret.ValueString(), plan.GcpPrivateKey.ValueString(), plan.LegacyAPIPassword.ValueString())
+	model, err := r.read(ctx, plan.AWSSecretKey.ValueStringPointer(), plan.AzureSecret.ValueStringPointer(), plan.GcpPrivateKey.ValueStringPointer(), plan.LegacyAPIPassword.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity global configuration",
@@ -804,336 +961,7 @@ func (r *InfinityGlobalConfigurationResource) Create(ctx context.Context, req re
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityGlobalConfigurationResourceModel) *config.GlobalConfigurationUpdateRequest {
-	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		CloudProvider:               plan.CloudProvider.ValueString(),
-		ContactEmailAddress:         plan.ContactEmailAddress.ValueString(),
-		ContentSecurityPolicyHeader: plan.ContentSecurityPolicyHeader.ValueString(),
-		CryptoMode:                  plan.CryptoMode.ValueString(),
-		DefaultWebapp:               plan.DefaultWebapp.ValueString(),
-		DeploymentUUID:              plan.DeploymentUUID.ValueString(),
-		ErrorReportingURL:           plan.ErrorReportingURL.ValueString(),
-		LegacyAPIUsername:           plan.LegacyAPIUsername.ValueString(),
-		LegacyAPIPassword:           plan.LegacyAPIPassword.ValueString(),
-		LiveCaptionsAPIGateway:      plan.LiveCaptionsAPIGateway.ValueString(),
-		LiveCaptionsAppID:           plan.LiveCaptionsAppID.ValueString(),
-		LiveCaptionsPublicJWTKey:    plan.LiveCaptionsPublicJWTKey.ValueString(),
-		LocalMssipDomain:            plan.LocalMssipDomain.ValueString(),
-		LogonBanner:                 plan.LogonBanner.ValueString(),
-		ManagementStartPage:         plan.ManagementStartPage.ValueString(),
-		MaxPixelsPerSecond:          plan.MaxPixelsPerSecond.ValueString(),
-		OcspResponderURL:            plan.OcspResponderURL.ValueString(),
-		OcspState:                   plan.OcspState.ValueString(),
-		PssCustomerID:               plan.PssCustomerID.ValueString(),
-		PssGateway:                  plan.PssGateway.ValueString(),
-		PssToken:                    plan.PssToken.ValueString(),
-		SipTLSCertVerifyMode:        plan.SipTLSCertVerifyMode.ValueString(),
-		SiteBanner:                  plan.SiteBanner.ValueString(),
-		SiteBannerBg:                plan.SiteBannerBg.ValueString(),
-		SiteBannerFg:                plan.SiteBannerFg.ValueString(),
-	}
-
-	// handle pointers
-	if !plan.AWSSecretKey.IsNull() {
-		val := plan.AWSSecretKey.ValueString()
-		updateRequest.AWSSecretKey = &val
-	}
-	if !plan.AzureClientID.IsNull() {
-		val := plan.AzureClientID.ValueString()
-		updateRequest.AzureClientID = &val
-	}
-	if !plan.AzureSecret.IsNull() {
-		val := plan.AzureSecret.ValueString()
-		updateRequest.AzureSecret = &val
-	}
-	if !plan.AzureSubscriptionID.IsNull() {
-		val := plan.AzureSubscriptionID.ValueString()
-		updateRequest.AzureSubscriptionID = &val
-	}
-	if !plan.AzureTenant.IsNull() {
-		val := plan.AzureTenant.ValueString()
-		updateRequest.AzureTenant = &val
-	}
-	if !plan.BdpmMaxPinFailuresPerWindow.IsNull() {
-		val := int(plan.BdpmMaxPinFailuresPerWindow.ValueInt64())
-		updateRequest.BdpmMaxPinFailuresPerWindow = &val
-	}
-	if !plan.BdpmMaxScanAttemptsPerWindow.IsNull() {
-		val := int(plan.BdpmMaxScanAttemptsPerWindow.ValueInt64())
-		updateRequest.BdpmMaxScanAttemptsPerWindow = &val
-	}
-	if !plan.BdpmPinChecksEnabled.IsNull() {
-		val := plan.BdpmPinChecksEnabled.ValueBool()
-		updateRequest.BdpmPinChecksEnabled = &val
-	}
-	if !plan.BdpmScanQuarantineEnabled.IsNull() {
-		val := plan.BdpmScanQuarantineEnabled.ValueBool()
-		updateRequest.BdpmScanQuarantineEnabled = &val
-	}
-	if !plan.BurstingEnabled.IsNull() {
-		val := plan.BurstingEnabled.ValueBool()
-		updateRequest.BurstingEnabled = &val
-	}
-	if !plan.BurstingMinLifetime.IsNull() {
-		val := int(plan.BurstingMinLifetime.ValueInt64())
-		updateRequest.BurstingMinLifetime = &val
-	}
-	if !plan.BurstingThreshold.IsNull() {
-		val := int(plan.BurstingThreshold.ValueInt64())
-		updateRequest.BurstingThreshold = &val
-	}
-	if !plan.ContentSecurityPolicyState.IsNull() {
-		val := plan.ContentSecurityPolicyState.ValueBool()
-		updateRequest.ContentSecurityPolicyState = &val
-	}
-	if !plan.DefaultTheme.IsNull() {
-		val := plan.DefaultTheme.ValueString()
-		updateRequest.DefaultTheme = &val
-	}
-	if !plan.DefaultToNewWebapp.IsNull() {
-		val := plan.DefaultToNewWebapp.ValueBool()
-		updateRequest.DefaultToNewWebapp = &val
-	}
-	if !plan.DefaultWebappAlias.IsNull() {
-		val := plan.DefaultWebappAlias.ValueString()
-		updateRequest.DefaultWebappAlias = &val
-	}
-	if !plan.DisabledCodecs.IsNull() {
-		var disabledCodecs []config.CodecValue
-		for _, v := range plan.DisabledCodecs.Elements() {
-			disabledCodecs = append(disabledCodecs, config.CodecValue{Value: v.String()})
-		}
-		updateRequest.DisabledCodecs = disabledCodecs
-	}
-	if !plan.EjectLastParticipantBackstopTimeout.IsNull() {
-		val := int(plan.EjectLastParticipantBackstopTimeout.ValueInt64())
-		updateRequest.EjectLastParticipantBackstopTimeout = &val
-	}
-	if !plan.EnableAnalytics.IsNull() {
-		val := plan.EnableAnalytics.ValueBool()
-		updateRequest.EnableAnalytics = &val
-	}
-	if !plan.EnableApplicationAPI.IsNull() {
-		val := plan.EnableApplicationAPI.ValueBool()
-		updateRequest.EnableApplicationAPI = &val
-	}
-	if !plan.EnableBreakoutRooms.IsNull() {
-		val := plan.EnableBreakoutRooms.ValueBool()
-		updateRequest.EnableBreakoutRooms = &val
-	}
-	if !plan.EnableChat.IsNull() {
-		val := plan.EnableChat.ValueBool()
-		updateRequest.EnableChat = &val
-	}
-	if !plan.EnableDenoise.IsNull() {
-		val := plan.EnableDenoise.ValueBool()
-		updateRequest.EnableDenoise = &val
-	}
-	if !plan.EnableDialout.IsNull() {
-		val := plan.EnableDialout.ValueBool()
-		updateRequest.EnableDialout = &val
-	}
-	if !plan.EnableDirectory.IsNull() {
-		val := plan.EnableDirectory.ValueBool()
-		updateRequest.EnableDirectory = &val
-	}
-	if !plan.EnableEdgeNonMesh.IsNull() {
-		val := plan.EnableEdgeNonMesh.ValueBool()
-		updateRequest.EnableEdgeNonMesh = &val
-	}
-	if !plan.EnableFecc.IsNull() {
-		val := plan.EnableFecc.ValueBool()
-		updateRequest.EnableFecc = &val
-	}
-	if !plan.EnableH323.IsNull() {
-		val := plan.EnableH323.ValueBool()
-		updateRequest.EnableH323 = &val
-	}
-	if !plan.EnableLegacyDialoutAPI.IsNull() {
-		val := plan.EnableLegacyDialoutAPI.ValueBool()
-		updateRequest.EnableLegacyDialoutAPI = &val
-	}
-	if !plan.EnableLyncAutoEscalate.IsNull() {
-		val := plan.EnableLyncAutoEscalate.ValueBool()
-		updateRequest.EnableLyncAutoEscalate = &val
-	}
-	if !plan.EnableLyncVbss.IsNull() {
-		val := plan.EnableLyncVbss.ValueBool()
-		updateRequest.EnableLyncVbss = &val
-	}
-	if !plan.EnableMlvad.IsNull() {
-		val := plan.EnableMlvad.ValueBool()
-		updateRequest.EnableMlvad = &val
-	}
-	if !plan.EnableMultiscreen.IsNull() {
-		val := plan.EnableMultiscreen.ValueBool()
-		updateRequest.EnableMultiscreen = &val
-	}
-	if !plan.EnablePushNotifications.IsNull() {
-		val := plan.EnablePushNotifications.ValueBool()
-		updateRequest.EnablePushNotifications = &val
-	}
-	if !plan.EnableRTMP.IsNull() {
-		val := plan.EnableRTMP.ValueBool()
-		updateRequest.EnableRTMP = &val
-	}
-	if !plan.EnableSIP.IsNull() {
-		val := plan.EnableSIP.ValueBool()
-		updateRequest.EnableSIP = &val
-	}
-	if !plan.EnableSIPUDP.IsNull() {
-		val := plan.EnableSIPUDP.ValueBool()
-		updateRequest.EnableSIPUDP = &val
-	}
-	if !plan.EnableSoftmute.IsNull() {
-		val := plan.EnableSoftmute.ValueBool()
-		updateRequest.EnableSoftmute = &val
-	}
-	if !plan.EnableSSH.IsNull() {
-		val := plan.EnableSSH.ValueBool()
-		updateRequest.EnableSSH = &val
-	}
-	if !plan.EnableTurn443.IsNull() {
-		val := plan.EnableTurn443.ValueBool()
-		updateRequest.EnableTurn443 = &val
-	}
-	if !plan.EnableWebRTC.IsNull() {
-		val := plan.EnableWebRTC.ValueBool()
-		updateRequest.EnableWebRTC = &val
-	}
-	if !plan.ErrorReportingEnabled.IsNull() {
-		val := plan.ErrorReportingEnabled.ValueBool()
-		updateRequest.ErrorReportingEnabled = &val
-	}
-	if !plan.EsConnectionTimeout.IsNull() {
-		val := int(plan.EsConnectionTimeout.ValueInt64())
-		updateRequest.EsConnectionTimeout = &val
-	}
-	if !plan.EsInitialRetryBackoff.IsNull() {
-		val := int(plan.EsInitialRetryBackoff.ValueInt64())
-		updateRequest.EsInitialRetryBackoff = &val
-	}
-	if !plan.EsMaximumDeferredPosts.IsNull() {
-		val := int(plan.EsMaximumDeferredPosts.ValueInt64())
-		updateRequest.EsMaximumDeferredPosts = &val
-	}
-	if !plan.EsMaximumRetryBackoff.IsNull() {
-		val := int(plan.EsMaximumRetryBackoff.ValueInt64())
-		updateRequest.EsMaximumRetryBackoff = &val
-	}
-	if !plan.EsMediaStreamsWait.IsNull() {
-		val := int(plan.EsMediaStreamsWait.ValueInt64())
-		updateRequest.EsMediaStreamsWait = &val
-	}
-	if !plan.EsMetricsUpdateInterval.IsNull() {
-		val := int(plan.EsMetricsUpdateInterval.ValueInt64())
-		updateRequest.EsMetricsUpdateInterval = &val
-	}
-	if !plan.EsShortTermMemoryExpiration.IsNull() {
-		val := int(plan.EsShortTermMemoryExpiration.ValueInt64())
-		updateRequest.EsShortTermMemoryExpiration = &val
-	}
-	if !plan.ExternalParticipantAvatarLookup.IsNull() {
-		val := plan.ExternalParticipantAvatarLookup.ValueBool()
-		updateRequest.ExternalParticipantAvatarLookup = &val
-	}
-	if !plan.GcpClientEmail.IsNull() {
-		val := plan.GcpClientEmail.ValueString()
-		updateRequest.GcpClientEmail = &val
-	}
-	if !plan.GcpPrivateKey.IsNull() {
-		val := plan.GcpPrivateKey.ValueString()
-		updateRequest.GcpPrivateKey = &val
-	}
-	if !plan.GcpProjectID.IsNull() {
-		val := plan.GcpProjectID.ValueString()
-		updateRequest.GcpProjectID = &val
-	}
-	if !plan.GuestsOnlyTimeout.IsNull() {
-		val := int(plan.GuestsOnlyTimeout.ValueInt64())
-		updateRequest.GuestsOnlyTimeout = &val
-	}
-	if !plan.LegacyAPIHTTP.IsNull() {
-		val := plan.LegacyAPIHTTP.ValueBool()
-		updateRequest.LegacyAPIHTTP = &val
-	}
-	if !plan.LiveCaptionsEnabled.IsNull() {
-		val := plan.LiveCaptionsEnabled.ValueBool()
-		updateRequest.LiveCaptionsEnabled = &val
-	}
-	if !plan.LiveCaptionsVMRDefault.IsNull() {
-		val := plan.LiveCaptionsVMRDefault.ValueBool()
-		updateRequest.LiveCaptionsVMRDefault = &val
-	}
-	if !plan.LiveviewShowConferences.IsNull() {
-		val := plan.LiveviewShowConferences.ValueBool()
-		updateRequest.LiveviewShowConferences = &val
-	}
-	if !plan.LogsMaxAge.IsNull() {
-		val := int(plan.LogsMaxAge.ValueInt64())
-		updateRequest.LogsMaxAge = &val
-	}
-	if !plan.ManagementQos.IsNull() {
-		val := int(plan.ManagementQos.ValueInt64())
-		updateRequest.ManagementQos = &val
-	}
-	if !plan.ManagementSessionTimeout.IsNull() {
-		val := int(plan.ManagementSessionTimeout.ValueInt64())
-		updateRequest.ManagementSessionTimeout = &val
-	}
-	if !plan.MaxCallrateIn.IsNull() {
-		val := int(plan.MaxCallrateIn.ValueInt64())
-		updateRequest.MaxCallrateIn = &val
-	}
-	if !plan.MaxCallrateOut.IsNull() {
-		val := int(plan.MaxCallrateOut.ValueInt64())
-		updateRequest.MaxCallrateOut = &val
-	}
-	if !plan.MaxPresentationBandwidthRatio.IsNull() {
-		val := int(plan.MaxPresentationBandwidthRatio.ValueInt64())
-		updateRequest.MaxPresentationBandwidthRatio = &val
-	}
-	if !plan.MediaPortsEnd.IsNull() {
-		val := int(plan.MediaPortsEnd.ValueInt64())
-		updateRequest.MediaPortsEnd = &val
-	}
-	if !plan.MediaPortsStart.IsNull() {
-		val := int(plan.MediaPortsStart.ValueInt64())
-		updateRequest.MediaPortsStart = &val
-	}
-	if !plan.PinEntryTimeout.IsNull() {
-		val := int(plan.PinEntryTimeout.ValueInt64())
-		updateRequest.PinEntryTimeout = &val
-	}
-	if !plan.PssEnabled.IsNull() {
-		val := plan.PssEnabled.ValueBool()
-		updateRequest.PssEnabled = &val
-	}
-	if !plan.SessionTimeoutEnabled.IsNull() {
-		val := plan.SessionTimeoutEnabled.ValueBool()
-		updateRequest.SessionTimeoutEnabled = &val
-	}
-	if !plan.SignallingPortsEnd.IsNull() {
-		val := int(plan.SignallingPortsEnd.ValueInt64())
-		updateRequest.SignallingPortsEnd = &val
-	}
-	if !plan.SignallingPortsStart.IsNull() {
-		val := int(plan.SignallingPortsStart.ValueInt64())
-		updateRequest.SignallingPortsStart = &val
-	}
-	if !plan.TeamsEnablePowerpointRender.IsNull() {
-		val := plan.TeamsEnablePowerpointRender.ValueBool()
-		updateRequest.TeamsEnablePowerpointRender = &val
-	}
-	if !plan.WaitingForChairTimeout.IsNull() {
-		val := int(plan.WaitingForChairTimeout.ValueInt64())
-		updateRequest.WaitingForChairTimeout = &val
-	}
-
-	return updateRequest
-}
-
-func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecretKey, azureSecret, gcpPrivateKey, legacyAPIPassword string) (*InfinityGlobalConfigurationResourceModel, error) {
+func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecretKey, azureSecret, gcpPrivateKey *string, legacyAPIPassword string) (*InfinityGlobalConfigurationResourceModel, error) {
 	var data InfinityGlobalConfigurationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetGlobalConfiguration(ctx)
@@ -1146,48 +974,132 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
+	data.AWSAccessKey = types.StringPointerValue(srv.AWSAccessKey)
+	data.AWSSecretKey = types.StringPointerValue(awsSecretKey)
+	data.AzureClientID = types.StringPointerValue(srv.AzureClientID)
+	data.AzureSecret = types.StringPointerValue(azureSecret)
+	data.AzureSubscriptionID = types.StringPointerValue(srv.AzureSubscriptionID)
+	data.AzureTenant = types.StringPointerValue(srv.AzureTenant)
+	data.BdpmMaxPinFailuresPerWindow = types.Int64Value(int64(srv.BdpmMaxPinFailuresPerWindow))
+	data.BdpmMaxScanAttemptsPerWindow = types.Int64Value(int64(srv.BdpmMaxScanAttemptsPerWindow))
+	data.BdpmPinChecksEnabled = types.BoolValue(srv.BdpmPinChecksEnabled)
+	data.BdpmScanQuarantineEnabled = types.BoolValue(srv.BdpmScanQuarantineEnabled)
+	data.BurstingEnabled = types.BoolValue(srv.BurstingEnabled)
+	data.CloudProvider = types.StringValue(srv.CloudProvider)
+	data.ContactEmailAddress = types.StringValue(srv.ContactEmailAddress)
+	data.ContentSecurityPolicyHeader = types.StringValue(srv.ContentSecurityPolicyHeader)
+	data.ContentSecurityPolicyState = types.BoolValue(srv.ContentSecurityPolicyState)
+	data.CryptoMode = types.StringValue(srv.CryptoMode)
+	data.DefaultToNewWebapp = types.BoolValue(srv.DefaultToNewWebapp)
+	data.DefaultWebapp = types.StringValue(srv.DefaultWebapp)
+	data.DeploymentUUID = types.StringValue(srv.DeploymentUUID)
+	data.ErrorReportingURL = types.StringValue(srv.ErrorReportingURL)
+	data.LegacyAPIUsername = types.StringValue(srv.LegacyAPIUsername)
+	data.LegacyAPIPassword = types.StringValue(legacyAPIPassword)
+	data.LiveCaptionsAPIGateway = types.StringValue(srv.LiveCaptionsAPIGateway)
+	data.LiveCaptionsAppID = types.StringValue(srv.LiveCaptionsAppID)
+	data.LiveCaptionsPublicJWTKey = types.StringValue(srv.LiveCaptionsPublicJWTKey)
+	data.LiveviewShowConferences = types.BoolValue(srv.LiveviewShowConferences)
+	data.LocalMssipDomain = types.StringValue(srv.LocalMssipDomain)
+	data.LogonBanner = types.StringValue(srv.LogonBanner)
+	data.ManagementStartPage = types.StringValue(srv.ManagementStartPage)
+	data.MaxPixelsPerSecond = types.StringValue(srv.MaxPixelsPerSecond)
+	data.OcspResponderURL = types.StringValue(srv.OcspResponderURL)
+	data.OcspState = types.StringValue(srv.OcspState)
+	data.PssCustomerID = types.StringValue(srv.PssCustomerID)
+	data.PssEnabled = types.BoolValue(srv.PssEnabled)
+	data.PssGateway = types.StringValue(srv.PssGateway)
+	data.PssToken = types.StringValue(srv.PssToken)
+	data.SipTLSCertVerifyMode = types.StringValue(srv.SipTLSCertVerifyMode)
+	data.SiteBanner = types.StringValue(srv.SiteBanner)
+	data.SiteBannerBg = types.StringValue(srv.SiteBannerBg)
+	data.SiteBannerFg = types.StringValue(srv.SiteBannerFg)
+	data.TeamsEnablePowerpointRender = types.BoolValue(srv.TeamsEnablePowerpointRender)
 	data.EnableWebRTC = types.BoolValue(srv.EnableWebRTC)
 	data.EnableSIP = types.BoolValue(srv.EnableSIP)
 	data.EnableH323 = types.BoolValue(srv.EnableH323)
 	data.EnableRTMP = types.BoolValue(srv.EnableRTMP)
-	data.CryptoMode = types.StringValue(srv.CryptoMode)
-	data.MaxPixelsPerSecond = types.StringValue(srv.MaxPixelsPerSecond)
+	data.EnableAnalytics = types.BoolValue(srv.EnableAnalytics)
+	data.EnableApplicationAPI = types.BoolValue(srv.EnableApplicationAPI)
+	data.EnableBreakoutRooms = types.BoolValue(srv.EnableBreakoutRooms)
+	data.EnableChat = types.BoolValue(srv.EnableChat)
+	data.EnableDenoise = types.BoolValue(srv.EnableDenoise)
+	data.EnableDialout = types.BoolValue(srv.EnableDialout)
+	data.EnableDirectory = types.BoolValue(srv.EnableDirectory)
+	data.EnableEdgeNonMesh = types.BoolValue(srv.EnableEdgeNonMesh)
+	data.EnableFecc = types.BoolValue(srv.EnableFecc)
+	data.EnableLegacyDialoutAPI = types.BoolValue(srv.EnableLegacyDialoutAPI)
+	data.EnableLyncAutoEscalate = types.BoolValue(srv.EnableLyncAutoEscalate)
+	data.EnableLyncVbss = types.BoolValue(srv.EnableLyncVbss)
+	data.EnableMlvad = types.BoolValue(srv.EnableMlvad)
+	data.EnableMultiscreen = types.BoolValue(srv.EnableMultiscreen)
+	data.EnablePushNotifications = types.BoolValue(srv.EnablePushNotifications)
+	data.EnableSIPUDP = types.BoolValue(srv.EnableSIPUDP)
+	data.EnableSoftmute = types.BoolValue(srv.EnableSoftmute)
+	data.EnableSSH = types.BoolValue(srv.EnableSSH)
+	data.EnableTurn443 = types.BoolValue(srv.EnableTurn443)
+	data.ErrorReportingEnabled = types.BoolValue(srv.ErrorReportingEnabled)
+	data.EsConnectionTimeout = types.Int64Value(int64(srv.EsConnectionTimeout))
+	data.EsInitialRetryBackoff = types.Int64Value(int64(srv.EsInitialRetryBackoff))
+	data.EsMaximumDeferredPosts = types.Int64Value(int64(srv.EsMaximumDeferredPosts))
+	data.EsMaximumRetryBackoff = types.Int64Value(int64(srv.EsMaximumRetryBackoff))
+	data.EsMediaStreamsWait = types.Int64Value(int64(srv.EsMediaStreamsWait))
+	data.EsMetricsUpdateInterval = types.Int64Value(int64(srv.EsMetricsUpdateInterval))
+	data.EsShortTermMemoryExpiration = types.Int64Value(int64(srv.EsShortTermMemoryExpiration))
+	data.ExternalParticipantAvatarLookup = types.BoolValue(srv.ExternalParticipantAvatarLookup)
+	data.GcpProjectID = types.StringPointerValue(srv.GcpProjectID)
+	data.GcpClientEmail = types.StringPointerValue(srv.GcpClientEmail)
+	data.GcpPrivateKey = types.StringPointerValue(gcpPrivateKey)
+	data.GuestsOnlyTimeout = types.Int64Value(int64(srv.GuestsOnlyTimeout))
+	data.LegacyAPIHTTP = types.BoolValue(srv.LegacyAPIHTTP)
+	data.LiveCaptionsEnabled = types.BoolValue(srv.LiveCaptionsEnabled)
+	data.LiveCaptionsVMRDefault = types.BoolValue(srv.LiveCaptionsVMRDefault)
+	data.LogsMaxAge = types.Int64Value(int64(srv.LogsMaxAge))
+	data.ManagementSessionTimeout = types.Int64Value(int64(srv.ManagementSessionTimeout))
+	data.SessionTimeoutEnabled = types.BoolValue(srv.SessionTimeoutEnabled)
+	data.WaitingForChairTimeout = types.Int64Value(int64(srv.WaitingForChairTimeout))
+	data.EjectLastParticipantBackstopTimeout = types.Int64Value(int64(srv.EjectLastParticipantBackstopTimeout))
+	data.MaxPresentationBandwidthRatio = types.Int64Value(int64(srv.MaxPresentationBandwidthRatio))
 	data.MediaPortsStart = types.Int64Value(int64(srv.MediaPortsStart))
 	data.MediaPortsEnd = types.Int64Value(int64(srv.MediaPortsEnd))
 	data.SignallingPortsStart = types.Int64Value(int64(srv.SignallingPortsStart))
 	data.SignallingPortsEnd = types.Int64Value(int64(srv.SignallingPortsEnd))
+	data.PinEntryTimeout = types.Int64Value(int64(srv.PinEntryTimeout))
+	data.BdpmMaxPinFailuresPerWindow = types.Int64Value(int64(srv.BdpmMaxPinFailuresPerWindow))
+	data.BdpmMaxScanAttemptsPerWindow = types.Int64Value(int64(srv.BdpmMaxScanAttemptsPerWindow))
+	data.BdpmPinChecksEnabled = types.BoolValue(srv.BdpmPinChecksEnabled)
+	data.BdpmScanQuarantineEnabled = types.BoolValue(srv.BdpmScanQuarantineEnabled)
 	data.BurstingEnabled = types.BoolValue(srv.BurstingEnabled)
-	data.CloudProvider = types.StringValue(srv.CloudProvider)
-	data.GuestsOnlyTimeout = types.Int64Value(int64(srv.GuestsOnlyTimeout))
-	data.WaitingForChairTimeout = types.Int64Value(int64(srv.WaitingForChairTimeout))
-	data.EnableAnalytics = types.BoolValue(srv.EnableAnalytics)
-	data.ErrorReportingEnabled = types.BoolValue(srv.ErrorReportingEnabled)
-	data.ContactEmailAddress = types.StringValue(srv.ContactEmailAddress)
 
-	// Handle optional pointer fields
-	if srv.AWSAccessKey != nil {
-		data.AWSAccessKey = types.StringValue(*srv.AWSAccessKey)
-	} else {
-		data.AWSAccessKey = types.StringNull()
+	if srv.ManagementQos != nil {
+		data.ManagementQos = types.Int64Value(int64(*srv.ManagementQos))
+	}
+	//else {
+	//	data.ManagementQos = types.Int64Null()
+	//}
+
+	if srv.BurstingMinLifetime != nil {
+		data.BurstingMinLifetime = types.Int64Value(int64(*srv.BurstingMinLifetime))
+	}
+	if srv.BurstingThreshold != nil {
+		data.BurstingThreshold = types.Int64Value(int64(*srv.BurstingThreshold))
 	}
 
-	if srv.AWSSecretKey != nil {
-		data.AWSSecretKey = types.StringValue(*srv.AWSSecretKey)
-	} else {
-		data.AWSSecretKey = types.StringNull()
+	var disabledCodecs []attr.Value
+	for _, v := range srv.DisabledCodecs {
+		disabledCodecs = append(disabledCodecs, types.StringValue(v.Value))
 	}
+	data.DisabledCodecs, _ = types.SetValue(types.StringType, disabledCodecs)
 
-	if srv.AzureClientID != nil {
-		data.AzureClientID = types.StringValue(*srv.AzureClientID)
-	} else {
-		data.AzureClientID = types.StringNull()
-	}
-
-	if srv.AzureSecret != nil {
-		data.AzureSecret = types.StringValue(*srv.AzureSecret)
-	} else {
-		data.AzureSecret = types.StringNull()
-	}
+	//var disabledCodecs []attr.Value
+	//for _, v := range srv.DisabledCodecs {
+	//	disabledCodecs = append(disabledCodecs, types.StringValue(v.Value))
+	//}
+	//disabledCodecsSetValue, diags := types.SetValueFrom(ctx, types.StringType, disabledCodecs)
+	//if diags.HasError() {
+	//	return nil, fmt.Errorf("error converting disabled codecs: %v", diags)
+	//}
+	//data.DisabledCodecs = disabledCodecsSetValue
 
 	return &data, nil
 }
@@ -1200,7 +1112,7 @@ func (r *InfinityGlobalConfigurationResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	state, err := r.read(ctx, state.AWSSecretKey.ValueString(), state.AzureSecret.ValueString(), state.GcpPrivateKey.ValueString(), state.LegacyAPIPassword.ValueString())
+	state, err := r.read(ctx, state.AWSSecretKey.ValueStringPointer(), state.AzureSecret.ValueStringPointer(), state.GcpPrivateKey.ValueStringPointer(), state.LegacyAPIPassword.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources
 		if isNotFoundError(err) {
@@ -1225,100 +1137,7 @@ func (r *InfinityGlobalConfigurationResource) Update(ctx context.Context, req re
 		return
 	}
 
-	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		CryptoMode:          plan.CryptoMode.ValueString(),
-		MaxPixelsPerSecond:  plan.MaxPixelsPerSecond.ValueString(),
-		CloudProvider:       plan.CloudProvider.ValueString(),
-		ContactEmailAddress: plan.ContactEmailAddress.ValueString(),
-	}
-
-	// Handle boolean fields
-	if !plan.EnableWebRTC.IsNull() {
-		enable := plan.EnableWebRTC.ValueBool()
-		updateRequest.EnableWebRTC = &enable
-	}
-
-	if !plan.EnableSIP.IsNull() {
-		enable := plan.EnableSIP.ValueBool()
-		updateRequest.EnableSIP = &enable
-	}
-
-	if !plan.EnableH323.IsNull() {
-		enable := plan.EnableH323.ValueBool()
-		updateRequest.EnableH323 = &enable
-	}
-
-	if !plan.EnableRTMP.IsNull() {
-		enable := plan.EnableRTMP.ValueBool()
-		updateRequest.EnableRTMP = &enable
-	}
-
-	if !plan.BurstingEnabled.IsNull() {
-		enable := plan.BurstingEnabled.ValueBool()
-		updateRequest.BurstingEnabled = &enable
-	}
-
-	if !plan.EnableAnalytics.IsNull() {
-		enable := plan.EnableAnalytics.ValueBool()
-		updateRequest.EnableAnalytics = &enable
-	}
-
-	if !plan.ErrorReportingEnabled.IsNull() {
-		enable := plan.ErrorReportingEnabled.ValueBool()
-		updateRequest.ErrorReportingEnabled = &enable
-	}
-
-	// Handle integer fields
-	if !plan.MediaPortsStart.IsNull() {
-		port := int(plan.MediaPortsStart.ValueInt64())
-		updateRequest.MediaPortsStart = &port
-	}
-
-	if !plan.MediaPortsEnd.IsNull() {
-		port := int(plan.MediaPortsEnd.ValueInt64())
-		updateRequest.MediaPortsEnd = &port
-	}
-
-	if !plan.SignallingPortsStart.IsNull() {
-		port := int(plan.SignallingPortsStart.ValueInt64())
-		updateRequest.SignallingPortsStart = &port
-	}
-
-	if !plan.SignallingPortsEnd.IsNull() {
-		port := int(plan.SignallingPortsEnd.ValueInt64())
-		updateRequest.SignallingPortsEnd = &port
-	}
-
-	if !plan.GuestsOnlyTimeout.IsNull() {
-		timeout := int(plan.GuestsOnlyTimeout.ValueInt64())
-		updateRequest.GuestsOnlyTimeout = &timeout
-	}
-
-	if !plan.WaitingForChairTimeout.IsNull() {
-		timeout := int(plan.WaitingForChairTimeout.ValueInt64())
-		updateRequest.WaitingForChairTimeout = &timeout
-	}
-
-	// Handle sensitive string fields
-	if !plan.AWSAccessKey.IsNull() {
-		key := plan.AWSAccessKey.ValueString()
-		updateRequest.AWSAccessKey = &key
-	}
-
-	if !plan.AWSSecretKey.IsNull() {
-		secret := plan.AWSSecretKey.ValueString()
-		updateRequest.AWSSecretKey = &secret
-	}
-
-	if !plan.AzureClientID.IsNull() {
-		clientID := plan.AzureClientID.ValueString()
-		updateRequest.AzureClientID = &clientID
-	}
-
-	if !plan.AzureSecret.IsNull() {
-		secret := plan.AzureSecret.ValueString()
-		updateRequest.AzureSecret = &secret
-	}
+	updateRequest := r.buildUpdateRequest(plan)
 
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
 	if err != nil {
@@ -1330,7 +1149,7 @@ func (r *InfinityGlobalConfigurationResource) Update(ctx context.Context, req re
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, plan.AWSSecretKey.ValueString(), plan.AzureSecret.ValueString(), plan.GcpPrivateKey.ValueString(), plan.LegacyAPIPassword.ValueString())
+	updatedModel, err := r.read(ctx, plan.AWSSecretKey.ValueStringPointer(), plan.AzureSecret.ValueStringPointer(), plan.GcpPrivateKey.ValueStringPointer(), plan.LegacyAPIPassword.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity global configuration",
@@ -1347,14 +1166,10 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 	// We'll set minimal configuration to "delete" the customizations
 	tflog.Info(ctx, "Deleting Infinity global configuration (resetting to defaults)")
 
+	// only need to unset related fields
 	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		EnableWebRTC:    func() *bool { v := false; return &v }(),
-		EnableSIP:       func() *bool { v := false; return &v }(),
-		EnableH323:      func() *bool { v := false; return &v }(),
-		EnableRTMP:      func() *bool { v := false; return &v }(),
-		CryptoMode:      "disabled",
-		CloudProvider:   "",
-		BurstingEnabled: func() *bool { v := false; return &v }(),
+		DefaultTheme:       nil,
+		DefaultWebappAlias: nil,
 	}
 
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
@@ -1372,7 +1187,7 @@ func (r *InfinityGlobalConfigurationResource) ImportState(ctx context.Context, r
 	tflog.Trace(ctx, "Importing Infinity global configuration")
 
 	// Read the resource from the API
-	model, err := r.read(ctx, "", "", "", "")
+	model, err := r.read(ctx, nil, nil, nil, "")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Importing Infinity Global Configuration",
