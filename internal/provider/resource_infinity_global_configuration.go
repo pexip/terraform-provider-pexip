@@ -545,7 +545,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Legacy API username.",
 			},
 			"legacy_api_password": schema.StringAttribute{
-				Optional:            true,
+				Optional: true,
 				//Sensitive:           true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
@@ -777,8 +777,10 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		ContentSecurityPolicyState:          plan.ContentSecurityPolicyState.ValueBool(),
 		CryptoMode:                          plan.CryptoMode.ValueString(),
 		DefaultWebapp:                       plan.DefaultWebapp.ValueString(),
+		DefaultToNewWebapp:                  plan.DefaultToNewWebapp.ValueBool(),
 		DeploymentUUID:                      plan.DeploymentUUID.ValueString(),
 		ErrorReportingURL:                   plan.ErrorReportingURL.ValueString(),
+		EnableSIPUDP:                        plan.EnableSIPUDP.ValueBool(),
 		LegacyAPIUsername:                   plan.LegacyAPIUsername.ValueString(),
 		LegacyAPIPassword:                   plan.LegacyAPIPassword.ValueString(),
 		LiveCaptionsAPIGateway:              plan.LiveCaptionsAPIGateway.ValueString(),
@@ -993,6 +995,8 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.CryptoMode = types.StringValue(srv.CryptoMode)
 	data.DefaultToNewWebapp = types.BoolValue(srv.DefaultToNewWebapp)
 	data.DefaultWebapp = types.StringValue(srv.DefaultWebapp)
+	data.DefaultWebappAlias = types.StringPointerValue(srv.DefaultWebappAlias)
+	data.DefaultTheme = types.StringPointerValue(srv.DefaultTheme)
 	data.DeploymentUUID = types.StringValue(srv.DeploymentUUID)
 	data.ErrorReportingURL = types.StringValue(srv.ErrorReportingURL)
 	data.LegacyAPIUsername = types.StringValue(srv.LegacyAPIUsername)
@@ -1084,6 +1088,12 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	}
 	if srv.BurstingThreshold != nil {
 		data.BurstingThreshold = types.Int64Value(int64(*srv.BurstingThreshold))
+	}
+	if srv.MaxCallrateIn != nil {
+		data.MaxCallrateIn = types.Int64Value(int64(*srv.MaxCallrateIn))
+	}
+	if srv.MaxCallrateOut != nil {
+		data.MaxCallrateOut = types.Int64Value(int64(*srv.MaxCallrateOut))
 	}
 
 	var disabledCodecs []attr.Value
