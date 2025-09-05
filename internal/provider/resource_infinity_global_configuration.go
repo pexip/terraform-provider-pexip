@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 
-	//"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -300,11 +300,11 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
-				//Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
-				//	types.StringValue("MP4A-LATM_128"),
-				//	types.StringValue("H264_H_0"),
-				//	types.StringValue("H264_H_1"),
-				//})),
+				Default: setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{
+					types.StringValue("MP4A-LATM_128"),
+					types.StringValue("H264_H_0"),
+					types.StringValue("H264_H_1"),
+				})),
 				MarkdownDescription: "Codecs to disable.",
 			},
 			"eject_last_participant_backstop_timeout": schema.Int64Attribute{
@@ -857,7 +857,7 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 	if !plan.DisabledCodecs.IsNull() {
 		var disabledCodecs []config.CodecValue
 		for _, v := range plan.DisabledCodecs.Elements() {
-			disabledCodecs = append(disabledCodecs, config.CodecValue{Value: v.String()})
+			disabledCodecs = append(disabledCodecs, config.CodecValue{Value: v.(types.String).ValueString()})
 		}
 		updateRequest.DisabledCodecs = disabledCodecs
 	}
