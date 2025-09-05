@@ -83,8 +83,11 @@ func (d *InfinityPermissionDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
+	listOpts := &config.ListOptions{}
+    listOpts.Limit = 100
+
 	// Lookup by name
-	list, err := d.InfinityClient.Config().ListPermissions(ctx, nil)
+	list, err := d.InfinityClient.Config().ListPermissions(ctx, listOpts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Listing Infinity permissions",
