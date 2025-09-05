@@ -36,8 +36,17 @@ func TestInfinitySystemLocation(t *testing.T) {
 	// Track state to return different values before and after update
 	updated := false
 
-	// config for update that clears all fields 
-	
+	// config for update that clears all fields
+	clearAllFieldsMockState := &config.SystemLocation{
+		ID:          123,
+		Name:        "main",
+		ResourceURI:               "/api/admin/configuration/v1/system_location/123/",
+		MTU:         1500,
+		MediaQoS:      test.IntPtr(0),
+		SignallingQoS: test.IntPtr(0),
+		BDPMPinChecksEnabled:      "GLOBAL",
+		BDPMScanQuarantineEnabled: "GLOBAL",
+	}
 
 	// Mock the GetSystemLocation API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -45,36 +54,7 @@ func TestInfinitySystemLocation(t *testing.T) {
 		if updated {
 			//stunServer := "/api/admin/configuration/v1/stun_server/2/"
 
-			*sysLoc = config.SystemLocation{
-				ID:          123,
-				Name:        "main",
-				ResourceURI:               "/api/admin/configuration/v1/system_location/123/",
-				//Description: "Main location for Pexip Infinity System - updated",
-				MTU:         1500,
-				MediaQoS:      test.IntPtr(0),
-				SignallingQoS: test.IntPtr(0),
-				//DNSServers: []config.DNSServer{
-				//	{ID: 1, ResourceURI: "/api/admin/configuration/v1/dns_server/1/"},
-				//},
-				//NTPServers: []config.NTPServer{
-				//	{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
-				//},
-				//SyslogServers:             []config.SyslogServer{},
-				BDPMPinChecksEnabled:      "GLOBAL",
-				BDPMScanQuarantineEnabled: "GLOBAL",
-				//UseRelayCandidatesOnly:    false,
-				//LocalMSSIPDomain:          "",
-				//STUNServer:                &stunServer,
-				//ClientTURNServers: []string{
-				//	"/api/admin/configuration/v1/turn_server/2/",
-				//},
-				//ClientSTUNServers: []string{
-				//	"/api/admin/configuration/v1/stun_server/2/",
-				//},
-				//EventSinks: []config.EventSink{
-				//	{ID: 1, ResourceURI: "/api/admin/configuration/v1/event_sink/1/"},
-				//},
-			}
+			*sysLoc = *clearAllFieldsMockState
 		} else {
 			mediaQoS := 46
 			signallingQoS := 24
@@ -152,36 +132,7 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}), mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updated = true // Mark as updated for subsequent reads
 		sysLoc := args.Get(3).(*config.SystemLocation)
-		//mediaQoS := 46
-		//signallingQoS := 24
-		//stunServer := "/api/admin/configuration/v1/stun_server/2/"
-		*sysLoc = config.SystemLocation{
-			ID:            123,
-			Name:          "main",
-			ResourceURI: "/api/admin/configuration/v1/system_location/123/",
-			//Description:   "Main location for Pexip Infinity System - updated",
-			BDPMPinChecksEnabled:      "GLOBAL",
-			BDPMScanQuarantineEnabled: "GLOBAL",
-			MTU:           1500,
-			MediaQoS:      test.IntPtr(0),
-			SignallingQoS: test.IntPtr(0),
-			//DNSServers: []config.DNSServer{
-			//	{ID: 1, ResourceURI: "/api/admin/configuration/v1/dns_server/1/"},
-			//},
-			//NTPServers: []config.NTPServer{
-			//	{ID: 1, ResourceURI: "/api/admin/configuration/v1/ntp_server/1/"},
-			//},
-			//ClientSTUNServers: []string{
-			//	"/api/admin/configuration/v1/stun_server/2/",
-			//},
-			//ClientTURNServers: []string{
-			//	"/api/admin/configuration/v1/turn_server/2/",
-			//},
-			//EventSinks: []config.EventSink{
-			//	{ID: 3, ResourceURI: "/api/admin/configuration/v1/event_sink/3/"},
-			//},
-			//STUNServer:  &stunServer,
-		}
+		*sysLoc = *clearAllFieldsMockState
 	}).Maybe()
 
 	// Mock the DeleteSystemLocation API call
