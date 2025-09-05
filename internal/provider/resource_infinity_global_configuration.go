@@ -1171,10 +1171,33 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 	// We'll set minimal configuration to "delete" the customizations
 	tflog.Info(ctx, "Deleting Infinity global configuration (resetting to defaults)")
 
-	// only need to unset related fields
+	// only need to unset fields that are related or 
 	updateRequest := &config.GlobalConfigurationUpdateRequest{
+		BdpmMaxPinFailuresPerWindow: 20,
+		BdpmMaxScanAttemptsPerWindow: 20,
+		CloudProvider: "AWS",
+		ContentSecurityPolicyHeader: "upgrade-insecure-requests; default-src 'self'; frame-src 'self' https://telemetryservice.firstpartyapps.oaspapps.com/telemetryservice/telemetryproxy.html https://*.microsoft.com https://*.office.com; style-src 'self' 'unsafe-inline' https://*.microsoft.com https://*.office.com; object-src 'self'; font-src 'self' https://*.microsoft.com https://*.office.com; img-src 'self' https://www.adobe.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.microsoft.com https://*.office.com https://ajax.aspnetcdn.com https://api.keen.io; media-src 'self' blob:; connect-src 'self' https://*.microsoft.com https://*.office.com https://example.com; frame-ancestors 'self';",
+		CryptoMode: "besteffort",
 		DefaultTheme:       nil,
 		DefaultWebappAlias: nil,
+		ErrorReportingURL: "https://acr.pexip.com",
+		EsConnectionTimeout: 7,
+		EsMaximumRetryBackoff: 1800,
+		EsMediaStreamsWait: 1,
+		EsShortTermMemoryExpiration: 2,
+		ManagementSessionTimeout: 30,
+		ManagementStartPage: "/admin/conferencingstatus/deploymentgraph/deployment_graph/",
+		MaxPixelsPerSecond: "hd",
+		MaxPresentationBandwidthRatio: 75,
+		MediaPortsEnd: 49999,
+		MediaPortsStart: 40000,
+		OcspState: "OFF",
+		PinEntryTimeout: 120,
+		SignallingPortsEnd: 39999,
+		SignallingPortsStart: 33000,
+		SipTLSCertVerifyMode: "OFF",
+		SiteBannerBg: "#c0c0c0",
+		SiteBannerFg: "#000000",
 	}
 
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
@@ -1203,4 +1226,5 @@ func (r *InfinityGlobalConfigurationResource) ImportState(ctx context.Context, r
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+
 }
