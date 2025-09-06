@@ -945,23 +945,23 @@ func (r *InfinityGlobalConfigurationResource) Create(ctx context.Context, req re
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity global configuration",
-			fmt.Sprintf("Could not create Infinity global configuration: %s", err),
+			"Error Updating Infinity global configuration",
+			fmt.Sprintf("Could not update Infinity global configuration: %s", err),
 		)
 		return
 	}
 
-	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx, plan.AWSSecretKey.ValueStringPointer(), plan.AzureSecret.ValueStringPointer(), plan.GcpPrivateKey.ValueStringPointer(), plan.LegacyAPIPassword.ValueString())
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, plan.AWSSecretKey.ValueStringPointer(), plan.AzureSecret.ValueStringPointer(), plan.GcpPrivateKey.ValueStringPointer(), plan.LegacyAPIPassword.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity global configuration",
-			fmt.Sprintf("Could not read created Infinity global configuration: %s", err),
+			"Error Reading Updated Infinity global configuration",
+			fmt.Sprintf("Could not read updated Infinity global configuration: %s", err),
 		)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecretKey, azureSecret, gcpPrivateKey *string, legacyAPIPassword string) (*InfinityGlobalConfigurationResourceModel, error) {
@@ -1139,10 +1139,6 @@ func (r *InfinityGlobalConfigurationResource) Update(ctx context.Context, req re
 	}
 
 	updateRequest := r.buildUpdateRequest(plan)
-
-	tflog.Debug(ctx, "Debug disabled codecs", map[string]interface{}{
-		"disabled_codecs": updateRequest.DisabledCodecs,
-	})
 
 	_, err := r.InfinityClient.Config().UpdateGlobalConfiguration(ctx, updateRequest)
 	if err != nil {
