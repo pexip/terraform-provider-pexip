@@ -318,7 +318,83 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 	}
 }
 
+func (r *InfinityManagementVMResource) buildUpdateRequest(plan *InfinityManagementVMResourceModel) *config.ManagementVMUpdateRequest {
+	
+	updateRequest := &config.ManagementVMUpdateRequest{
+		Name:          plan.Name.ValueString(),
+		Address:       plan.Address.ValueString(),
+		Netmask:       plan.Netmask.ValueString(),
+		Gateway:       plan.Gateway.ValueString(),
+		Hostname:      plan.Hostname.ValueString(),
+		Domain:        plan.Domain.ValueString(),
+		Description:   plan.Description.ValueString(),
+	}
+
+	// Handle optional pointer fields
+	if !plan.MTU.IsNull() {
+		updateRequest.MTU = int(plan.MTU.ValueInt32())
+	}
+	if !plan.IPV6Address.IsNull() && !plan.IPV6Address.IsUnknown() {
+		addr := plan.IPV6Address.ValueString()
+		updateRequest.IPV6Address = &addr
+	}
+
+	if !plan.IPV6Gateway.IsNull() && !plan.IPV6Gateway.IsUnknown() {
+		gateway := plan.IPV6Gateway.ValueString()
+		updateRequest.IPV6Gateway = &gateway
+	}
+
+	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
+		addr := plan.StaticNATAddress.ValueString()
+		updateRequest.StaticNATAddress = &addr
+	}
+
+	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
+		proxy := plan.HTTPProxy.ValueString()
+		updateRequest.HTTPProxy = &proxy
+	}
+
+	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
+		cert := plan.TLSCertificate.ValueString()
+		updateRequest.TLSCertificate = &cert
+	}
+	if !plan.EnableSSH.IsNull() && !plan.EnableSSH.IsUnknown() {
+		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
+	}
+	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
+		nms := plan.SNMPNetworkManagementSystem.ValueString()
+		updateRequest.SNMPNetworkManagementSystem = &nms
+	}
+	if !plan.SNMPMode.IsNull() && !plan.SNMPMode.IsUnknown() {
+		updateRequest.SNMPMode = plan.SNMPMode.ValueString()
+	}
+	if !plan.SNMPCommunity.IsNull() && !plan.SNMPCommunity.IsUnknown() {
+		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
+	}
+	if !plan.SNMPUsername.IsNull() && !plan.SNMPUsername.IsUnknown() {
+		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
+	}
+	if !plan.SNMPAuthenticationPassword.IsNull() && !plan.SNMPAuthenticationPassword.IsUnknown() {
+		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
+	}
+	if !plan.SNMPPrivacyPassword.IsNull() && !plan.SNMPPrivacyPassword.IsUnknown() {
+		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	}
+	if !plan.SNMPSystemContact.IsNull() && !plan.SNMPSystemContact.IsUnknown() {
+		updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
+	}
+	if !plan.SNMPSystemLocation.IsNull() && !plan.SNMPSystemLocation.IsUnknown() {
+		updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
+	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
+
+	return updateRequest
+}
+
 func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	// For singleton resources, Create is actually Update since the resource always exists
 	plan := &InfinityManagementVMResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -326,102 +402,49 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	// Convert List attributes to []string
+	// Get the list of DNS, NTP, and Syslog servers
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
 	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
 	resp.Diagnostics.Append(diags...)
-	sshAuthorizedKeys, diags := getStringList(ctx, plan.SSHAuthorizedKeys)
-	resp.Diagnostics.Append(diags...)
-	staticRoutes, diags := getStringList(ctx, plan.StaticRoutes)
-	resp.Diagnostics.Append(diags...)
-
-	createRequest := &config.ManagementVMCreateRequest{
-		Name:              plan.Name.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		DNSServers:        dnsServers,
-		NTPServers:        ntpServers,
-		SyslogServers:     syslogServers,
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	// Handle optional pointer fields
-	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.IPV6Address.IsNull() && !plan.IPV6Address.IsUnknown() {
-		addr := plan.IPV6Address.ValueString()
-		createRequest.IPV6Address = &addr
-	}
+	updateRequest := r.buildUpdateRequest(plan)
 
-	if !plan.IPV6Gateway.IsNull() && !plan.IPV6Gateway.IsUnknown() {
-		gateway := plan.IPV6Gateway.ValueString()
-		createRequest.IPV6Gateway = &gateway
-	}
+	updateRequest.DNSServers = dnsServers
+	updateRequest.NTPServers = ntpServers
+	updateRequest.SyslogServers = syslogServers
 
-	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
-		addr := plan.StaticNATAddress.ValueString()
-		createRequest.StaticNATAddress = &addr
-	}
-
-	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
-		proxy := plan.HTTPProxy.ValueString()
-		createRequest.HTTPProxy = &proxy
-	}
-
-	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
-		cert := plan.TLSCertificate.ValueString()
-		createRequest.TLSCertificate = &cert
-	}
-
-	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
-		nms := plan.SNMPNetworkManagementSystem.ValueString()
-		createRequest.SNMPNetworkManagementSystem = &nms
-	}
-
-	createResponse, err := r.InfinityClient.Config().CreateManagementVM(ctx, createRequest)
+	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity management VM",
-			fmt.Sprintf("Could not create Infinity management VM: %s", err),
+			"Error Updating Infinity Management VM",
+			fmt.Sprintf("Could not update Infinity Management VM: %s", err),
 		)
 		return
 	}
 
-	resourceID, err := createResponse.ResourceID()
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Retrieving Infinity management VM ID",
-			fmt.Sprintf("Could not retrieve ID for created Infinity management VM: %s", err),
+			"Error Reading Updated Infinity management VM",
+			fmt.Sprintf("Could not read updated Infinity management VM: %s", err),
 		)
 		return
 	}
 
-	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity management VM",
-			fmt.Sprintf("Could not read created Infinity management VM with ID %d: %s", resourceID, err),
-		)
-		return
-	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity management VM with ID: %s, name: %s", model.ID, model.Name))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int, snmpCommunity, snmpAuthPass, snmpPrivPass, secondaryConfigPass string) (*InfinityManagementVMResourceModel, error) {
 	var data InfinityManagementVMResourceModel
 
-	srv, err := r.InfinityClient.Config().GetManagementVM(ctx, resourceID)
+	srv, err := r.InfinityClient.Config().GetManagementVM(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -585,17 +608,13 @@ func (r *InfinityManagementVMResource) Read(ctx context.Context, req resource.Re
 
 func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	plan := &InfinityManagementVMResourceModel{}
-	state := &InfinityManagementVMResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resourceID := int(state.ResourceID.ValueInt32())
-
-	// Convert List attributes to []string
+	
+	// Get the list of DNS, NTP, and Syslog servers
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := getStringList(ctx, plan.NTPServers)
@@ -606,94 +625,26 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	updateRequest := &config.ManagementVMUpdateRequest{
-		Name:          plan.Name.ValueString(),
-		Address:       plan.Address.ValueString(),
-		Netmask:       plan.Netmask.ValueString(),
-		Gateway:       plan.Gateway.ValueString(),
-		Hostname:      plan.Hostname.ValueString(),
-		Domain:        plan.Domain.ValueString(),
-		Description:   plan.Description.ValueString(),
-		DNSServers:    dnsServers,
-		NTPServers:    ntpServers,
-		SyslogServers: syslogServers,
-	}
+	updateRequest := r.buildUpdateRequest(plan)
 
-	// Handle optional pointer fields
-	if !plan.MTU.IsNull() {
-		updateRequest.MTU = int(plan.MTU.ValueInt32())
-	}
-	if !plan.IPV6Address.IsNull() && !plan.IPV6Address.IsUnknown() {
-		addr := plan.IPV6Address.ValueString()
-		updateRequest.IPV6Address = &addr
-	}
-
-	if !plan.IPV6Gateway.IsNull() && !plan.IPV6Gateway.IsUnknown() {
-		gateway := plan.IPV6Gateway.ValueString()
-		updateRequest.IPV6Gateway = &gateway
-	}
-
-	if !plan.StaticNATAddress.IsNull() && !plan.StaticNATAddress.IsUnknown() {
-		addr := plan.StaticNATAddress.ValueString()
-		updateRequest.StaticNATAddress = &addr
-	}
-
-	if !plan.HTTPProxy.IsNull() && !plan.HTTPProxy.IsUnknown() {
-		proxy := plan.HTTPProxy.ValueString()
-		updateRequest.HTTPProxy = &proxy
-	}
-
-	if !plan.TLSCertificate.IsNull() && !plan.TLSCertificate.IsUnknown() {
-		cert := plan.TLSCertificate.ValueString()
-		updateRequest.TLSCertificate = &cert
-	}
-	if !plan.EnableSSH.IsNull() && !plan.EnableSSH.IsUnknown() {
-		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
-	}
-	if !plan.SNMPNetworkManagementSystem.IsNull() && !plan.SNMPNetworkManagementSystem.IsUnknown() {
-		nms := plan.SNMPNetworkManagementSystem.ValueString()
-		updateRequest.SNMPNetworkManagementSystem = &nms
-	}
-	if !plan.SNMPMode.IsNull() && !plan.SNMPMode.IsUnknown() {
-		updateRequest.SNMPMode = plan.SNMPMode.ValueString()
-	}
-	if !plan.SNMPCommunity.IsNull() && !plan.SNMPCommunity.IsUnknown() {
-		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
-	}
-	if !plan.SNMPUsername.IsNull() && !plan.SNMPUsername.IsUnknown() {
-		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
-	}
-	if !plan.SNMPAuthenticationPassword.IsNull() && !plan.SNMPAuthenticationPassword.IsUnknown() {
-		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
-	}
-	if !plan.SNMPPrivacyPassword.IsNull() && !plan.SNMPPrivacyPassword.IsUnknown() {
-		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
-	}
-	if !plan.SNMPSystemContact.IsNull() && !plan.SNMPSystemContact.IsUnknown() {
-		updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
-	}
-	if !plan.SNMPSystemLocation.IsNull() && !plan.SNMPSystemLocation.IsUnknown() {
-		updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
-	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
-
-	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, resourceID, updateRequest)
+	updateRequest.DNSServers = dnsServers
+	updateRequest.NTPServers = ntpServers
+	updateRequest.SyslogServers = syslogServers
+	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Infinity management VM",
-			fmt.Sprintf("Could not update Infinity management VM: %s", err),
+			"Error Updating Infinity Management VM",
+			fmt.Sprintf("Could not update Infinity Management VM: %s", err),
 		)
 		return
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
+	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity management VM",
-			fmt.Sprintf("Could not read updated Infinity management VM with ID %d: %s", resourceID, err),
+			fmt.Sprintf("Could not read updated Infinity management VM: %s", err),
 		)
 		return
 	}
@@ -714,7 +665,7 @@ func (r *InfinityManagementVMResource) Delete(ctx context.Context, req resource.
 		SNMPNetworkManagementSystem: nil,
 	}
 
-	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, 1, updateRequest)
+	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
 	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
 			"Error Resetting Infinity management VM configuration",
