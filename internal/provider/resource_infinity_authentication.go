@@ -344,24 +344,23 @@ func (r *InfinityAuthenticationResource) Create(ctx context.Context, req resourc
 	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity authentication configuration",
-			fmt.Sprintf("Could not create Infinity authentication configuration: %s", err),
+			"Error Updating Infinity authentication configuration",
+			fmt.Sprintf("Could not update Infinity authentication configuration: %s", err),
 		)
 		return
 	}
 
-	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity authentication configuration",
-			fmt.Sprintf("Could not read created Infinity authentication configuration: %s", err),
+			"Error Reading Updated Infinity authentication configuration",
+			fmt.Sprintf("Could not read updated Infinity authentication configuration: %s", err),
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity authentication configuration with ID: %s", model.ID))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthenticationResourceModel) *config.AuthenticationUpdateRequest {
