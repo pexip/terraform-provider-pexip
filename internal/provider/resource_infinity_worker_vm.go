@@ -191,7 +191,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ipv6_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -199,7 +198,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -214,10 +212,10 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"maintenance_mode_reason": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "The reason for maintenance mode. Maximum length: 250 characters.",
 			},
 			"managed": schema.BoolAttribute{
@@ -228,8 +226,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"media_priority_weight": schema.Int64Attribute{
 				Optional:            true,
-				Computed:            true,
-				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "The relative priority of this node, used when determining the order of nodes to which Pexip Infinity will attempt to send media. A higher number represents a higher priority; the default is 0, i.e. the lowest priority.",
 			},
 			"name": schema.StringAttribute{
@@ -267,8 +263,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"secondary_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
@@ -276,8 +270,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"secondary_netmask": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
@@ -371,9 +363,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ssh_authorized_keys": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             nil,
 				MarkdownDescription: "The selected authorized keys.",
 			},
 			"ssh_authorized_keys_use_cloud": schema.BoolAttribute{
@@ -384,8 +374,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"static_nat_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
@@ -393,10 +381,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"static_routes": schema.SetAttribute{
 				Optional:    true,
-				Computed:    true,
-				Default:     nil,
 				ElementType: types.StringType,
-				Description: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
+				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"system_location": schema.StringAttribute{
 				Required:            true,
@@ -404,8 +390,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"tls_certificate": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				Default:             nil,
 				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"transcoding": schema.BoolAttribute{
