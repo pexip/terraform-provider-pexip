@@ -202,14 +202,13 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	if !plan.Parameters.IsNull() {
 		createRequest.Parameters = plan.Parameters.ValueString()
 	}
-	if !plan.Nodes.IsNull() {
-		var nodes []string
-		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.Nodes = nodes
-	}
+	
+	// ignore nodes if set in plan, always send empty list
+	// set tls_certificate on the node resource instead
+	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
+	var nodes []string
+	plan.Nodes.ElementsAs(ctx, &nodes, false)
+	createRequest.Nodes = nodes
 
 	createResponse, err := r.InfinityClient.Config().CreateTLSCertificate(ctx, createRequest)
 	if err != nil {
@@ -285,12 +284,8 @@ func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID in
 		data.IssuerKeyID = types.StringNull()
 	}
 
-	// Convert nodes to types.Set
-	nodesSetValue, diags := types.SetValueFrom(ctx, types.StringType, srv.Nodes)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting nodes: %v", diags)
-	}
-	data.Nodes = nodesSetValue
+	// Always return an empty set for nodes. Set the cert on node resources instead.
+	data.Nodes = types.SetValueMust(types.StringType, []attr.Value{})
 
 	return &data, nil
 }
@@ -344,14 +339,13 @@ func (r *InfinityTLSCertificateResource) Update(ctx context.Context, req resourc
 	if !plan.Parameters.IsNull() {
 		updateRequest.Parameters = plan.Parameters.ValueString()
 	}
-	if !plan.Nodes.IsNull() {
-		var nodes []string
-		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.Nodes = nodes
-	}
+	
+	// ignore nodes if set in plan, always send empty list
+	// set tls_certificate on the node resource instead
+	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
+	var nodes []string
+	plan.Nodes.ElementsAs(ctx, &nodes, false)
+	updateRequest.Nodes = nodes
 
 	_, err := r.InfinityClient.Config().UpdateTLSCertificate(ctx, resourceID, updateRequest)
 	if err != nil {

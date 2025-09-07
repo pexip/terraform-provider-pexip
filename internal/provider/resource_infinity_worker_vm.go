@@ -458,15 +458,16 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 
 	// create request with required fields and list fields
 	createRequest := &config.WorkerVMCreateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                      plan.Name.ValueString(),
+		Hostname:                  plan.Hostname.ValueString(),
+		Domain:                    plan.Domain.ValueString(),
+		Address:                   plan.Address.ValueString(),
+		Netmask:                   plan.Netmask.ValueString(),
+		Gateway:                   plan.Gateway.ValueString(),
+		SystemLocation:            plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:         sshAuthorizedKeys,
+		StaticRoutes:              staticRoutes,
+		EnableDistributedDatabase: plan.EnableDistributedDatabase.ValueBool(),
 	}
 
 	// Set optional fields that have default values
@@ -478,9 +479,6 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	}
 	if !plan.Description.IsNull() {
 		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EnableDistributedDatabase.IsNull() {
-		createRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
 	}
 	if !plan.EnableSSH.IsNull() {
 		createRequest.EnableSSH = plan.EnableSSH.ValueString()
@@ -728,15 +726,16 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 
 	// create request with required fields and list fields
 	updateRequest := &config.WorkerVMUpdateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                      plan.Name.ValueString(),
+		Hostname:                  plan.Hostname.ValueString(),
+		Domain:                    plan.Domain.ValueString(),
+		Address:                   plan.Address.ValueString(),
+		Netmask:                   plan.Netmask.ValueString(),
+		Gateway:                   plan.Gateway.ValueString(),
+		SystemLocation:            plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:         sshAuthorizedKeys,
+		StaticRoutes:              staticRoutes,
+		EnableDistributedDatabase: plan.EnableDistributedDatabase.ValueBool(),
 	}
 
 	// Set optional fields that have default values
@@ -748,9 +747,6 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EnableDistributedDatabase.IsNull() {
-		updateRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
 	}
 	if !plan.EnableSSH.IsNull() {
 		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
