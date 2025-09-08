@@ -458,10 +458,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	// Handle nullable integer fields
 	if srv.MediaQoS != nil {
 		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
-	} 
-	//else {
-	//	data.MediaQOS = types.Int32Null()
-	//}
+	}
 	if srv.SignallingQoS != nil {
 		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
 	} else {

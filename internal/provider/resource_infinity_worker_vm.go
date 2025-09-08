@@ -226,6 +226,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"media_priority_weight": schema.Int64Attribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "The relative priority of this node, used when determining the order of nodes to which Pexip Infinity will attempt to send media. A higher number represents a higher priority; the default is 0, i.e. the lowest priority.",
 			},
 			"name": schema.StringAttribute{
@@ -500,9 +502,6 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	if !plan.SNMPUsername.IsNull() {
 		createRequest.SNMPUsername = plan.SNMPUsername.ValueString()
 	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		createRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
 	if !plan.Transcoding.IsNull() {
 		createRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
@@ -626,37 +625,43 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
 	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
 	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
-
-	// Convert SSH authorized keys from SDK to Terraform format
-	var sshAuthorizedKeys []string
-	for _, key := range srv.SSHAuthorizedKeys {
-		sshAuthorizedKeys = append(sshAuthorizedKeys, fmt.Sprintf("/api/admin/configuration/v1/ssh_authorized_key/%s/", key))
-	}
-	sshSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshAuthorizedKeys)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting SSH authorized keys: %v", diags)
-	}
-	data.SSHAuthorizedKeys = sshSetValue
-
-	// Convert static routes from SDK to Terraform format
-	var staticRoutes []string
-	for _, route := range srv.StaticRoutes {
-		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%s/", route))
-	}
-	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting static routes: %v", diags)
-	}
-	data.StaticRoutes = routeSetValue
-
-	// Set nullable fields
 	data.IPv6Address = types.StringPointerValue(srv.IPv6Address)
 	data.IPv6Gateway = types.StringPointerValue(srv.IPv6Gateway)
 	data.TLSCertificate = types.StringPointerValue(srv.TLSCertificate)
 	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
 	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
 	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
-	data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
+	data.ServiceManager = types.BoolValue(srv.ServiceManager)
+	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
+	data.Signalling = types.BoolValue(srv.Signalling)
+	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
+
+	// Handle nullable integer fields
+	if srv.MediaPriorityWeight != nil {
+		data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
+	}
+	
+	// Convert SSH authorized keys from SDK to Terraform format
+	var sshKeys []string
+	for _, key := range srv.SSHAuthorizedKeys {
+		sshKeys = append(sshKeys, key)
+	}
+	keysSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshKeys)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting SSH keys: %v", diags)
+	}
+	data.SSHAuthorizedKeys = keysSetValue
+
+	// Convert static routes from SDK to Terraform format
+	var staticRoutes []string
+	for _, route := range srv.StaticRoutes {
+		staticRoutes = append(staticRoutes, route)
+	}
+	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting static routes: %v", diags)
+	}
+	data.StaticRoutes = routeSetValue
 
 	return &data, nil
 }
@@ -762,9 +767,6 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SNMPUsername.IsNull() {
 		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
 	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
 	if !plan.Transcoding.IsNull() {
 		updateRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
@@ -774,14 +776,25 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.VMSystemMemory.IsNull() {
 		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
 	}
-
 	if !plan.SNMPAuthenticationPassword.IsNull() {
 		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
 	}
 	if !plan.SNMPPrivacyPassword.IsNull() {
 		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
 	}
-
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
+	if !plan.ServiceManager.IsNull() {
+		updateRequest.ServiceManager = plan.ServiceManager.ValueBool()
+	}
+	if !plan.ServicePolicy.IsNull() {
+		updateRequest.ServicePolicy = plan.ServicePolicy.ValueBool()
+	}
+	if !plan.Signalling.IsNull() {
+		updateRequest.Signalling = plan.Signalling.ValueBool()
+	}
+	
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()

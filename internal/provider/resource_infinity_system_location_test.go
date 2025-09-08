@@ -37,6 +37,7 @@ func TestInfinitySystemLocation(t *testing.T) {
 	updated := false
 
 	// config for update that clears all fields
+	// include all required fields and fields with non-null defaults
 	clearAllFieldsMockState := &config.SystemLocation{
 		ID:          123,
 		Name:        "main",
@@ -52,8 +53,6 @@ func TestInfinitySystemLocation(t *testing.T) {
 	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		sysLoc := args.Get(3).(*config.SystemLocation)
 		if updated {
-			//stunServer := "/api/admin/configuration/v1/stun_server/2/"
-
 			*sysLoc = *clearAllFieldsMockState
 		} else {
 			mediaQoS := 46
