@@ -49,8 +49,8 @@ func TestInfinityCertificateSigningRequest(t *testing.T) {
 	}
 
 	// Mock the GetCertificatesigningrequest API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/certificate_signing_request/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		certificate_signing_request := args.Get(2).(*config.CertificateSigningRequest)
+	client.On("GetJSON", mock.Anything, "configuration/v1/certificate_signing_request/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		certificate_signing_request := args.Get(3).(*config.CertificateSigningRequest)
 		*certificate_signing_request = *mockState
 	}).Maybe()
 

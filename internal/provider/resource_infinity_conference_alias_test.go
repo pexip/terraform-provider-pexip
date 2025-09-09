@@ -44,8 +44,8 @@ func TestInfinityConferenceAlias(t *testing.T) {
 	}
 
 	// Mock the GetConferencealias API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/conference_alias/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		conference_alias := args.Get(2).(*config.ConferenceAlias)
+	client.On("GetJSON", mock.Anything, "configuration/v1/conference_alias/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		conference_alias := args.Get(3).(*config.ConferenceAlias)
 		*conference_alias = *mockState
 	}).Maybe()
 

@@ -37,8 +37,8 @@ func TestInfinityNTPServer(t *testing.T) {
 	updated := false
 
 	// Mock the API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ntp_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ntp := args.Get(2).(*config.NTPServer)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ntp_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ntp := args.Get(3).(*config.NTPServer)
 		if updated {
 			*ntp = config.NTPServer{
 				ID:          123,

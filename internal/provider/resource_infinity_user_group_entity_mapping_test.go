@@ -44,8 +44,8 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	}
 
 	// Mock the GetUsergroupentitymapping API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/user_group_entity_mapping/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		user_group_entity_mapping := args.Get(2).(*config.UserGroupEntityMapping)
+	client.On("GetJSON", mock.Anything, "configuration/v1/user_group_entity_mapping/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		user_group_entity_mapping := args.Get(3).(*config.UserGroupEntityMapping)
 		*user_group_entity_mapping = *mockState
 	}).Maybe()
 

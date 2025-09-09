@@ -51,8 +51,8 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 	}
 
 	// Mock the GetGatewayroutingrule API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/gateway_routing_rule/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		gateway_routing_rule := args.Get(2).(*config.GatewayRoutingRule)
+	client.On("GetJSON", mock.Anything, "configuration/v1/gateway_routing_rule/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		gateway_routing_rule := args.Get(3).(*config.GatewayRoutingRule)
 		*gateway_routing_rule = *mockState
 	}).Maybe()
 

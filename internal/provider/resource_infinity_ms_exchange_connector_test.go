@@ -105,8 +105,8 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 	}
 
 	// Mock the GetMsexchangeconnector API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ms_exchange_connector/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ms_exchange_connector := args.Get(2).(*config.MsExchangeConnector)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ms_exchange_connector/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ms_exchange_connector := args.Get(3).(*config.MsExchangeConnector)
 		*ms_exchange_connector = *mockState
 	}).Maybe()
 

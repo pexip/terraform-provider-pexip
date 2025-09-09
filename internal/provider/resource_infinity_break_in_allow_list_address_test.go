@@ -48,8 +48,8 @@ func TestInfinityBreakInAllowListAddress(t *testing.T) {
 	}
 
 	// Mock the GetBreakInAllowListAddress API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/break_in_allow_list_address/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		breakInAllowListAddress := args.Get(2).(*config.BreakInAllowListAddress)
+	client.On("GetJSON", mock.Anything, "configuration/v1/break_in_allow_list_address/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		breakInAllowListAddress := args.Get(3).(*config.BreakInAllowListAddress)
 		*breakInAllowListAddress = *mockState
 	}).Maybe()
 

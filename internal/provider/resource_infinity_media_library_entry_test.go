@@ -46,8 +46,8 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 	}
 
 	// Mock the GetMedialibraryentry API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_entry/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		media_library_entry := args.Get(2).(*config.MediaLibraryEntry)
+	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_entry/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		media_library_entry := args.Get(3).(*config.MediaLibraryEntry)
 		*media_library_entry = *mockState
 	}).Maybe()
 

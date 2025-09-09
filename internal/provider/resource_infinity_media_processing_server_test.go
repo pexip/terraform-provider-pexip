@@ -44,8 +44,8 @@ func TestInfinityMediaProcessingServer(t *testing.T) {
 	}
 
 	// Mock the GetMediaprocessingserver API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/media_processing_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		media_processing_server := args.Get(2).(*config.MediaProcessingServer)
+	client.On("GetJSON", mock.Anything, "configuration/v1/media_processing_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		media_processing_server := args.Get(3).(*config.MediaProcessingServer)
 		*media_processing_server = *mockState
 	}).Maybe()
 

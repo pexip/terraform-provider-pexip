@@ -44,8 +44,8 @@ func TestInfinitySystemSyncpoint(t *testing.T) {
 	}
 
 	// Mock the GetSystemsyncpoint API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/system_syncpoint/1/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		system_syncpoint := args.Get(2).(*config.SystemSyncpoint)
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_syncpoint/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		system_syncpoint := args.Get(3).(*config.SystemSyncpoint)
 		*system_syncpoint = *mockState
 	}).Maybe()
 

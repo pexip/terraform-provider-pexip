@@ -26,7 +26,7 @@ func TestInfinityAuthentication_URLPattern(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Test that GetAuthentication calls the correct URL
-	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything).Return(nil).Once()
+	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Once()
 
 	// Call the method to verify URL pattern
 	_, _ = client.Config().GetAuthentication(context.TODO())
@@ -41,7 +41,7 @@ func TestInfinityAuthentication_UpdateURLPattern(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Test that UpdateAuthentication calls the correct URL
-	client.On("PutJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Once()
+	client.On("PatchJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Once()
 
 	// Call the method to verify URL pattern
 	_, _ = client.Config().UpdateAuthentication(context.TODO(), &config.AuthenticationUpdateRequest{})
@@ -57,18 +57,18 @@ func TestInfinityAuthentication(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	mockState := &config.Authentication{
-		Source:            "local",
-		ClientCertificate: "disabled",
+		Source:            "LOCAL",
+		ClientCertificate: "NO",
 		ResourceURI:       "/configuration/v1/authentication/1/",
 		// Don't set ApiOauth2Expiration - let it default to 0 but handle it properly in the resource
 	}
 
-	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		auth := args.Get(2).(*config.Authentication)
+	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		auth := args.Get(3).(*config.Authentication)
 		*auth = *mockState
 	}).Maybe()
 
-	client.On("PutJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PatchJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.AuthenticationUpdateRequest)
 		auth := args.Get(3).(*config.Authentication)
 
@@ -187,7 +187,7 @@ func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 				Config: test.LoadTestFolder(t, "resource_infinity_authentication_basic"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "local"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
 				),
 			},
 		},

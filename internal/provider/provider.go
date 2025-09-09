@@ -232,5 +232,8 @@ func (p *PexipProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		func() datasource.DataSource {
 			return &InfinityManagerConfigDataSource{}
 		},
+		func() datasource.DataSource {
+			return &InfinityPermissionDataSource{}
+		},
 	}
 }

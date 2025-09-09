@@ -50,8 +50,8 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 		PresentationURL:     "https://example.com",
 	}
 
-	client.On("GetJSON", mock.Anything, "configuration/v1/automatic_participant/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		participant := args.Get(2).(*config.AutomaticParticipant)
+	client.On("GetJSON", mock.Anything, "configuration/v1/automatic_participant/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		participant := args.Get(3).(*config.AutomaticParticipant)
 		*participant = *mockState
 	}).Maybe()
 

@@ -191,7 +191,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ipv6_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -199,7 +198,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -214,10 +212,10 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			"maintenance_mode_reason": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "The reason for maintenance mode. Maximum length: 250 characters.",
 			},
 			"managed": schema.BoolAttribute{
@@ -267,8 +265,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"secondary_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
@@ -276,8 +272,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"secondary_netmask": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
@@ -371,9 +365,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"ssh_authorized_keys": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             nil,
 				MarkdownDescription: "The selected authorized keys.",
 			},
 			"ssh_authorized_keys_use_cloud": schema.BoolAttribute{
@@ -384,19 +376,15 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"static_nat_address": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  nil,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
 				MarkdownDescription: "The public IPv4 address used by the Conferencing Node when it is located behind a NAT device. Note that if you are using NAT, you must also configure your NAT device to route the Conferencing Node's IPv4 static NAT address to its IPv4 address.",
 			},
 			"static_routes": schema.SetAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     nil,
-				ElementType: types.StringType,
-				Description: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
+				Optional:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"system_location": schema.StringAttribute{
 				Required:            true,
@@ -404,8 +392,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"tls_certificate": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				Default:             nil,
 				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"transcoding": schema.BoolAttribute{
@@ -458,15 +444,16 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 
 	// create request with required fields and list fields
 	createRequest := &config.WorkerVMCreateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                      plan.Name.ValueString(),
+		Hostname:                  plan.Hostname.ValueString(),
+		Domain:                    plan.Domain.ValueString(),
+		Address:                   plan.Address.ValueString(),
+		Netmask:                   plan.Netmask.ValueString(),
+		Gateway:                   plan.Gateway.ValueString(),
+		SystemLocation:            plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:         sshAuthorizedKeys,
+		StaticRoutes:              staticRoutes,
+		EnableDistributedDatabase: plan.EnableDistributedDatabase.ValueBool(),
 	}
 
 	// Set optional fields that have default values
@@ -478,9 +465,6 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	}
 	if !plan.Description.IsNull() {
 		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EnableDistributedDatabase.IsNull() {
-		createRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
 	}
 	if !plan.EnableSSH.IsNull() {
 		createRequest.EnableSSH = plan.EnableSSH.ValueString()
@@ -517,9 +501,6 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	}
 	if !plan.SNMPUsername.IsNull() {
 		createRequest.SNMPUsername = plan.SNMPUsername.ValueString()
-	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		createRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
 	}
 	if !plan.Transcoding.IsNull() {
 		createRequest.Transcoding = plan.Transcoding.ValueBool()
@@ -592,7 +573,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, workerConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -607,7 +588,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, wor
 	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
-	data.Config = types.StringValue(workerConfig)
+	data.Config = types.StringValue(vmConfig)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
@@ -644,37 +625,39 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, wor
 	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
 	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
 	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
-
-	// Convert SSH authorized keys from SDK to Terraform format
-	var sshAuthorizedKeys []string
-	for _, key := range srv.SSHAuthorizedKeys {
-		sshAuthorizedKeys = append(sshAuthorizedKeys, fmt.Sprintf("/api/admin/configuration/v1/ssh_authorized_key/%s/", key))
-	}
-	sshSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshAuthorizedKeys)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting SSH authorized keys: %v", diags)
-	}
-	data.SSHAuthorizedKeys = sshSetValue
-
-	// Convert static routes from SDK to Terraform format
-	var staticRoutes []string
-	for _, route := range srv.StaticRoutes {
-		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%s/", route))
-	}
-	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
-	if diags.HasError() {
-		return nil, fmt.Errorf("error converting static routes: %v", diags)
-	}
-	data.StaticRoutes = routeSetValue
-
-	// Set nullable fields
 	data.IPv6Address = types.StringPointerValue(srv.IPv6Address)
 	data.IPv6Gateway = types.StringPointerValue(srv.IPv6Gateway)
 	data.TLSCertificate = types.StringPointerValue(srv.TLSCertificate)
 	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
 	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
 	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
-	data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
+	data.ServiceManager = types.BoolValue(srv.ServiceManager)
+	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
+	data.Signalling = types.BoolValue(srv.Signalling)
+	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
+
+	// Handle nullable integer fields
+	if srv.MediaPriorityWeight != nil {
+		data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
+	}
+
+	// Convert SSH authorized keys from SDK to Terraform format
+	var sshKeys []string
+	sshKeys = append(sshKeys, srv.SSHAuthorizedKeys...)
+	keysSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshKeys)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting SSH keys: %v", diags)
+	}
+	data.SSHAuthorizedKeys = keysSetValue
+
+	// Convert static routes from SDK to Terraform format
+	var staticRoutes []string
+	staticRoutes = append(staticRoutes, srv.StaticRoutes...)
+	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting static routes: %v", diags)
+	}
+	data.StaticRoutes = routeSetValue
 
 	return &data, nil
 }
@@ -728,15 +711,16 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 
 	// create request with required fields and list fields
 	updateRequest := &config.WorkerVMUpdateRequest{
-		Name:              plan.Name.ValueString(),
-		Hostname:          plan.Hostname.ValueString(),
-		Domain:            plan.Domain.ValueString(),
-		Address:           plan.Address.ValueString(),
-		Netmask:           plan.Netmask.ValueString(),
-		Gateway:           plan.Gateway.ValueString(),
-		SystemLocation:    plan.SystemLocation.ValueString(),
-		SSHAuthorizedKeys: sshAuthorizedKeys,
-		StaticRoutes:      staticRoutes,
+		Name:                      plan.Name.ValueString(),
+		Hostname:                  plan.Hostname.ValueString(),
+		Domain:                    plan.Domain.ValueString(),
+		Address:                   plan.Address.ValueString(),
+		Netmask:                   plan.Netmask.ValueString(),
+		Gateway:                   plan.Gateway.ValueString(),
+		SystemLocation:            plan.SystemLocation.ValueString(),
+		SSHAuthorizedKeys:         sshAuthorizedKeys,
+		StaticRoutes:              staticRoutes,
+		EnableDistributedDatabase: plan.EnableDistributedDatabase.ValueBool(),
 	}
 
 	// Set optional fields that have default values
@@ -748,9 +732,6 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EnableDistributedDatabase.IsNull() {
-		updateRequest.EnableDistributedDatabase = plan.EnableDistributedDatabase.ValueBool()
 	}
 	if !plan.EnableSSH.IsNull() {
 		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
@@ -782,9 +763,6 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SNMPUsername.IsNull() {
 		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
 	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
 	if !plan.Transcoding.IsNull() {
 		updateRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
@@ -794,12 +772,23 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.VMSystemMemory.IsNull() {
 		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
 	}
-
 	if !plan.SNMPAuthenticationPassword.IsNull() {
 		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
 	}
 	if !plan.SNMPPrivacyPassword.IsNull() {
 		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
+	if !plan.ServiceManager.IsNull() {
+		updateRequest.ServiceManager = plan.ServiceManager.ValueBool()
+	}
+	if !plan.ServicePolicy.IsNull() {
+		updateRequest.ServicePolicy = plan.ServicePolicy.ValueBool()
+	}
+	if !plan.Signalling.IsNull() {
+		updateRequest.Signalling = plan.Signalling.ValueBool()
 	}
 
 	// Set optional fields that are nullable

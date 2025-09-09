@@ -46,18 +46,18 @@ func TestInfinityLicence(t *testing.T) {
 	listResponse := &config.LicenceListResponse{
 		Objects: []config.Licence{*mockState},
 	}
-	client.On("GetJSON", mock.Anything, "configuration/v1/licence/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		response := args.Get(2).(*config.LicenceListResponse)
+	client.On("GetJSON", mock.Anything, "configuration/v1/licence/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		response := args.Get(3).(*config.LicenceListResponse)
 		*response = *listResponse
 	})
 
 	// Mock the GetLicence API call for Read operations (both paths needed)
-	client.On("GetJSON", mock.Anything, "configuration/v1/licence/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		license := args.Get(2).(*config.Licence)
+	client.On("GetJSON", mock.Anything, "configuration/v1/licence/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		license := args.Get(3).(*config.Licence)
 		*license = *mockState
 	}).Maybe()
-	client.On("GetJSON", mock.Anything, "configuration/v1/licence/test-fulfillment-123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		license := args.Get(2).(*config.Licence)
+	client.On("GetJSON", mock.Anything, "configuration/v1/licence/test-fulfillment-123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		license := args.Get(3).(*config.Licence)
 		*license = *mockState
 	}).Maybe()
 

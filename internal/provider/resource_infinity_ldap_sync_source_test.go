@@ -49,8 +49,8 @@ func TestInfinityLdapSyncSource(t *testing.T) {
 	}
 
 	// Mock the GetLdapsyncsource API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ldap_sync_source/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ldap_sync_source := args.Get(2).(*config.LdapSyncSource)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ldap_sync_source/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ldap_sync_source := args.Get(3).(*config.LdapSyncSource)
 		*ldap_sync_source = *mockState
 	}).Maybe()
 

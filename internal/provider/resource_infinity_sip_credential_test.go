@@ -44,8 +44,8 @@ func TestInfinitySIPCredential(t *testing.T) {
 	}
 
 	// Mock the GetSipcredential API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/sip_credential/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		sip_credential := args.Get(2).(*config.SIPCredential)
+	client.On("GetJSON", mock.Anything, "configuration/v1/sip_credential/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		sip_credential := args.Get(3).(*config.SIPCredential)
 		*sip_credential = *mockState
 	}).Maybe()
 

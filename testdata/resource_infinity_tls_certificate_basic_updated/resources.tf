@@ -4,10 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-locals {
-  manager_fqdn = "dev-manager.dev.pexip.network"
-}
-
 resource "pexip_infinity_tls_certificate" "tls-cert-test" {
   certificate = <<-EOT
 -----BEGIN CERTIFICATE-----
@@ -61,5 +57,4 @@ Evh4ti6RgVR6pJHuMrWl7DpnfhGfGH54J0OeSOuwaZjgcM/BesYVwJ4LCMk6aTkH
 5tcjqehfD8Sgs461KIAk0Vg=
 -----END PRIVATE KEY-----
 EOT
-  nodes       = [local.manager_fqdn]
 }

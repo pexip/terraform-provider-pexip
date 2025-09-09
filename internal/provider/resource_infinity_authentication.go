@@ -102,16 +102,18 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"source": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("local", "ldap", "oidc"),
+					stringvalidator.OneOf("LOCAL", "LDAP", "LDAP+LOCAL", "OIDC", "OIDC+LOCAL", "LDAP+OIDC+LOCAL"),
 				},
-				MarkdownDescription: "Authentication source. Valid values: local, ldap, oidc.",
+				MarkdownDescription: "The database to query for administrator authentication and authorization. Valid values: LOCAL, LDAP, LDAP+LOCAL, OIDC, OIDC+LOCAL, LDAP+OIDC+LOCAL.",
 			},
 			"client_certificate": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("NO"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("disabled", "optional", "required"),
+					stringvalidator.OneOf("NO", "CN", "UPN"),
 				},
-				MarkdownDescription: "Client certificate requirement. Valid values: disabled, optional, required.",
+				MarkdownDescription: "Client certificate requirement. Valid values: NO, CN, UPN.",
 			},
 			"api_oauth2_disable_basic": schema.BoolAttribute{
 				Optional:            true,
@@ -138,10 +140,10 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					validators.URL(false),
+					stringvalidator.LengthAtMost(255),
 				},
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "LDAP server URL (ldap:// or ldaps://).",
+				MarkdownDescription: "The hostname of the LDAP server. Enter a domain name for DNS SRV lookup or an FQDN for DNS A/AAAA lookup, and ensure that it is resolvable over DNS. Maximum length: 255 characters.",
 			},
 			"ldap_base_dn": schema.StringAttribute{
 				Optional:            true,
@@ -342,24 +344,23 @@ func (r *InfinityAuthenticationResource) Create(ctx context.Context, req resourc
 	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity authentication configuration",
-			fmt.Sprintf("Could not create Infinity authentication configuration: %s", err),
+			"Error Updating Infinity authentication configuration",
+			fmt.Sprintf("Could not update Infinity authentication configuration: %s", err),
 		)
 		return
 	}
 
-	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx)
+	// Re-read the resource to get the latest state
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity authentication configuration",
-			fmt.Sprintf("Could not read created Infinity authentication configuration: %s", err),
+			"Error Reading Updated Infinity authentication configuration",
+			fmt.Sprintf("Could not read updated Infinity authentication configuration: %s", err),
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity authentication configuration with ID: %s", model.ID))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
 func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthenticationResourceModel) *config.AuthenticationUpdateRequest {
@@ -424,7 +425,7 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 	return updateRequest
 }
 
-func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAuthenticationResourceModel, error) {
+func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass, oidcPass string) (*InfinityAuthenticationResourceModel, error) {
 	var data InfinityAuthenticationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetAuthentication(ctx)
@@ -445,7 +446,7 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 	data.LdapServer = types.StringValue(srv.LdapServer)
 	data.LdapBaseDN = types.StringValue(srv.LdapBaseDN)
 	data.LdapBindUsername = types.StringValue(srv.LdapBindUsername)
-	data.LdapBindPassword = types.StringValue(srv.LdapBindPassword)
+	data.LdapBindPassword = types.StringValue(ldapPass)
 	data.LdapUserSearchDN = types.StringValue(srv.LdapUserSearchDN)
 	data.LdapUserFilter = types.StringValue(srv.LdapUserFilter)
 	data.LdapUserSearchFilter = types.StringValue(srv.LdapUserSearchFilter)
@@ -458,7 +459,7 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 	data.OidcMetadataURL = types.StringValue(srv.OidcMetadataURL)
 	data.OidcMetadata = types.StringValue(srv.OidcMetadata)
 	data.OidcClientID = types.StringValue(srv.OidcClientID)
-	data.OidcClientSecret = types.StringValue(srv.OidcClientSecret)
+	data.OidcClientSecret = types.StringValue(oidcPass)
 	data.OidcPrivateKey = types.StringValue(srv.OidcPrivateKey)
 	data.OidcAuthMethod = types.StringValue(srv.OidcAuthMethod)
 	data.OidcScope = types.StringValue(srv.OidcScope)
@@ -475,7 +476,14 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context) (*InfinityAut
 }
 
 func (r *InfinityAuthenticationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state, err := r.read(ctx)
+	state := &InfinityAuthenticationResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state, err := r.read(ctx, state.LdapBindPassword.ValueString(), state.OidcClientSecret.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources
 		if isNotFoundError(err) {
@@ -512,7 +520,7 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx)
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity authentication configuration",
@@ -525,22 +533,8 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 }
 
 func (r *InfinityAuthenticationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// For singleton resources, delete means resetting to default values
-	// We'll reset to local authentication to "delete" the configuration
-	tflog.Info(ctx, "Deleting Infinity authentication configuration (resetting to local)")
-
-	updateRequest := &config.AuthenticationUpdateRequest{
-		Source: "local",
-	}
-
-	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
-	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
-		resp.Diagnostics.AddError(
-			"Error Deleting Infinity authentication configuration",
-			fmt.Sprintf("Could not delete Infinity authentication configuration: %s", err),
-		)
-		return
-	}
+	// For authentication, nothing needs to be done on delete
+	tflog.Info(ctx, "Deleting Infinity authentication configuration is a no-op")
 }
 
 func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -548,7 +542,7 @@ func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req re
 	tflog.Trace(ctx, "Importing Infinity authentication configuration")
 
 	// Read the resource from the API
-	model, err := r.read(ctx)
+	model, err := r.read(ctx, "", "")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Importing Infinity Authentication Configuration",

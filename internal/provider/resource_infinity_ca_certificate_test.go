@@ -45,13 +45,13 @@ func TestInfinityCACertificate(t *testing.T) {
 	}
 
 	// Mock the GetCACertificate API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ca_certificate/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		caCertificate := args.Get(2).(*config.CACertificate)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ca_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		caCertificate := args.Get(3).(*config.CACertificate)
 		*caCertificate = *mockState
 	}).Maybe()
 
 	// Mock the UpdateCACertificate API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/ca_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PatchJSON", mock.Anything, "configuration/v1/ca_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.CACertificateUpdateRequest)
 		caCertificate := args.Get(3).(*config.CACertificate)
 
@@ -59,9 +59,7 @@ func TestInfinityCACertificate(t *testing.T) {
 		if updateRequest.Certificate != "" {
 			mockState.Certificate = updateRequest.Certificate
 		}
-		if updateRequest.TrustedIntermediate != nil {
-			mockState.TrustedIntermediate = *updateRequest.TrustedIntermediate
-		}
+		mockState.TrustedIntermediate = updateRequest.TrustedIntermediate
 
 		// Return updated state
 		*caCertificate = *mockState

@@ -54,8 +54,8 @@ func TestInfinityScheduledConference(t *testing.T) {
 	}
 
 	// Mock the GetScheduledconference API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/scheduled_conference/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		scheduled_conference := args.Get(2).(*config.ScheduledConference)
+	client.On("GetJSON", mock.Anything, "configuration/v1/scheduled_conference/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		scheduled_conference := args.Get(3).(*config.ScheduledConference)
 		*scheduled_conference = *mockState
 	}).Maybe()
 

@@ -47,8 +47,8 @@ func TestInfinityADFSAuthServer(t *testing.T) {
 	}
 
 	// Mock the GetADFSAuthServer API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/adfs_auth_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		adfsauthserver := args.Get(2).(*config.ADFSAuthServer)
+	client.On("GetJSON", mock.Anything, "configuration/v1/adfs_auth_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		adfsauthserver := args.Get(3).(*config.ADFSAuthServer)
 		*adfsauthserver = *mockState
 	}).Maybe()
 

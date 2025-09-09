@@ -46,8 +46,8 @@ func TestInfinityWebappBranding(t *testing.T) {
 	}
 
 	// Mock the GetWebappbranding API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_branding/webapp_branding-test/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		webapp_branding := args.Get(2).(*config.WebappBranding)
+	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_branding/webapp_branding-test/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		webapp_branding := args.Get(3).(*config.WebappBranding)
 		*webapp_branding = *mockState
 	}).Maybe()
 

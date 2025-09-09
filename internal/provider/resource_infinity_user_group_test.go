@@ -45,8 +45,8 @@ func TestInfinityUserGroup(t *testing.T) {
 	}
 
 	// Mock the GetUserGroup API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/user_group/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		userGroup := args.Get(2).(*config.UserGroup)
+	client.On("GetJSON", mock.Anything, "configuration/v1/user_group/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		userGroup := args.Get(3).(*config.UserGroup)
 		*userGroup = *mockState
 	}).Maybe()
 

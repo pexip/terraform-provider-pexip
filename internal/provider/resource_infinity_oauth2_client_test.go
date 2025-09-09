@@ -43,8 +43,8 @@ func TestInfinityOAuth2Client(t *testing.T) {
 	}
 
 	// Mock the GetOauth2Client API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/oauth2_client/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		oauth2_client := args.Get(2).(*config.OAuth2Client)
+	client.On("GetJSON", mock.Anything, "configuration/v1/oauth2_client/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		oauth2_client := args.Get(3).(*config.OAuth2Client)
 		*oauth2_client = *mockState
 	}).Maybe()
 

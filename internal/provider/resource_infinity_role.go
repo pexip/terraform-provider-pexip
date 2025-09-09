@@ -92,19 +92,24 @@ func (r *InfinityRoleResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
+	// Convert List attributes to []string
+	permissions, diags := getStringList(ctx, plan.Permissions)
+	resp.Diagnostics.Append(diags...)
+
 	createRequest := &config.RoleCreateRequest{
-		Name: plan.Name.ValueString(),
+		Name:        plan.Name.ValueString(),
+		Permissions: permissions,
 	}
 
 	// Only set permissions if they are not null in the plan
-	if !plan.Permissions.IsNull() {
-		var permissions []string
-		resp.Diagnostics.Append(plan.Permissions.ElementsAs(ctx, &permissions, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.Permissions = permissions
-	}
+	// if !plan.Permissions.IsNull() {
+	//	var permissions []string
+	//	resp.Diagnostics.Append(plan.Permissions.ElementsAs(ctx, &permissions, false)...)
+	//	if resp.Diagnostics.HasError() {
+	//		return
+	//	}
+	//	createRequest.Permissions = permissions
+	//}
 
 	createResponse, err := r.InfinityClient.Config().CreateRole(ctx, createRequest)
 	if err != nil {
@@ -154,16 +159,16 @@ func (r *InfinityRoleResource) read(ctx context.Context, resourceID int) (*Infin
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 
-	// Convert permissions to types.Set, but keep as null if empty and not originally specified
-	if len(srv.Permissions) > 0 {
-		permissionsSetValue, diags := types.SetValueFrom(ctx, types.StringType, srv.Permissions)
-		if diags.HasError() {
-			return nil, fmt.Errorf("error converting permissions: %v", diags)
-		}
-		data.Permissions = permissionsSetValue
-	} else {
-		data.Permissions = types.SetNull(types.StringType)
+	// Convert permissions from SDK to Terraform format
+	var permissions []string
+	for _, perm := range srv.Permissions {
+		permissions = append(permissions, fmt.Sprintf("/api/admin/configuration/v1/permission/%d/", perm.ID))
 	}
+	permissionsSetValue, diags := types.SetValueFrom(ctx, types.StringType, permissions)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting permissions: %v", diags)
+	}
+	data.Permissions = permissionsSetValue
 
 	return &data, nil
 }

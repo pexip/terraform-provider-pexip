@@ -44,8 +44,8 @@ func TestInfinityStunServer(t *testing.T) {
 	}
 
 	// Mock the GetSTUNServer API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/stun_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		stunServer := args.Get(2).(*config.STUNServer)
+	client.On("GetJSON", mock.Anything, "configuration/v1/stun_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		stunServer := args.Get(3).(*config.STUNServer)
 		*stunServer = *mockState
 	}).Maybe()
 

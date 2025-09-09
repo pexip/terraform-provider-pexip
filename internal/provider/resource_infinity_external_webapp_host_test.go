@@ -42,8 +42,8 @@ func TestInfinityExternalWebappHost(t *testing.T) {
 	}
 
 	// Mock the GetExternalwebapphost API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/external_webapp_host/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		external_webapp_host := args.Get(2).(*config.ExternalWebappHost)
+	client.On("GetJSON", mock.Anything, "configuration/v1/external_webapp_host/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		external_webapp_host := args.Get(3).(*config.ExternalWebappHost)
 		*external_webapp_host = *mockState
 	}).Maybe()
 

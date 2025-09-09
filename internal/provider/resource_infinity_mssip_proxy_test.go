@@ -46,8 +46,8 @@ func TestInfinityMSSIPProxy(t *testing.T) {
 	}
 
 	// Mock the GetMSSIPProxy API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/mssip_proxy/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		mssipProxy := args.Get(2).(*config.MSSIPProxy)
+	client.On("GetJSON", mock.Anything, "configuration/v1/mssip_proxy/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		mssipProxy := args.Get(3).(*config.MSSIPProxy)
 		*mssipProxy = *mockState
 	}).Maybe()
 

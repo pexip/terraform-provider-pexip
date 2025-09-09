@@ -47,8 +47,8 @@ func TestInfinityTLSCertificate(t *testing.T) {
 	}
 
 	// Mock the GetTLSCertificate API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/tls_certificate/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		tlsCert := args.Get(2).(*config.TLSCertificate)
+	client.On("GetJSON", mock.Anything, "configuration/v1/tls_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		tlsCert := args.Get(3).(*config.TLSCertificate)
 		*tlsCert = *mockState
 	}).Maybe()
 

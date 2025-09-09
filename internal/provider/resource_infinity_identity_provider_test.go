@@ -70,8 +70,8 @@ func TestInfinityIdentityProvider(t *testing.T) {
 	}
 
 	// Mock the GetIdentityprovider API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/identity_provider/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		identity_provider := args.Get(2).(*config.IdentityProvider)
+	client.On("GetJSON", mock.Anything, "configuration/v1/identity_provider/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		identity_provider := args.Get(3).(*config.IdentityProvider)
 		*identity_provider = *mockState
 	}).Maybe()
 

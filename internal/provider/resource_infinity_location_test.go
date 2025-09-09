@@ -43,8 +43,8 @@ func TestInfinityLocation(t *testing.T) {
 	}
 
 	// Mock the GetLocation API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/location/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		location := args.Get(2).(*config.Location)
+	client.On("GetJSON", mock.Anything, "configuration/v1/location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		location := args.Get(3).(*config.Location)
 		*location = *mockState
 	}).Maybe()
 

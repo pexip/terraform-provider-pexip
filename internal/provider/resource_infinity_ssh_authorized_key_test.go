@@ -45,8 +45,8 @@ func TestInfinitySSHAuthorizedKey(t *testing.T) {
 	}
 
 	// Mock the GetSshauthorizedkey API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ssh_authorized_key/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ssh_authorized_key := args.Get(2).(*config.SSHAuthorizedKey)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ssh_authorized_key/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ssh_authorized_key := args.Get(3).(*config.SSHAuthorizedKey)
 		*ssh_authorized_key = *mockState
 	}).Maybe()
 
