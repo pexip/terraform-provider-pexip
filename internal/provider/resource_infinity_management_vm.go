@@ -319,15 +319,15 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 }
 
 func (r *InfinityManagementVMResource) buildUpdateRequest(plan *InfinityManagementVMResourceModel) *config.ManagementVMUpdateRequest {
-	
+
 	updateRequest := &config.ManagementVMUpdateRequest{
-		Name:          plan.Name.ValueString(),
-		Address:       plan.Address.ValueString(),
-		Netmask:       plan.Netmask.ValueString(),
-		Gateway:       plan.Gateway.ValueString(),
-		Hostname:      plan.Hostname.ValueString(),
-		Domain:        plan.Domain.ValueString(),
-		Description:   plan.Description.ValueString(),
+		Name:        plan.Name.ValueString(),
+		Address:     plan.Address.ValueString(),
+		Netmask:     plan.Netmask.ValueString(),
+		Gateway:     plan.Gateway.ValueString(),
+		Hostname:    plan.Hostname.ValueString(),
+		Domain:      plan.Domain.ValueString(),
+		Description: plan.Description.ValueString(),
 	}
 
 	// Handle optional pointer fields
@@ -463,7 +463,7 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int,
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
 	data.AlternativeFQDN = types.StringValue(srv.AlternativeFQDN)
-	data.MTU = types.Int32Value(int32(srv.MTU))
+	data.MTU = types.Int32Value(int32(srv.MTU)) // #nosec G115 -- API values are expected to be within int32 range
 	data.EnableSSH = types.StringValue(srv.EnableSSH)
 	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 	data.SecondaryConfigPassphrase = types.StringValue(srv.SecondaryConfigPassphrase)
@@ -613,7 +613,7 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	
+
 	// Get the list of DNS, NTP, and Syslog servers
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)

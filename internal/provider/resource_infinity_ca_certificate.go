@@ -12,9 +12,9 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -270,8 +270,8 @@ func (r *InfinityCACertificateResource) Update(ctx context.Context, req resource
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.CACertificateUpdateRequest{
-		Certificate:          plan.Certificate.ValueString(),
-		TrustedIntermediate:  plan.TrustedIntermediate.ValueBool(),
+		Certificate:         plan.Certificate.ValueString(),
+		TrustedIntermediate: plan.TrustedIntermediate.ValueBool(),
 	}
 
 	_, err := r.InfinityClient.Config().UpdateCACertificate(ctx, resourceID, updateRequest)

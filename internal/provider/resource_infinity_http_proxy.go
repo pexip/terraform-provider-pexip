@@ -100,7 +100,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 			"protocol": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString("http"),
+				Default:  stringdefault.StaticString("http"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("http"),
 				},

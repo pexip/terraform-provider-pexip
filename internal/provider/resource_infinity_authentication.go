@@ -109,7 +109,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"client_certificate": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString("NO"),
+				Default:  stringdefault.StaticString("NO"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NO", "CN", "UPN"),
 				},
@@ -425,7 +425,7 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 	return updateRequest
 }
 
-func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass string, oidcPass string) (*InfinityAuthenticationResourceModel, error) {
+func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass, oidcPass string) (*InfinityAuthenticationResourceModel, error) {
 	var data InfinityAuthenticationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetAuthentication(ctx)
@@ -482,7 +482,7 @@ func (r *InfinityAuthenticationResource) Read(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	
+
 	state, err := r.read(ctx, state.LdapBindPassword.ValueString(), state.OidcClientSecret.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources

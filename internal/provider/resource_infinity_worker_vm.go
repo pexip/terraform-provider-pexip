@@ -382,8 +382,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The public IPv4 address used by the Conferencing Node when it is located behind a NAT device. Note that if you are using NAT, you must also configure your NAT device to route the Conferencing Node's IPv4 static NAT address to its IPv4 address.",
 			},
 			"static_routes": schema.SetAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
+				Optional:            true,
+				ElementType:         types.StringType,
 				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"system_location": schema.StringAttribute{
@@ -573,7 +573,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, config, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -587,8 +587,8 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 
 	// Set required and default fields
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
-	data.Config = types.StringValue(config)
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
+	data.Config = types.StringValue(vmConfig)
 	data.Name = types.StringValue(srv.Name)
 	data.Hostname = types.StringValue(srv.Hostname)
 	data.Domain = types.StringValue(srv.Domain)
@@ -640,7 +640,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, con
 	if srv.MediaPriorityWeight != nil {
 		data.MediaPriorityWeight = types.Int64Value(int64(*srv.MediaPriorityWeight))
 	}
-	
+
 	// Convert SSH authorized keys from SDK to Terraform format
 	var sshKeys []string
 	for _, key := range srv.SSHAuthorizedKeys {
@@ -794,7 +794,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.Signalling.IsNull() {
 		updateRequest.Signalling = plan.Signalling.ValueBool()
 	}
-	
+
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()

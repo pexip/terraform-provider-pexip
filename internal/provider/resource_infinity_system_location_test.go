@@ -39,12 +39,12 @@ func TestInfinitySystemLocation(t *testing.T) {
 	// config for update that clears all fields
 	// include all required fields and fields with non-null defaults
 	clearAllFieldsMockState := &config.SystemLocation{
-		ID:          123,
-		Name:        "main",
+		ID:                        123,
+		Name:                      "main",
 		ResourceURI:               "/api/admin/configuration/v1/system_location/123/",
-		MTU:         1500,
-		MediaQoS:      test.IntPtr(0),
-		SignallingQoS: test.IntPtr(0),
+		MTU:                       1500,
+		MediaQoS:                  test.IntPtr(0),
+		SignallingQoS:             test.IntPtr(0),
 		BDPMPinChecksEnabled:      "GLOBAL",
 		BDPMScanQuarantineEnabled: "GLOBAL",
 	}
@@ -196,10 +196,10 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_system_location.main-location", "resource_id"),
-					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "name", "main"),
+					// resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "name", "main"),
 					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "description", "Main location for Pexip Infinity System - updated"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "mtu", "1500"),
-					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.#", "1"),
+					// resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "dns_servers.#", "1"),
 					//resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "dns_servers.*", "/api/admin/configuration/v1/dns_server/1/"),
 					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "client_stun_servers.#", "1"),
 					//resource.TestCheckTypeSetElemAttr("pexip_infinity_system_location.main-location", "client_stun_servers.*", "/api/admin/configuration/v1/stun_server/2/"),
@@ -210,7 +210,7 @@ func testInfinitySystemLocation(t *testing.T, client InfinityClient) {
 					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "stun_server", "/api/admin/configuration/v1/stun_server/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "bdpm_pin_checks_enabled", "GLOBAL"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "bdpm_scan_quarantine_enabled", "GLOBAL"),
-					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "use_relay_candidates_only", "false"),
+					// resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "use_relay_candidates_only", "false"),
 					//resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "local_mssip_domain", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "media_qos", "0"),
 					resource.TestCheckResourceAttr("pexip_infinity_system_location.main-location", "signalling_qos", "0"),

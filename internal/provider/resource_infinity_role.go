@@ -97,12 +97,12 @@ func (r *InfinityRoleResource) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(diags...)
 
 	createRequest := &config.RoleCreateRequest{
-		Name: plan.Name.ValueString(),
+		Name:        plan.Name.ValueString(),
 		Permissions: permissions,
 	}
 
 	// Only set permissions if they are not null in the plan
-	//if !plan.Permissions.IsNull() {
+	// if !plan.Permissions.IsNull() {
 	//	var permissions []string
 	//	resp.Diagnostics.Append(plan.Permissions.ElementsAs(ctx, &permissions, false)...)
 	//	if resp.Diagnostics.HasError() {

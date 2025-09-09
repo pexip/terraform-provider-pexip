@@ -454,17 +454,17 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 	data.LiveCaptionsDialOut1 = types.StringPointerValue(srv.LiveCaptionsDialOut1)
 	data.LiveCaptionsDialOut2 = types.StringPointerValue(srv.LiveCaptionsDialOut2)
 	data.LiveCaptionsDialOut3 = types.StringPointerValue(srv.LiveCaptionsDialOut3)
-	
+
 	// Handle nullable integer fields
 	if srv.MediaQoS != nil {
-		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS))
+		data.MediaQOS = types.Int32Value(int32(*srv.MediaQoS)) // #nosec G115 -- API values are expected to be within int32 range
 	}
 	if srv.SignallingQoS != nil {
-		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS))
+		data.SignallingQOS = types.Int32Value(int32(*srv.SignallingQoS)) // #nosec G115 -- API values are expected to be within int32 range
 	} else {
 		data.SignallingQOS = types.Int32Null()
 	}
-	
+
 	// Convert DNS servers from SDK to Terraform format
 	var dnsServers []string
 	for _, dns := range srv.DNSServers {

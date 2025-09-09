@@ -202,7 +202,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	if !plan.Parameters.IsNull() {
 		createRequest.Parameters = plan.Parameters.ValueString()
 	}
-	
+
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
@@ -242,7 +242,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID int, privateKey string, privateKeyPass string) (*InfinityTLSCertificateResourceModel, error) {
+func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID int, privateKey, privateKeyPass string) (*InfinityTLSCertificateResourceModel, error) {
 	var data InfinityTLSCertificateResourceModel
 
 	srv, err := r.InfinityClient.Config().GetTLSCertificate(ctx, resourceID)
@@ -257,7 +257,7 @@ func (r *InfinityTLSCertificateResource) read(ctx context.Context, resourceID in
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Certificate = types.StringValue(srv.Certificate)
-	data.PrivateKey = types.StringValue(privateKey) // The privateKey property is not returned by the API, so we need to set it manually
+	data.PrivateKey = types.StringValue(privateKey)               // The privateKey property is not returned by the API, so we need to set it manually
 	data.PrivateKeyPassphrase = types.StringValue(privateKeyPass) // The privateKeyPassphrase is returned blank by the API, so we need to set it manually
 	data.Parameters = types.StringValue(srv.Parameters)
 	data.StartDate = types.StringValue(srv.StartDate.String())
@@ -339,7 +339,7 @@ func (r *InfinityTLSCertificateResource) Update(ctx context.Context, req resourc
 	if !plan.Parameters.IsNull() {
 		updateRequest.Parameters = plan.Parameters.ValueString()
 	}
-	
+
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")

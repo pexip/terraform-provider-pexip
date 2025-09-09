@@ -46,8 +46,8 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		CloudProvider:                "GCP",            // default: "AWS"
 		ContactEmailAddress:          "someone@notdefault.com",
 		ContentSecurityPolicyHeader:  "custom-csp-header",
-		ContentSecurityPolicyState:   false,      // default: true
-		CryptoMode:                   "on", // default: "besteffort"
+		ContentSecurityPolicyState:   false, // default: true
+		CryptoMode:                   "on",  // default: "besteffort"
 		DefaultTheme:                 test.StringPtr("dark"),
 		DefaultToNewWebapp:           false,    // default: true
 		DefaultWebapp:                "legacy", // default: "latest"
@@ -123,14 +123,14 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		//PssEnabled:                          true, // default: false
 		//PssGateway:                          "notdefaultpssgateway",
 		//PssToken:                            "notdefaultpsstoken",
-		SessionTimeoutEnabled:               false, // default: true
-		SignallingPortsEnd:                  39998, // default: 39999
-		SignallingPortsStart:                34001, // default: 34000
-		SipTLSCertVerifyMode:                "ON",  // default: "OFF"
-		SiteBanner:                          "notdefaultsitebanner",
-		SiteBannerBg:                        "#ffffff", // default: "#c0c0c0"
-		SiteBannerFg:                        "#ff0000", // default: "#000000"
-		TeamsEnablePowerpointRender:         true,      // default: false
+		SessionTimeoutEnabled:       false, // default: true
+		SignallingPortsEnd:          39998, // default: 39999
+		SignallingPortsStart:        34001, // default: 34000
+		SipTLSCertVerifyMode:        "ON",  // default: "OFF"
+		SiteBanner:                  "notdefaultsitebanner",
+		SiteBannerBg:                "#ffffff", // default: "#c0c0c0"
+		SiteBannerFg:                "#ff0000", // default: "#000000"
+		TeamsEnablePowerpointRender: true,      // default: false
 		//WaitingForChairTimeout:              901,       // default: 900
 	}
 
@@ -266,24 +266,24 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_global_configuration_basic"),
-				Check: resource.ComposeTestCheckFunc(
-					//resource.TestCheckResourceAttrSet("pexip_infinity_global_configuration.global_configuration-test", "id"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_webrtc", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_sip", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_h323", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_rtmp", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "crypto_mode", "besteffort"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_pixels_per_second", "hd"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_enabled", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "aws"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "conference_creation_mode", "per_cluster"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_analytics", "true"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_start", "40000"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_end", "40100"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_start", "5060"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_end", "5070"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "guests_only_timeout", "300"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "waiting_for_chair_timeout", "600"),
+				Check:  resource.ComposeTestCheckFunc(
+				// resource.TestCheckResourceAttrSet("pexip_infinity_global_configuration.global_configuration-test", "id"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_webrtc", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_sip", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_h323", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_rtmp", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "crypto_mode", "besteffort"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_pixels_per_second", "hd"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_enabled", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "aws"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "conference_creation_mode", "per_cluster"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_analytics", "true"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_start", "40000"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_end", "40100"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_start", "5060"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_end", "5070"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "guests_only_timeout", "300"),
+				//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "waiting_for_chair_timeout", "600"),
 				),
 			},
 			{
@@ -313,7 +313,7 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "disabled_codecs.#", "2"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_global_configuration.global_configuration-test", "disabled_codecs.*", "H264_H_1"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_global_configuration.global_configuration-test", "disabled_codecs.*", "VP9"),
-					//resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "maximum_deferred_es_posts", "500"),
+					// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "maximum_deferred_es_posts", "500"),
 				),
 			},
 		},

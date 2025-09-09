@@ -84,7 +84,7 @@ func (d *InfinityPermissionDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	listOpts := &config.ListOptions{}
-    listOpts.Limit = 100
+	listOpts.Limit = 100
 
 	// Lookup by name
 	list, err := d.InfinityClient.Config().ListPermissions(ctx, listOpts)
@@ -113,7 +113,7 @@ func (d *InfinityPermissionDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	state.ID = types.StringValue(fmt.Sprintf("/api/admin/configuration/v1/permission/%d/", perm.ID))
-	state.ResourceID = types.Int32Value(int32(perm.ID))
+	state.ResourceID = types.Int32Value(int32(perm.ID)) // #nosec G115 -- API values are expected to be within int32 range
 	state.Name = types.StringValue(perm.Name)
 	state.Codename = types.StringValue(perm.Codename)
 	state.ResourceURI = types.StringValue(perm.ResourceURI)
