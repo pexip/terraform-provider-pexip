@@ -44,8 +44,8 @@ func TestInfinityAzureTenant(t *testing.T) {
 	}
 
 	// Mock the GetAzureTenant API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/azure_tenant/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		azureTenant := args.Get(2).(*config.AzureTenant)
+	client.On("GetJSON", mock.Anything, "configuration/v1/azure_tenant/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		azureTenant := args.Get(3).(*config.AzureTenant)
 		*azureTenant = *mockState
 	}).Maybe()
 

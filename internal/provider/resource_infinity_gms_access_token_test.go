@@ -43,8 +43,8 @@ func TestInfinityGMSAccessToken(t *testing.T) {
 	}
 
 	// Mock the GetGmsaccesstoken API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/gms_access_token/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		gms_access_token := args.Get(2).(*config.GMSAccessToken)
+	client.On("GetJSON", mock.Anything, "configuration/v1/gms_access_token/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		gms_access_token := args.Get(3).(*config.GMSAccessToken)
 		*gms_access_token = *mockState
 	}).Maybe()
 

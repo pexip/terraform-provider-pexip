@@ -35,17 +35,19 @@ func TestInfinityH323Gatekeeper(t *testing.T) {
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
 	// Shared state for mocking
+	defaultPort := 1719
 	mockState := &config.H323Gatekeeper{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/123/",
 		Name:        "h323_gatekeeper-test",
 		Description: "Test H323Gatekeeper",
 		Address:     "192.168.1.100",
+		Port:        &defaultPort,
 	}
 
 	// Mock the GetH323Gatekeeper API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/h323_gatekeeper/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		h323_gatekeeper := args.Get(2).(*config.H323Gatekeeper)
+	client.On("GetJSON", mock.Anything, "configuration/v1/h323_gatekeeper/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		h323_gatekeeper := args.Get(3).(*config.H323Gatekeeper)
 		*h323_gatekeeper = *mockState
 	}).Maybe()
 
@@ -63,6 +65,9 @@ func TestInfinityH323Gatekeeper(t *testing.T) {
 		}
 		if updateRequest.Address != "" {
 			mockState.Address = updateRequest.Address
+		}
+		if updateRequest.Port != nil {
+			mockState.Port = updateRequest.Port
 		}
 
 		// Return updated state

@@ -64,8 +64,8 @@ func TestInfinityMjxIntegration(t *testing.T) {
 	}
 
 	// Mock the GetMjxintegration API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/mjx_integration/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		mjxintegration := args.Get(2).(*config.MjxIntegration)
+	client.On("GetJSON", mock.Anything, "configuration/v1/mjx_integration/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		mjxintegration := args.Get(3).(*config.MjxIntegration)
 		*mjxintegration = *mockState
 	}).Maybe()
 

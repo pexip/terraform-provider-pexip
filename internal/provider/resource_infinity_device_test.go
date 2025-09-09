@@ -53,8 +53,8 @@ func TestInfinityDevice(t *testing.T) {
 	}
 
 	// Mock the GetDevice API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/device/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		device := args.Get(2).(*config.Device)
+	client.On("GetJSON", mock.Anything, "configuration/v1/device/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		device := args.Get(3).(*config.Device)
 		*device = *mockState
 	}).Maybe()
 

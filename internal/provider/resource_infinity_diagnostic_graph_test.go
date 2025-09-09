@@ -43,8 +43,8 @@ func TestInfinityDiagnosticGraph(t *testing.T) {
 	}
 
 	// Mock the GetDiagnosticgraph API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/diagnostic_graphs/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		diagnostic_graph := args.Get(2).(*config.DiagnosticGraph)
+	client.On("GetJSON", mock.Anything, "configuration/v1/diagnostic_graphs/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		diagnostic_graph := args.Get(3).(*config.DiagnosticGraph)
 		*diagnostic_graph = *mockState
 	}).Maybe()
 

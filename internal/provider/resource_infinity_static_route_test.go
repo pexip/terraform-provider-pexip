@@ -45,8 +45,8 @@ func TestInfinityStaticRoute(t *testing.T) {
 	}
 
 	// Mock the GetStaticroute API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/static_route/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		static_route := args.Get(2).(*config.StaticRoute)
+	client.On("GetJSON", mock.Anything, "configuration/v1/static_route/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		static_route := args.Get(3).(*config.StaticRoute)
 		*static_route = *mockState
 	}).Maybe()
 

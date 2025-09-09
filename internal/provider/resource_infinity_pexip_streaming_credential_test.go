@@ -43,8 +43,8 @@ func TestInfinityPexipStreamingCredential(t *testing.T) {
 	}
 
 	// Mock the GetPexipstreamingcredential API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/pexip_streaming_credential/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		pexip_streaming_credential := args.Get(2).(*config.PexipStreamingCredential)
+	client.On("GetJSON", mock.Anything, "configuration/v1/pexip_streaming_credential/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		pexip_streaming_credential := args.Get(3).(*config.PexipStreamingCredential)
 		*pexip_streaming_credential = *mockState
 	}).Maybe()
 

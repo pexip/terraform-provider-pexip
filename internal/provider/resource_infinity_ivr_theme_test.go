@@ -43,8 +43,8 @@ func TestInfinityIvrTheme(t *testing.T) {
 	}
 
 	// Mock the GetIvrtheme API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ivr_theme/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ivr_theme := args.Get(2).(*config.IVRTheme)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ivr_theme/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ivr_theme := args.Get(3).(*config.IVRTheme)
 		*ivr_theme = *mockState
 	}).Maybe()
 

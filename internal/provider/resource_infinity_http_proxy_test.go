@@ -46,14 +46,14 @@ func TestInfinityHTTPProxy(t *testing.T) {
 		Name:        "http_proxy-test",
 		Address:     "test-server.example.com",
 		Port:        intPtr(8080),
-		Protocol:    "https",
+		Protocol:    "http",
 		Username:    "http_proxy-test",
 		Password:    "test-value",
 	}
 
 	// Mock the GetHttpproxy API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/http_proxy/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		http_proxy := args.Get(2).(*config.HTTPProxy)
+	client.On("GetJSON", mock.Anything, "configuration/v1/http_proxy/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		http_proxy := args.Get(3).(*config.HTTPProxy)
 		*http_proxy = *mockState
 	}).Maybe()
 

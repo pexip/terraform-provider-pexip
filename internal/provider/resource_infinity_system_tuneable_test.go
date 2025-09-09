@@ -43,8 +43,8 @@ func TestInfinitySystemTuneable(t *testing.T) {
 	}
 
 	// Mock the GetSystemtuneable API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/system_tuneable/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		system_tuneable := args.Get(2).(*config.SystemTuneable)
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_tuneable/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		system_tuneable := args.Get(3).(*config.SystemTuneable)
 		*system_tuneable = *mockState
 	}).Maybe()
 

@@ -46,8 +46,8 @@ func TestInfinitySnmpNetworkManagementSystem(t *testing.T) {
 	}
 
 	// Mock the GetSnmpnetworkmanagementsystem API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/snmp_network_management_system/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		snmp_network_management_system := args.Get(2).(*config.SnmpNetworkManagementSystem)
+	client.On("GetJSON", mock.Anything, "configuration/v1/snmp_network_management_system/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		snmp_network_management_system := args.Get(3).(*config.SnmpNetworkManagementSystem)
 		*snmp_network_management_system = *mockState
 	}).Maybe()
 

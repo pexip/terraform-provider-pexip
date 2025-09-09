@@ -43,8 +43,8 @@ func TestInfinityRole(t *testing.T) {
 	}
 
 	// Mock the GetRole API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/role/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		role := args.Get(2).(*config.Role)
+	client.On("GetJSON", mock.Anything, "configuration/v1/role/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		role := args.Get(3).(*config.Role)
 		*role = *mockState
 	}).Maybe()
 

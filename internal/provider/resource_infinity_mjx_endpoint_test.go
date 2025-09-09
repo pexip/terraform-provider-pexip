@@ -55,8 +55,8 @@ func TestInfinityMjxEndpoint(t *testing.T) {
 	}
 
 	// Mock the GetMjxendpoint API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/mjx_endpoint/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		mjx_endpoint := args.Get(2).(*config.MjxEndpoint)
+	client.On("GetJSON", mock.Anything, "configuration/v1/mjx_endpoint/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		mjx_endpoint := args.Get(3).(*config.MjxEndpoint)
 		*mjx_endpoint = *mockState
 	}).Maybe()
 

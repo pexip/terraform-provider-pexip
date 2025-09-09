@@ -43,8 +43,8 @@ func TestInfinityLdapRole(t *testing.T) {
 	}
 
 	// Mock the GetLdaprole API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ldap_role/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ldap_role := args.Get(2).(*config.LdapRole)
+	client.On("GetJSON", mock.Anything, "configuration/v1/ldap_role/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ldap_role := args.Get(3).(*config.LdapRole)
 		*ldap_role = *mockState
 	}).Maybe()
 

@@ -48,8 +48,8 @@ func TestInfinitySyslogServer(t *testing.T) {
 	}
 
 	// Mock the GetSyslogserver API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/syslog_server/123/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		syslog_server := args.Get(2).(*config.SyslogServer)
+	client.On("GetJSON", mock.Anything, "configuration/v1/syslog_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		syslog_server := args.Get(3).(*config.SyslogServer)
 		*syslog_server = *mockState
 	}).Maybe()
 
