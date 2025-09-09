@@ -1222,5 +1222,4 @@ func (r *InfinityGlobalConfigurationResource) ImportState(ctx context.Context, r
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
-
 }

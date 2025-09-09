@@ -511,9 +511,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Client TURN Servers
 	var clientTurnServers []string
-	for _, turn := range srv.ClientTURNServers {
-		clientTurnServers = append(clientTurnServers, turn)
-	}
+	clientTurnServers = append(clientTurnServers, srv.ClientTURNServers...)
 	clientTurnSet, diags := types.SetValueFrom(ctx, types.StringType, clientTurnServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting client TURN servers: %v", diags)
@@ -522,9 +520,7 @@ func (r *InfinitySystemLocationResource) read(ctx context.Context, resourceID in
 
 	// Client STUN Servers
 	var clientStunServers []string
-	for _, stun := range srv.ClientSTUNServers {
-		clientStunServers = append(clientStunServers, stun)
-	}
+	clientStunServers = append(clientStunServers, srv.ClientSTUNServers...)
 	clientStunSet, diags := types.SetValueFrom(ctx, types.StringType, clientStunServers)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting client STUN servers: %v", diags)

@@ -112,7 +112,6 @@ func TestInfinityManagementVM(t *testing.T) {
 
 		// Return updated state
 		*management_vm = *mockState
-
 	}).Maybe()
 
 	testInfinityManagementVM(t, client)

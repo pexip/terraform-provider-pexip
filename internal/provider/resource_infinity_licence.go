@@ -199,9 +199,9 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	fulfillmentID := ""
-	for _, licence := range listResponse.Objects {
-		if licence.EntitlementID == strings.Replace(plan.EntitlementID.ValueString(), " ", "", -1) {
-			fulfillmentID = licence.FulfillmentID
+	for i := range listResponse.Objects {
+		if listResponse.Objects[i].EntitlementID == strings.ReplaceAll(plan.EntitlementID.ValueString(), " ", "") {
+			fulfillmentID = listResponse.Objects[i].FulfillmentID
 			break
 		}
 	}

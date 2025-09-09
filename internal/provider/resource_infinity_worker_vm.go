@@ -573,7 +573,7 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory int64, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
+func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmConfig, deployType, password, snmpAuthPass, snmpPrivPass string, vm_system_memory, vm_cpu_count int64) (*InfinityWorkerVMResourceModel, error) {
 	var data InfinityWorkerVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetWorkerVM(ctx, resourceID)
@@ -643,9 +643,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 
 	// Convert SSH authorized keys from SDK to Terraform format
 	var sshKeys []string
-	for _, key := range srv.SSHAuthorizedKeys {
-		sshKeys = append(sshKeys, key)
-	}
+	sshKeys = append(sshKeys, srv.SSHAuthorizedKeys...)
 	keysSetValue, diags := types.SetValueFrom(ctx, types.StringType, sshKeys)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting SSH keys: %v", diags)
@@ -654,9 +652,7 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 
 	// Convert static routes from SDK to Terraform format
 	var staticRoutes []string
-	for _, route := range srv.StaticRoutes {
-		staticRoutes = append(staticRoutes, route)
-	}
+	staticRoutes = append(staticRoutes, srv.StaticRoutes...)
 	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting static routes: %v", diags)

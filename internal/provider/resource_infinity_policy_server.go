@@ -31,28 +31,28 @@ type InfinityPolicyServerResource struct {
 }
 
 type InfinityPolicyServerResourceModel struct {
-	ID                                 types.String `tfsdk:"id"`
-	ResourceID                         types.Int32  `tfsdk:"resource_id"`
-	Name                               types.String `tfsdk:"name"`
-	Description                        types.String `tfsdk:"description"`
-	URL                                types.String `tfsdk:"url"`
-	Username                           types.String `tfsdk:"username"`
-	Password                           types.String `tfsdk:"password"`
-	EnableServiceLookup                types.Bool   `tfsdk:"enable_service_lookup"`
-	EnableParticipantLookup            types.Bool   `tfsdk:"enable_participant_lookup"`
-	EnableRegistrationLookup           types.Bool   `tfsdk:"enable_registration_lookup"`
-	EnableDirectoryLookup              types.Bool   `tfsdk:"enable_directory_lookup"`
-	EnableAvatarLookup                 types.Bool   `tfsdk:"enable_avatar_lookup"`
-	EnableMediaLocationLookup          types.Bool   `tfsdk:"enable_media_location_lookup"`
-	EnableInternalServicePolicy        types.Bool   `tfsdk:"enable_internal_service_policy"`
-	EnableInternalParticipantPolicy    types.Bool   `tfsdk:"enable_internal_participant_policy"`
-	EnableInternalMediaLocationPolicy  types.Bool   `tfsdk:"enable_internal_media_location_policy"`
-	PreferLocalAvatarConfiguration     types.Bool   `tfsdk:"prefer_local_avatar_configuration"`
-	ServiceConfigurationTemplate       types.String `tfsdk:"service_configuration_template"`
-	ParticipantConfigurationTemplate   types.String `tfsdk:"participant_configuration_template"`
-	RegistrationConfigurationTemplate  types.String `tfsdk:"registration_configuration_template"`
-	DirectorySearchTemplate            types.String `tfsdk:"directory_search_template"`
-	AvatarConfigurationTemplate        types.String `tfsdk:"avatar_configuration_template"`
+	ID                                  types.String `tfsdk:"id"`
+	ResourceID                          types.Int32  `tfsdk:"resource_id"`
+	Name                                types.String `tfsdk:"name"`
+	Description                         types.String `tfsdk:"description"`
+	URL                                 types.String `tfsdk:"url"`
+	Username                            types.String `tfsdk:"username"`
+	Password                            types.String `tfsdk:"password"`
+	EnableServiceLookup                 types.Bool   `tfsdk:"enable_service_lookup"`
+	EnableParticipantLookup             types.Bool   `tfsdk:"enable_participant_lookup"`
+	EnableRegistrationLookup            types.Bool   `tfsdk:"enable_registration_lookup"`
+	EnableDirectoryLookup               types.Bool   `tfsdk:"enable_directory_lookup"`
+	EnableAvatarLookup                  types.Bool   `tfsdk:"enable_avatar_lookup"`
+	EnableMediaLocationLookup           types.Bool   `tfsdk:"enable_media_location_lookup"`
+	EnableInternalServicePolicy         types.Bool   `tfsdk:"enable_internal_service_policy"`
+	EnableInternalParticipantPolicy     types.Bool   `tfsdk:"enable_internal_participant_policy"`
+	EnableInternalMediaLocationPolicy   types.Bool   `tfsdk:"enable_internal_media_location_policy"`
+	PreferLocalAvatarConfiguration      types.Bool   `tfsdk:"prefer_local_avatar_configuration"`
+	ServiceConfigurationTemplate        types.String `tfsdk:"service_configuration_template"`
+	ParticipantConfigurationTemplate    types.String `tfsdk:"participant_configuration_template"`
+	RegistrationConfigurationTemplate   types.String `tfsdk:"registration_configuration_template"`
+	DirectorySearchTemplate             types.String `tfsdk:"directory_search_template"`
+	AvatarConfigurationTemplate         types.String `tfsdk:"avatar_configuration_template"`
 	InternalMediaLocationPolicyTemplate types.String `tfsdk:"internal_media_location_policy_template"`
 }
 
