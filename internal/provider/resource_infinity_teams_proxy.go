@@ -12,6 +12,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -87,6 +89,7 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -100,7 +103,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The address or hostname of the Teams proxy. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(443),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
@@ -115,18 +120,16 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"eventhub_id": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
 				MarkdownDescription: "The event hub identifier for the Teams proxy. Maximum length: 255 characters.",
 			},
 			"min_number_of_instances": schema.Int32Attribute{
-				Required: true,
-				Validators: []validator.Int32{
-					int32validator.AtLeast(1),
-				},
-				MarkdownDescription: "The minimum number of instances for the Teams proxy. Must be at least 1.",
+				Optional:            true,
+				Computed:            true,
+				Default:             int32default.StaticInt32(1),
+				MarkdownDescription: "The minimum number of instances for the Teams proxy.",
 			},
 			"notifications_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -136,7 +139,6 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"notifications_queue": schema.StringAttribute{
 				Optional:  true,
-				Computed:  true,
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
