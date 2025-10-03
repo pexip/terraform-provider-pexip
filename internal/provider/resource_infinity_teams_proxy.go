@@ -120,7 +120,6 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"eventhub_id": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
