@@ -33,57 +33,55 @@ func TestInfinityTeamsProxy(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/teams_proxy/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Shared state for mocking
-	eventhubID := "test-eventhub-id"
-	notificationsQueue := "test-notifications-queue"
-	mockState := &config.TeamsProxy{
+	// Track state to return different values before and after update
+	updated := false
+
+	// config for create request with minimal fields set
+	// include all required fields and fields with non-null defaults
+	createMockState := &config.TeamsProxy{
 		ID:                   123,
 		ResourceURI:          "/api/admin/configuration/v1/teams_proxy/123/",
 		Name:                 "test-teams-proxy",
-		Description:          "Test Teams Proxy",
+		Description:          "",
 		Address:              "test-teams-proxy.dev.pexip.network",
-		Port:                 8080,
-		AzureTenant:          "test-azure-tenant",
-		EventhubID:           &eventhubID,
-		MinNumberOfInstances: 2,
+		Port:                 443,
+		AzureTenant:          "/api/admin/configuration/v1/azure_tenant/1/",
+		MinNumberOfInstances: 1,
 		NotificationsEnabled: false,
-		NotificationsQueue:   &notificationsQueue,
+	}
+
+	// config for update request with all fields set and updated
+	updateMockState := &config.TeamsProxy{
+		ID:                   123,
+		ResourceURI:          "/api/admin/configuration/v1/teams_proxy/123/",
+		Name:                 "test-teams-proxy-updated",
+		Description:          "Test Teams Proxy Updated",
+		Address:              "updated-test-teams-proxy.dev.pexip.network",
+		Port:                 8443,
+		AzureTenant:          "/api/admin/configuration/v1/azure_tenant/1/",
+		MinNumberOfInstances: 0,
+		NotificationsEnabled: true,
+		NotificationsQueue:   test.StringPtr("updated-test-notifications-queue"),
+		EventhubID:           test.StringPtr("updated-test-eventhub-id"),
 	}
 
 	// Mock the GetTeamsProxy API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/teams_proxy/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		teamsProxy := args.Get(3).(*config.TeamsProxy)
-		*teamsProxy = *mockState
+		if updated {
+			*teamsProxy = *updateMockState
+		} else {
+			*teamsProxy = *createMockState
+		}
 	}).Maybe()
 
 	// Mock the UpdateTeamsProxy API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/teams_proxy/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.TeamsProxyUpdateRequest)
+	client.On("PutJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
+		return path == "configuration/v1/teams_proxy/123/"
+	}), mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		updated = true // Mark as updated for subsequent reads
 		teamsProxy := args.Get(3).(*config.TeamsProxy)
-
-		// Update mock state
-		mockState.Name = updateRequest.Name
-		mockState.Description = updateRequest.Description
-		mockState.Address = updateRequest.Address
-		mockState.AzureTenant = updateRequest.AzureTenant
-		if updateRequest.Port != nil {
-			mockState.Port = *updateRequest.Port
-		}
-		if updateRequest.EventhubID != nil {
-			mockState.EventhubID = updateRequest.EventhubID
-		}
-		if updateRequest.MinNumberOfInstances != nil {
-			mockState.MinNumberOfInstances = *updateRequest.MinNumberOfInstances
-		}
-		if updateRequest.NotificationsEnabled != nil {
-			mockState.NotificationsEnabled = *updateRequest.NotificationsEnabled
-		}
-		if updateRequest.NotificationsQueue != nil {
-			mockState.NotificationsQueue = updateRequest.NotificationsQueue
-		}
-
-		// Return updated state
-		*teamsProxy = *mockState
+		*teamsProxy = *updateMockState
 	}).Maybe()
 
 	// Mock the DeleteTeamsProxy API call
@@ -104,14 +102,12 @@ func testInfinityTeamsProxy(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_teams_proxy.teams-proxy-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_teams_proxy.teams-proxy-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "name", "test-teams-proxy"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "description", "Test Teams Proxy"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "address", "test-teams-proxy.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "port", "8080"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "test-azure-tenant"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "eventhub_id", "test-eventhub-id"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "2"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "port", "443"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "/api/admin/configuration/v1/azure_tenant/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "1"),
 					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_enabled", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_queue", "test-notifications-queue"),
 				),
 			},
 			{
@@ -119,15 +115,15 @@ func testInfinityTeamsProxy(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_teams_proxy.teams-proxy-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_teams_proxy.teams-proxy-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "name", "test-teams-proxy"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "description", "Test Teams Proxy"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "address", "test-teams-proxy.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "port", "8081"), // Updated port
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "test-azure-tenant"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "eventhub_id", "test-eventhub-id"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "1"), // Updated min_number_of_instances
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_enabled", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_queue", "test-notifications-queue"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "name", "test-teams-proxy-updated"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "description", "Test Teams Proxy Updated"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "address", "updated-test-teams-proxy.dev.pexip.network"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "port", "8443"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "azure_tenant", "/api/admin/configuration/v1/azure_tenant/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "eventhub_id", "updated-test-eventhub-id"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "min_number_of_instances", "0"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_enabled", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_teams_proxy.teams-proxy-test", "notifications_queue", "updated-test-notifications-queue"),
 				),
 			},
 		},

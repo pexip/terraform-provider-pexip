@@ -140,11 +140,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"notifications_queue": schema.StringAttribute{
 				Optional:  true,
+				Computed:  true,
 				Sensitive: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(255),
-				},
-				MarkdownDescription: "The notification queue name for the Teams proxy. Maximum length: 255 characters.",
+				MarkdownDescription: "The Connection string primary key for the Azure Event Hub (standard access policy). This is in the format Endpoint=sb://examplevmss-tzfk6222uo-ehn.servicebus.windows.net/;SharedAccessKeyName=standard_access_policy;SharedAccessKey=[string]/[string]/[string]=;",
 			},
 		},
 		MarkdownDescription: "Manages a Teams proxy configuration with the Infinity service.",
@@ -174,10 +172,10 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 		eventhubID := plan.EventhubID.ValueString()
 		createRequest.EventhubID = &eventhubID
 	}
-	if !plan.NotificationsEnabled.IsNull() {
+	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
 		createRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
-	if !plan.NotificationsQueue.IsNull() {
+	if !plan.NotificationsQueue.IsNull() && !plan.NotificationsQueue.IsUnknown() {
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		createRequest.NotificationsQueue = &notificationsQueue
 	}
@@ -294,14 +292,13 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 		eventhubID := plan.EventhubID.ValueString()
 		updateRequest.EventhubID = &eventhubID
 	}
-	if !plan.NotificationsEnabled.IsNull() {
+	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
 		updateRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
-	if !plan.NotificationsQueue.IsNull() {
+	if !plan.NotificationsQueue.IsNull() && !plan.NotificationsQueue.IsUnknown() {
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		updateRequest.NotificationsQueue = &notificationsQueue
 	}
-
 
 	_, err := r.InfinityClient.Config().UpdateTeamsProxy(ctx, resourceID, updateRequest)
 	if err != nil {
