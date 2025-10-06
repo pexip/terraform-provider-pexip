@@ -302,7 +302,6 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 		updateRequest.NotificationsQueue = &notificationsQueue
 	}
 
-
 	_, err := r.InfinityClient.Config().UpdateTeamsProxy(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
