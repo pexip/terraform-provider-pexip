@@ -120,6 +120,7 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"eventhub_id": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
@@ -160,17 +161,16 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 
 	createRequest := &config.TeamsProxyCreateRequest{
 		Name:                 plan.Name.ValueString(),
+		Description:          plan.Description.ValueString(),
 		Address:              plan.Address.ValueString(),
 		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
 		MinNumberOfInstances: int(plan.MinNumberOfInstances.ValueInt32()),
+		NotificationsEnabled: plan.NotificationsEnabled.ValueBool(),
 	}
 
 	// Only set optional fields if they are not null in the plan
-	if !plan.Description.IsNull() {
-		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EventhubID.IsNull() {
+	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
 		eventhubID := plan.EventhubID.ValueString()
 		createRequest.EventhubID = &eventhubID
 	}
@@ -233,13 +233,9 @@ func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int, n
 	data.Address = types.StringValue(srv.Address)
 	data.Port = types.Int32Value(int32(srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 	data.AzureTenant = types.StringValue(srv.AzureTenant)
-	if srv.EventhubID != nil {
-		data.EventhubID = types.StringValue(*srv.EventhubID)
-	} else {
-		data.EventhubID = types.StringNull()
-	}
 	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances)) // #nosec G115 -- API values are expected to be within int32 range
 	data.NotificationsEnabled = types.BoolValue(srv.NotificationsEnabled)
+	data.EventhubID = types.StringPointerValue(srv.EventhubID)
 	data.NotificationsQueue = types.StringValue(notificationsQueue) // The server does not return the notifications queue, so we use the provided one
 
 	return &data, nil
@@ -283,31 +279,29 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	port := int(plan.Port.ValueInt32())
-	minInstances := int(plan.MinNumberOfInstances.ValueInt32())
 	updateRequest := &config.TeamsProxyUpdateRequest{
 		Name:                 plan.Name.ValueString(),
+		Description:          plan.Description.ValueString(),
 		Address:              plan.Address.ValueString(),
-		Port:                 &port,
+		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
-		MinNumberOfInstances: &minInstances,
+		MinNumberOfInstances: int(plan.MinNumberOfInstances.ValueInt32()),
+		NotificationsEnabled: plan.NotificationsEnabled.ValueBool(),
 	}
 
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EventhubID.IsNull() {
+	// Only set optional fields if they are not null in the plan
+	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
 		eventhubID := plan.EventhubID.ValueString()
 		updateRequest.EventhubID = &eventhubID
 	}
 	if !plan.NotificationsEnabled.IsNull() {
-		notificationsEnabled := plan.NotificationsEnabled.ValueBool()
-		updateRequest.NotificationsEnabled = &notificationsEnabled
+		updateRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
 	if !plan.NotificationsQueue.IsNull() {
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		updateRequest.NotificationsQueue = &notificationsQueue
 	}
+
 
 	_, err := r.InfinityClient.Config().UpdateTeamsProxy(ctx, resourceID, updateRequest)
 	if err != nil {
