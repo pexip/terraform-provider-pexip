@@ -120,6 +120,7 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"eventhub_id": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
@@ -166,6 +167,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
 		MinNumberOfInstances: int(plan.MinNumberOfInstances.ValueInt32()),
+		NotificationsEnabled: plan.NotificationsEnabled.ValueBool(),
 	}
 
 	// Only set optional fields if they are not null in the plan
@@ -299,6 +301,7 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		updateRequest.NotificationsQueue = &notificationsQueue
 	}
+
 
 	_, err := r.InfinityClient.Config().UpdateTeamsProxy(ctx, resourceID, updateRequest)
 	if err != nil {
