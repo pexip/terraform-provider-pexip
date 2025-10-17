@@ -130,6 +130,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				Computed:            true,
 				Default:             int32default.StaticInt32(1),
+				Validators: []validator.Int32{
+					int32validator.AtLeast(0),
+				},
 				MarkdownDescription: "The minimum number of instances for the Teams proxy.",
 			},
 			"notifications_enabled": schema.BoolAttribute{
