@@ -127,9 +127,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The event hub identifier for the Teams proxy. Maximum length: 255 characters.",
 			},
 			"min_number_of_instances": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(1),
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(1),
 				Validators: []validator.Int32{
 					int32validator.AtLeast(0),
 				},
