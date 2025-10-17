@@ -27,6 +27,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Shared state for mocking - include all fields that are set in config
+	defaultTheme := &config.IVRTheme{Name: "Pexip theme (English_UK)"}
 	mockState := &config.GlobalConfiguration{
 		ID:                           1,
 		ResourceURI:                  "/api/admin/configuration/v1/global/1/",
@@ -48,7 +49,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ContentSecurityPolicyHeader:  "custom-csp-header",
 		ContentSecurityPolicyState:   false, // default: true
 		CryptoMode:                   "on",  // default: "besteffort"
-		DefaultTheme:                 test.StringPtr("dark"),
+		DefaultTheme:                 defaultTheme,
 		DefaultToNewWebapp:           false,    // default: true
 		DefaultWebapp:                "legacy", // default: "latest"
 		DefaultWebappAlias:           test.StringPtr("custom-alias"),
