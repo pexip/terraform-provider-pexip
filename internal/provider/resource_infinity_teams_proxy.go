@@ -139,9 +139,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Whether notifications are enabled for the Teams proxy.",
 			},
 			"notifications_queue": schema.StringAttribute{
-				Optional:  true,
-				Computed:  true,
-				Sensitive: true,
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           true,
 				MarkdownDescription: "The Connection string primary key for the Azure Event Hub (standard access policy). This is in the format Endpoint=sb://examplevmss-tzfk6222uo-ehn.servicebus.windows.net/;SharedAccessKeyName=standard_access_policy;SharedAccessKey=[string]/[string]/[string]=;",
 			},
 		},
