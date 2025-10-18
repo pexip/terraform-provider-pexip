@@ -12,6 +12,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -87,6 +89,7 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -100,7 +103,9 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The address or hostname of the Teams proxy. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(443),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
@@ -122,11 +127,13 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The event hub identifier for the Teams proxy. Maximum length: 255 characters.",
 			},
 			"min_number_of_instances": schema.Int32Attribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(1),
 				Validators: []validator.Int32{
-					int32validator.AtLeast(1),
+					int32validator.AtLeast(0),
 				},
-				MarkdownDescription: "The minimum number of instances for the Teams proxy. Must be at least 1.",
+				MarkdownDescription: "The minimum number of instances for the Teams proxy.",
 			},
 			"notifications_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -135,13 +142,10 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Whether notifications are enabled for the Teams proxy.",
 			},
 			"notifications_queue": schema.StringAttribute{
-				Optional:  true,
-				Computed:  true,
-				Sensitive: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(255),
-				},
-				MarkdownDescription: "The notification queue name for the Teams proxy. Maximum length: 255 characters.",
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           true,
+				MarkdownDescription: "The Connection string primary key for the Azure Event Hub (standard access policy). This is in the format Endpoint=sb://examplevmss-tzfk6222uo-ehn.servicebus.windows.net/;SharedAccessKeyName=standard_access_policy;SharedAccessKey=[string]/[string]/[string]=;",
 			},
 		},
 		MarkdownDescription: "Manages a Teams proxy configuration with the Infinity service.",
@@ -158,6 +162,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 
 	createRequest := &config.TeamsProxyCreateRequest{
 		Name:                 plan.Name.ValueString(),
+		Description:          plan.Description.ValueString(),
 		Address:              plan.Address.ValueString(),
 		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
@@ -165,17 +170,14 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Only set optional fields if they are not null in the plan
-	if !plan.Description.IsNull() {
-		createRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EventhubID.IsNull() {
+	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
 		eventhubID := plan.EventhubID.ValueString()
 		createRequest.EventhubID = &eventhubID
 	}
-	if !plan.NotificationsEnabled.IsNull() {
+	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
 		createRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
-	if !plan.NotificationsQueue.IsNull() {
+	if !plan.NotificationsQueue.IsNull() && !plan.NotificationsQueue.IsUnknown() {
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		createRequest.NotificationsQueue = &notificationsQueue
 	}
@@ -231,13 +233,9 @@ func (r *InfinityTeamsProxyResource) read(ctx context.Context, resourceID int, n
 	data.Address = types.StringValue(srv.Address)
 	data.Port = types.Int32Value(int32(srv.Port)) // #nosec G115 -- API values are expected to be within int32 range
 	data.AzureTenant = types.StringValue(srv.AzureTenant)
-	if srv.EventhubID != nil {
-		data.EventhubID = types.StringValue(*srv.EventhubID)
-	} else {
-		data.EventhubID = types.StringNull()
-	}
 	data.MinNumberOfInstances = types.Int32Value(int32(srv.MinNumberOfInstances)) // #nosec G115 -- API values are expected to be within int32 range
 	data.NotificationsEnabled = types.BoolValue(srv.NotificationsEnabled)
+	data.EventhubID = types.StringPointerValue(srv.EventhubID)
 	data.NotificationsQueue = types.StringValue(notificationsQueue) // The server does not return the notifications queue, so we use the provided one
 
 	return &data, nil
@@ -281,28 +279,24 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	port := int(plan.Port.ValueInt32())
-	minInstances := int(plan.MinNumberOfInstances.ValueInt32())
 	updateRequest := &config.TeamsProxyUpdateRequest{
 		Name:                 plan.Name.ValueString(),
+		Description:          plan.Description.ValueString(),
 		Address:              plan.Address.ValueString(),
-		Port:                 &port,
+		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
-		MinNumberOfInstances: &minInstances,
+		MinNumberOfInstances: int(plan.MinNumberOfInstances.ValueInt32()),
 	}
 
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EventhubID.IsNull() {
+	// Only set optional fields if they are not null in the plan
+	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
 		eventhubID := plan.EventhubID.ValueString()
 		updateRequest.EventhubID = &eventhubID
 	}
-	if !plan.NotificationsEnabled.IsNull() {
-		notificationsEnabled := plan.NotificationsEnabled.ValueBool()
-		updateRequest.NotificationsEnabled = &notificationsEnabled
+	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
+		updateRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
-	if !plan.NotificationsQueue.IsNull() {
+	if !plan.NotificationsQueue.IsNull() && !plan.NotificationsQueue.IsUnknown() {
 		notificationsQueue := plan.NotificationsQueue.ValueString()
 		updateRequest.NotificationsQueue = &notificationsQueue
 	}
