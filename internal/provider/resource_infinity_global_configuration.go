@@ -897,7 +897,7 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 	}
 	if !plan.DefaultTheme.IsNull() && !plan.DefaultTheme.IsUnknown() {
 		val := plan.DefaultTheme.ValueString()
-		updateRequest.DefaultTheme = &config.IVRTheme{Name: val, }
+		updateRequest.DefaultTheme = &config.IVRTheme{Name: val}
 	}
 	if !plan.DefaultWebappAlias.IsNull() && !plan.DefaultWebappAlias.IsUnknown() {
 		val := plan.DefaultWebappAlias.ValueString()
