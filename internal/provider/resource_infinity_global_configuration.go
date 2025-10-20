@@ -897,7 +897,7 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 	}
 	if !plan.DefaultTheme.IsNull() && !plan.DefaultTheme.IsUnknown() {
 		val := plan.DefaultTheme.ValueString()
-		updateRequest.DefaultTheme = &val
+		updateRequest.DefaultTheme = &config.IVRTheme{Name: val}
 	}
 	if !plan.DefaultWebappAlias.IsNull() && !plan.DefaultWebappAlias.IsUnknown() {
 		val := plan.DefaultWebappAlias.ValueString()
@@ -996,7 +996,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.DefaultToNewWebapp = types.BoolValue(srv.DefaultToNewWebapp)
 	data.DefaultWebapp = types.StringValue(srv.DefaultWebapp)
 	data.DefaultWebappAlias = types.StringPointerValue(srv.DefaultWebappAlias)
-	data.DefaultTheme = types.StringPointerValue(srv.DefaultTheme)
 	data.DeploymentUUID = types.StringValue(srv.DeploymentUUID)
 	data.ErrorReportingURL = types.StringValue(srv.ErrorReportingURL)
 	data.LegacyAPIUsername = types.StringValue(srv.LegacyAPIUsername)
@@ -1076,13 +1075,14 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.BdpmScanQuarantineEnabled = types.BoolValue(srv.BdpmScanQuarantineEnabled)
 	data.BurstingEnabled = types.BoolValue(srv.BurstingEnabled)
 
+	// Convert default theme from SDK to Terraform format
+	if srv.DefaultTheme != nil {
+		data.DefaultTheme = types.StringValue(srv.DefaultTheme.Name)
+	}
+
 	if srv.ManagementQos != nil {
 		data.ManagementQos = types.Int64Value(int64(*srv.ManagementQos))
 	}
-	// else {
-	//	data.ManagementQos = types.Int64Null()
-	//}
-
 	if srv.BurstingMinLifetime != nil {
 		data.BurstingMinLifetime = types.Int64Value(int64(*srv.BurstingMinLifetime))
 	}

@@ -167,6 +167,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 		Port:                 int(plan.Port.ValueInt32()),
 		AzureTenant:          plan.AzureTenant.ValueString(),
 		MinNumberOfInstances: int(plan.MinNumberOfInstances.ValueInt32()),
+		NotificationsEnabled: plan.NotificationsEnabled.ValueBool(),
 	}
 
 	// Only set optional fields if they are not null in the plan

@@ -27,6 +27,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Shared state for mocking - include all fields that are set in config
+	defaultTheme := &config.IVRTheme{Name: "Pexip theme (English_UK)"}
 	mockState := &config.GlobalConfiguration{
 		ID:                           1,
 		ResourceURI:                  "/api/admin/configuration/v1/global/1/",
@@ -48,7 +49,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ContentSecurityPolicyHeader:  "custom-csp-header",
 		ContentSecurityPolicyState:   false, // default: true
 		CryptoMode:                   "on",  // default: "besteffort"
-		DefaultTheme:                 test.StringPtr("dark"),
+		DefaultTheme:                 defaultTheme,
 		DefaultToNewWebapp:           false,    // default: true
 		DefaultWebapp:                "legacy", // default: "latest"
 		DefaultWebappAlias:           test.StringPtr("custom-alias"),
@@ -263,28 +264,6 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
-			{
-				Config: test.LoadTestFolder(t, "resource_infinity_global_configuration_basic"),
-				Check:  resource.ComposeTestCheckFunc(
-				// resource.TestCheckResourceAttrSet("pexip_infinity_global_configuration.global_configuration-test", "id"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_webrtc", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_sip", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_h323", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_rtmp", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "crypto_mode", "besteffort"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_pixels_per_second", "hd"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_enabled", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "aws"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "conference_creation_mode", "per_cluster"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_analytics", "true"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_start", "40000"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_end", "40100"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_start", "5060"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_end", "5070"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "guests_only_timeout", "300"),
-				// resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "waiting_for_chair_timeout", "600"),
-				),
-			},
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_global_configuration_basic_updated"),
 				Check: resource.ComposeTestCheckFunc(
