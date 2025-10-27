@@ -95,7 +95,7 @@ jobs:
           ls -la dist
 
       - name: Upload packaged binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.vars.outputs.zip_archive_name }}
           path: "dist/${{ steps.vars.outputs.zip_archive_name }}"
