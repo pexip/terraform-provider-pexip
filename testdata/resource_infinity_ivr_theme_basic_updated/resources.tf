@@ -6,5 +6,5 @@
 
 resource "pexip_infinity_ivr_theme" "ivr_theme-test" {
   name    = "ivr_theme-test"
-  package = "ivr_theme_test_updated.zip" // Updated value
+  package = "${path.module}/pexip-test-theme-updated.zip" // Updated value
 }
