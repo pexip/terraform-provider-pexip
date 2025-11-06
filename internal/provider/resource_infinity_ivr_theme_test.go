@@ -39,7 +39,6 @@ func TestInfinityIvrTheme(t *testing.T) {
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/ivr_theme/123/",
 		Name:        "ivr_theme-test",
-		Package:     "test-value",
 	}
 
 	// Mock the GetIvrtheme API call for Read operations
@@ -56,9 +55,6 @@ func TestInfinityIvrTheme(t *testing.T) {
 		// Update mock state based on request
 		if updateRequest.Name != "" {
 			mockState.Name = updateRequest.Name
-		}
-		if updateRequest.Package != "" {
-			mockState.Package = updateRequest.Package
 		}
 
 		// Return updated state

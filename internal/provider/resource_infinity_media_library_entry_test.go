@@ -42,7 +42,6 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 		Description: "Test MediaLibraryEntry",
 		UUID:        "test-value",
 		FileName:    "media_library_entry-test",
-		MediaFile:   "test-value",
 	}
 
 	// Mock the GetMedialibraryentry API call for Read operations
@@ -62,9 +61,6 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 		}
 		if updateRequest.UUID != "" {
 			mockState.UUID = updateRequest.UUID
-		}
-		if updateRequest.MediaFile != "" {
-			mockState.MediaFile = updateRequest.MediaFile
 		}
 
 		// Return updated state

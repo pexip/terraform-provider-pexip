@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pexip/terraform-provider-pexip/internal/log"
 	"github.com/stretchr/testify/require"
 
 	"github.com/pexip/terraform-provider-pexip/internal/test"
@@ -29,14 +30,16 @@ func TestInfinityIvrThemeIntegration(t *testing.T) {
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),
 		infinity.WithBasicAuth(test.INFINITY_USERNAME, test.INFINITY_PASSWORD),
 		infinity.WithMaxRetries(2),
-		infinity.WithTransport(&http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // We need this because default certificate is not trusted
-				MinVersion:         tls.VersionTLS12,
+		infinity.WithTransport(&log.LoggingTransport{
+			Base: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, // We need this because default certificate is not trusted
+					MinVersion:         tls.VersionTLS12,
+				},
+				MaxIdleConns:        30,
+				MaxIdleConnsPerHost: 5,
+				IdleConnTimeout:     60 * time.Second,
 			},
-			MaxIdleConns:        30,
-			MaxIdleConnsPerHost: 5,
-			IdleConnTimeout:     60 * time.Second,
 		}),
 	)
 	require.NoError(t, err)

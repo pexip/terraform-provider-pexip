@@ -9,6 +9,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -75,12 +77,11 @@ func (r *InfinityIvrThemeResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The unique name of the IVR theme. Maximum length: 250 characters.",
 			},
 			"package": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The package name for the IVR theme. Maximum length: 250 characters.",
+				MarkdownDescription: "Path to the IVR theme package file to upload (e.g., `package = \"path/to/theme.zip\"`).",
 			},
 		},
 		MarkdownDescription: "Manages an IVR theme configuration with the Infinity service.",
@@ -99,12 +100,22 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 		Name: plan.Name.ValueString(),
 	}
 
-	// Set optional fields
-	if !plan.Package.IsNull() {
-		createRequest.Package = plan.Package.ValueString()
+	// Open the package file
+	packagePath := plan.Package.ValueString()
+	packageFile, err := os.Open(packagePath)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Opening Package File",
+			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
+		)
+		return
 	}
+	defer packageFile.Close()
 
-	createResponse, err := r.InfinityClient.Config().CreateIVRTheme(ctx, createRequest)
+	// Extract filename from the path
+	filename := filepath.Base(packagePath)
+
+	createResponse, err := r.InfinityClient.Config().CreateIVRTheme(ctx, createRequest, filename, packageFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity IVR theme",
@@ -131,6 +142,8 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+	// Preserve the Package value from the plan (cannot be retrieved from API)
+	model.Package = plan.Package
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity IVR theme with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -151,7 +164,8 @@ func (r *InfinityIvrThemeResource) read(ctx context.Context, resourceID int) (*I
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
-	data.Package = types.StringValue(srv.Package)
+	// Note: Package is not returned by the API (binary content cannot be retrieved)
+	// It will be preserved from plan/state by the caller
 
 	return &data, nil
 }
@@ -163,6 +177,9 @@ func (r *InfinityIvrThemeResource) Read(ctx context.Context, req resource.ReadRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve the current Package value before refreshing state
+	currentPackage := state.Package
 
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
@@ -178,6 +195,9 @@ func (r *InfinityIvrThemeResource) Read(ctx context.Context, req resource.ReadRe
 		)
 		return
 	}
+
+	// Restore the Package value (cannot be retrieved from API)
+	state.Package = currentPackage
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -198,11 +218,22 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 		Name: plan.Name.ValueString(),
 	}
 
-	if !plan.Package.IsNull() {
-		updateRequest.Package = plan.Package.ValueString()
+	// Open the package file
+	packagePath := plan.Package.ValueString()
+	packageFile, err := os.Open(packagePath)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Opening Package File",
+			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
+		)
+		return
 	}
+	defer packageFile.Close()
 
-	_, err := r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest)
+	// Extract filename from the path
+	filename := filepath.Base(packagePath)
+
+	_, err = r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest, filename, packageFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity IVR theme",
@@ -220,6 +251,9 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+
+	// Preserve the Package value from the plan (cannot be retrieved from API)
+	updatedModel.Package = plan.Package
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
@@ -275,6 +309,11 @@ func (r *InfinityIvrThemeResource) ImportState(ctx context.Context, req resource
 		)
 		return
 	}
+
+	// Package content cannot be retrieved from the API
+	// Set to empty string - user must provide the correct package content in their configuration
+	// and run `terraform apply` after import to upload the package if needed
+	model.Package = types.StringValue("")
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)

@@ -46,11 +46,16 @@ func LoadTestFolder(t *testing.T, folder string) string {
 	}
 
 	var filesToLoad []string
+	var filesToCopy []string
 	for _, file := range files {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".tf") {
 			filesToLoad = append(filesToLoad, filepath.Join(folder, file.Name()))
+		} else if !file.IsDir() && !strings.HasSuffix(file.Name(), ".tf") {
+			filesToCopy = append(filesToCopy, filepath.Join(folder, file.Name()))
 		}
 	}
+
+	copyTestFiles(t, filesToCopy...)
 	return loadTestFiles(t, loc, filesToLoad...)
 }
 
@@ -62,6 +67,27 @@ func LoadTestData(t *testing.T, files ...string) string {
 		t.Fatalf("failed to get test data location: %v", err)
 	}
 	return loadTestFiles(t, loc, files...)
+}
+
+func copyTestFiles(t *testing.T, files ...string) {
+	t.Helper()
+
+	for _, file := range files {
+		// copy file to current working directory
+		srcPath, err := GetTestdataLocation()
+		if err != nil || len(srcPath) == 0 {
+			t.Fatalf("failed to find test file %s: %v", file, err)
+		}
+		data, err := os.ReadFile(fmt.Sprintf("%s/%s", srcPath, file)) // #nosec G304 -- Path is validated above
+		if err != nil {
+			t.Fatalf("failed to read test file %s: %v", file, err)
+		}
+		destPath := filepath.Base(file)
+		err = os.WriteFile(destPath, data, 0644)
+		if err != nil {
+			t.Fatalf("failed to write test file %s: %v", destPath, err)
+		}
+	}
 }
 
 func loadTestFiles(t *testing.T, baseDir string, files ...string) string {
