@@ -7,7 +7,9 @@
 package provider
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -113,7 +115,7 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The media file content or reference. This is required when creating the media library entry.",
+				MarkdownDescription: "The media file content, base64-encoded. Use Terraform's `filebase64()` function to read and encode a file (e.g., `media_file = filebase64(\"path/to/video.mp4\")`).",
 			},
 		},
 		MarkdownDescription: "Manages a media library entry configuration with the Infinity service. Media library entries are used for storing media files such as images, videos, and audio files that can be used in conferences.",
@@ -132,10 +134,25 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		UUID:        plan.UUID.ValueString(),
-		MediaFile:   plan.MediaFile.ValueString(),
 	}
 
-	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest)
+	// Decode the base64-encoded media file content
+	mediaData, err := base64.StdEncoding.DecodeString(plan.MediaFile.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Decoding Media File Content",
+			fmt.Sprintf("Could not decode base64-encoded media file content: %s", err),
+		)
+		return
+	}
+
+	// Create an io.Reader from the decoded content
+	mediaReader := bytes.NewReader(mediaData)
+
+	// Generate filename from entry name (using a generic extension since we don't know the actual file type)
+	filename := fmt.Sprintf("%s.dat", plan.Name.ValueString())
+
+	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest, filename, mediaReader)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity media library entry",
@@ -162,6 +179,8 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		)
 		return
 	}
+	// Preserve the MediaFile value from the plan (cannot be retrieved from API)
+	model.MediaFile = plan.MediaFile
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity media library entry with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -188,7 +207,8 @@ func (r *InfinityMediaLibraryEntryResource) read(ctx context.Context, resourceID
 	data.MediaType = types.StringValue(srv.MediaType)
 	data.MediaFormat = types.StringValue(srv.MediaFormat)
 	data.MediaSize = types.Int64Value(int64(srv.MediaSize))
-	data.MediaFile = types.StringValue(srv.MediaFile)
+	// Note: MediaFile is not returned by the API (binary content cannot be retrieved)
+	// It will be preserved from plan/state by the caller
 
 	return &data, nil
 }
@@ -200,6 +220,9 @@ func (r *InfinityMediaLibraryEntryResource) Read(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve the current MediaFile value before refreshing state
+	currentMediaFile := state.MediaFile
 
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
@@ -215,6 +238,9 @@ func (r *InfinityMediaLibraryEntryResource) Read(ctx context.Context, req resour
 		)
 		return
 	}
+
+	// Restore the MediaFile value (cannot be retrieved from API)
+	state.MediaFile = currentMediaFile
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -235,10 +261,25 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		UUID:        plan.UUID.ValueString(),
-		MediaFile:   plan.MediaFile.ValueString(),
 	}
 
-	_, err := r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest)
+	// Decode the base64-encoded media file content
+	mediaData, err := base64.StdEncoding.DecodeString(plan.MediaFile.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Decoding Media File Content",
+			fmt.Sprintf("Could not decode base64-encoded media file content: %s", err),
+		)
+		return
+	}
+
+	// Create an io.Reader from the decoded content
+	mediaReader := bytes.NewReader(mediaData)
+
+	// Generate filename from entry name (using a generic extension since we don't know the actual file type)
+	filename := fmt.Sprintf("%s.dat", plan.Name.ValueString())
+
+	_, err = r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest, filename, mediaReader)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity media library entry",
@@ -256,6 +297,9 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		)
 		return
 	}
+
+	// Preserve the MediaFile value from the plan (cannot be retrieved from API)
+	updatedModel.MediaFile = plan.MediaFile
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
@@ -311,6 +355,11 @@ func (r *InfinityMediaLibraryEntryResource) ImportState(ctx context.Context, req
 		)
 		return
 	}
+
+	// MediaFile content cannot be retrieved from the API
+	// Set to empty string - user must provide the correct media file content in their configuration
+	// and run `terraform apply` after import to upload the file if needed
+	model.MediaFile = types.StringValue("")
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
