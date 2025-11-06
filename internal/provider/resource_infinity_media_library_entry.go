@@ -7,10 +7,10 @@
 package provider
 
 import (
-	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -115,7 +115,7 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The media file content, base64-encoded. Use Terraform's `filebase64()` function to read and encode a file (e.g., `media_file = filebase64(\"path/to/video.mp4\")`).",
+				MarkdownDescription: "Path to the media file to upload (e.g., `media_file = \"path/to/video.mp4\"`).",
 			},
 		},
 		MarkdownDescription: "Manages a media library entry configuration with the Infinity service. Media library entries are used for storing media files such as images, videos, and audio files that can be used in conferences.",
@@ -136,23 +136,22 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		UUID:        plan.UUID.ValueString(),
 	}
 
-	// Decode the base64-encoded media file content
-	mediaData, err := base64.StdEncoding.DecodeString(plan.MediaFile.ValueString())
+	// Open the media file
+	mediaFilePath := plan.MediaFile.ValueString()
+	mediaFile, err := os.Open(mediaFilePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Decoding Media File Content",
-			fmt.Sprintf("Could not decode base64-encoded media file content: %s", err),
+			"Error Opening Media File",
+			fmt.Sprintf("Could not open media file at path '%s': %s", mediaFilePath, err),
 		)
 		return
 	}
+	defer mediaFile.Close()
 
-	// Create an io.Reader from the decoded content
-	mediaReader := bytes.NewReader(mediaData)
+	// Extract filename from the path
+	filename := filepath.Base(mediaFilePath)
 
-	// Generate filename from entry name (using a generic extension since we don't know the actual file type)
-	filename := fmt.Sprintf("%s.dat", plan.Name.ValueString())
-
-	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest, filename, mediaReader)
+	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest, filename, mediaFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity media library entry",
@@ -263,23 +262,22 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		UUID:        plan.UUID.ValueString(),
 	}
 
-	// Decode the base64-encoded media file content
-	mediaData, err := base64.StdEncoding.DecodeString(plan.MediaFile.ValueString())
+	// Open the media file
+	mediaFilePath := plan.MediaFile.ValueString()
+	mediaFile, err := os.Open(mediaFilePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Decoding Media File Content",
-			fmt.Sprintf("Could not decode base64-encoded media file content: %s", err),
+			"Error Opening Media File",
+			fmt.Sprintf("Could not open media file at path '%s': %s", mediaFilePath, err),
 		)
 		return
 	}
+	defer mediaFile.Close()
 
-	// Create an io.Reader from the decoded content
-	mediaReader := bytes.NewReader(mediaData)
+	// Extract filename from the path
+	filename := filepath.Base(mediaFilePath)
 
-	// Generate filename from entry name (using a generic extension since we don't know the actual file type)
-	filename := fmt.Sprintf("%s.dat", plan.Name.ValueString())
-
-	_, err = r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest, filename, mediaReader)
+	_, err = r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest, filename, mediaFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity media library entry",

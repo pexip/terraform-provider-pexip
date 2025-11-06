@@ -7,10 +7,10 @@
 package provider
 
 import (
-	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -81,7 +81,7 @@ func (r *InfinityIvrThemeResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The IVR theme package file content, base64-encoded. Use Terraform's `filebase64()` function to read and encode a file (e.g., `package = filebase64(\"path/to/theme.zip\")`).",
+				MarkdownDescription: "Path to the IVR theme package file to upload (e.g., `package = \"path/to/theme.zip\"`).",
 			},
 		},
 		MarkdownDescription: "Manages an IVR theme configuration with the Infinity service.",
@@ -100,23 +100,22 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 		Name: plan.Name.ValueString(),
 	}
 
-	// Decode the base64-encoded package content
-	packageData, err := base64.StdEncoding.DecodeString(plan.Package.ValueString())
+	// Open the package file
+	packagePath := plan.Package.ValueString()
+	packageFile, err := os.Open(packagePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Decoding Package Content",
-			fmt.Sprintf("Could not decode base64-encoded package content: %s", err),
+			"Error Opening Package File",
+			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
 		)
 		return
 	}
+	defer packageFile.Close()
 
-	// Create an io.Reader from the decoded content
-	packageReader := bytes.NewReader(packageData)
+	// Extract filename from the path
+	filename := filepath.Base(packagePath)
 
-	// Generate filename from theme name
-	filename := fmt.Sprintf("%s.zip", plan.Name.ValueString())
-
-	createResponse, err := r.InfinityClient.Config().CreateIVRTheme(ctx, createRequest, filename, packageReader)
+	createResponse, err := r.InfinityClient.Config().CreateIVRTheme(ctx, createRequest, filename, packageFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity IVR theme",
@@ -219,23 +218,22 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 		Name: plan.Name.ValueString(),
 	}
 
-	// Decode the base64-encoded package content
-	packageData, err := base64.StdEncoding.DecodeString(plan.Package.ValueString())
+	// Open the package file
+	packagePath := plan.Package.ValueString()
+	packageFile, err := os.Open(packagePath)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Decoding Package Content",
-			fmt.Sprintf("Could not decode base64-encoded package content: %s", err),
+			"Error Opening Package File",
+			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
 		)
 		return
 	}
+	defer packageFile.Close()
 
-	// Create an io.Reader from the decoded content
-	packageReader := bytes.NewReader(packageData)
+	// Extract filename from the path
+	filename := filepath.Base(packagePath)
 
-	// Generate filename from theme name
-	filename := fmt.Sprintf("%s.zip", plan.Name.ValueString())
-
-	_, err = r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest, filename, packageReader)
+	_, err = r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest, filename, packageFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity IVR theme",
