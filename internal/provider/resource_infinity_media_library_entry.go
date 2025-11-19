@@ -91,7 +91,7 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "Description of the media library entry. Maximum length: 500 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "UUID for the media library entry.",
 			},
 			"file_name": schema.StringAttribute{

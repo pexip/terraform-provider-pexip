@@ -34,6 +34,7 @@ type InfinityIvrThemeResourceModel struct {
 	ID         types.String `tfsdk:"id"`
 	ResourceID types.Int32  `tfsdk:"resource_id"`
 	Name       types.String `tfsdk:"name"`
+	UUID       types.String `tfsdk:"uuid"`
 	Package    types.String `tfsdk:"package"`
 }
 
@@ -75,6 +76,10 @@ func (r *InfinityIvrThemeResource) Schema(ctx context.Context, req resource.Sche
 					stringvalidator.LengthAtMost(250),
 				},
 				MarkdownDescription: "The unique name of the IVR theme. Maximum length: 250 characters.",
+			},
+			"uuid": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "UUID for the IVR theme.",
 			},
 			"package": schema.StringAttribute{
 				Required: true,
@@ -164,6 +169,7 @@ func (r *InfinityIvrThemeResource) read(ctx context.Context, resourceID int) (*I
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
+	data.UUID = types.StringValue(srv.UUID)
 	// Note: Package is not returned by the API (binary content cannot be retrieved)
 	// It will be preserved from plan/state by the caller
 
