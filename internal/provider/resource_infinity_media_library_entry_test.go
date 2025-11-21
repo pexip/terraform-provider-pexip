@@ -27,13 +27,6 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateMedialibraryentry API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/media_library_entry/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_entry/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
 	mockState := &config.MediaLibraryEntry{
 		ID:          123,
@@ -41,37 +34,50 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 		Name:        "media_library_entry-test",
 		Description: "Test MediaLibraryEntry",
 		UUID:        "test-value",
-		FileName:    "media_library_entry-test",
-		MediaFile:   "test-value",
+		FileName:    "earth.mp4",
 	}
 
-	// Mock the GetMedialibraryentry API call for Read operations
+	// Mock the CreateMediaLibraryEntry API call (now using multipart form)
+	createResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/media_library_entry/123/",
+	}
+	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/",
+		mock.MatchedBy(func(fields map[string]string) bool {
+			return fields["name"] == "media_library_entry-test" && fields["description"] == "Test MediaLibraryEntry"
+		}), "media_file", mock.Anything, mock.Anything, mock.Anything).Return(createResponse, nil)
+
+	// Mock the GetMediaLibraryEntry API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_entry/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		media_library_entry := args.Get(3).(*config.MediaLibraryEntry)
 		*media_library_entry = *mockState
 	}).Maybe()
 
-	// Mock the UpdateMedialibraryentry API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/media_library_entry/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.MediaLibraryEntryUpdateRequest)
-		media_library_entry := args.Get(3).(*config.MediaLibraryEntry)
+	// Mock the UpdateMediaLibraryEntry API call (now using multipart form with PATCH)
+	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/123/",
+		mock.MatchedBy(func(fields map[string]string) bool {
+			return fields["description"] == "Updated Test MediaLibraryEntry"
+		}), "media_file", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
+		fields := args.Get(2).(map[string]string)
+		media_library_entry := args.Get(6).(*config.MediaLibraryEntry)
 
-		// Update mock state based on request
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
+		// Update mock state based on fields
+		if desc, ok := fields["description"]; ok && desc != "" {
+			mockState.Description = desc
 		}
-		if updateRequest.UUID != "" {
-			mockState.UUID = updateRequest.UUID
+		if uuid, ok := fields["uuid"]; ok && uuid != "" {
+			mockState.UUID = uuid
 		}
-		if updateRequest.MediaFile != "" {
-			mockState.MediaFile = updateRequest.MediaFile
+		// Update filename from the file parameter
+		if filename, ok := args.Get(4).(string); ok {
+			mockState.FileName = filename
 		}
 
 		// Return updated state
 		*media_library_entry = *mockState
 	}).Maybe()
 
-	// Mock the DeleteMedialibraryentry API call
+	// Mock the DeleteMediaLibraryEntry API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/media_library_entry/123/"
 	}), mock.Anything).Return(nil)
@@ -90,7 +96,7 @@ func testInfinityMediaLibraryEntry(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "media_library_entry-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", "Test MediaLibraryEntry"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "media_library_entry-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "earth.mp4"),
 				),
 			},
 			{
@@ -100,7 +106,7 @@ func testInfinityMediaLibraryEntry(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "media_library_entry-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", "Updated Test MediaLibraryEntry"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "media_library_entry-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "rain.mp4"),
 				),
 			},
 		},
