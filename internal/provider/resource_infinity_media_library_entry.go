@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -78,19 +79,21 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "The name of the media library entry. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default: stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "Description of the media library entry. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"uuid": schema.StringAttribute{
+				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "UUID for the media library entry.",
 			},
