@@ -167,7 +167,7 @@ func recursiveCompare(versionA, versionB []int64) int {
 	return recursiveCompare(versionA[1:], versionB[1:])
 }
 
-func recursivePreReleaseCompare(versionA []string, versionB []string) int {
+func recursivePreReleaseCompare(versionA, versionB []string) int {
 	// Handle slice length disparity.
 	if len(versionA) == 0 {
 		// Nothing to compare too, so we return 0

@@ -75,7 +75,7 @@ func copyTestFiles(t *testing.T, files ...string) {
 	for _, file := range files {
 		// copy file to current working directory
 		srcPath, err := GetTestdataLocation()
-		if err != nil || len(srcPath) == 0 {
+		if err != nil || srcPath == "" {
 			t.Fatalf("failed to find test file %s: %v", file, err)
 		}
 		data, err := os.ReadFile(fmt.Sprintf("%s/%s", srcPath, file)) // #nosec G304 -- Path is validated above

@@ -141,7 +141,7 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 
 	// Open the media file
 	mediaFilePath := plan.MediaFile.ValueString()
-	mediaFile, err := os.Open(mediaFilePath)
+	mediaFile, err := os.Open(mediaFilePath) // #nosec G304 -- File path provided by user in Terraform configuration
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Opening Media File",
@@ -149,7 +149,7 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		)
 		return
 	}
-	defer mediaFile.Close()
+	defer func() { _ = mediaFile.Close() }()
 
 	// Extract filename from the path
 	filename := filepath.Base(mediaFilePath)
@@ -267,7 +267,7 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 
 	// Open the media file
 	mediaFilePath := plan.MediaFile.ValueString()
-	mediaFile, err := os.Open(mediaFilePath)
+	mediaFile, err := os.Open(mediaFilePath) // #nosec G304 -- File path provided by user in Terraform configuration
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Opening Media File",
@@ -275,7 +275,7 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		)
 		return
 	}
-	defer mediaFile.Close()
+	defer func() { _ = mediaFile.Close() }()
 
 	// Extract filename from the path
 	filename := filepath.Base(mediaFilePath)

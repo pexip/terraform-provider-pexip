@@ -107,7 +107,7 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 
 	// Open the package file
 	packagePath := plan.Package.ValueString()
-	packageFile, err := os.Open(packagePath)
+	packageFile, err := os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Opening Package File",
@@ -115,7 +115,7 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
-	defer packageFile.Close()
+	defer func() { _ = packageFile.Close() }()
 
 	// Extract filename from the path
 	filename := filepath.Base(packagePath)
@@ -226,7 +226,7 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 
 	// Open the package file
 	packagePath := plan.Package.ValueString()
-	packageFile, err := os.Open(packagePath)
+	packageFile, err := os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Opening Package File",
@@ -234,7 +234,7 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
-	defer packageFile.Close()
+	defer func() { _ = packageFile.Close() }()
 
 	// Extract filename from the path
 	filename := filepath.Base(packagePath)
