@@ -83,7 +83,7 @@ func copyTestFiles(t *testing.T, files ...string) {
 			t.Fatalf("failed to read test file %s: %v", file, err)
 		}
 		destPath := filepath.Base(file)
-		err = os.WriteFile(destPath, data, 0644)
+		err = os.WriteFile(destPath, data, 0600)
 		if err != nil {
 			t.Fatalf("failed to write test file %s: %v", destPath, err)
 		}
