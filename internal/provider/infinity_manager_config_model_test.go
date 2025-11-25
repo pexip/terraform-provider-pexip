@@ -32,6 +32,6 @@ func TestInfinityManagerConfigModel(t *testing.T) {
 		ContactEmailAddress: types.StringValue("test@example.com"),
 	}
 
-	diags := config.validate(t.Context())
+	diags := config.validate()
 	require.False(t, diags.HasError(), "Expected no validation errors, got: %s", diags.Errors())
 }

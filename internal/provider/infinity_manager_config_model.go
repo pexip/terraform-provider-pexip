@@ -7,7 +7,6 @@
 package provider
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -81,7 +80,7 @@ func (c *InfinityManagerConfigModel) toOuterConfig() outerInfinityManagerConfig 
 	}
 }
 
-func (c *InfinityManagerConfigModel) validate(ctx context.Context) diag.Diagnostics {
+func (c *InfinityManagerConfigModel) validate() diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	c.setDefaults()

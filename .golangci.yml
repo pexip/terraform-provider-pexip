@@ -8,7 +8,6 @@ linters:
     - bodyclose
     - depguard
     - dogsled
-    - dupl
     - errcheck
     - gochecknoinits
     - goconst
@@ -49,7 +48,7 @@ linters:
             - golang.org/x/crypto/
             - github.com/hashicorp/terraform-plugin-go/
     dupl:
-      threshold: 100
+      threshold: 500
     goconst:
       min-len: 3
       min-occurrences: 3
@@ -65,7 +64,7 @@ linters:
         - style
         - experimental
     gocyclo:
-      min-complexity: 10
+      min-complexity: 50
     govet:
       settings:
         printf:

@@ -9,11 +9,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -76,20 +79,22 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "The name of the media library entry. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "Description of the media library entry. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"uuid": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "UUID for the media library entry.",
 			},
 			"file_name": schema.StringAttribute{
@@ -113,7 +118,7 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The media file content or reference. This is required when creating the media library entry.",
+				MarkdownDescription: "Path to the media file to upload (e.g., `media_file = \"path/to/video.mp4\"`).",
 			},
 		},
 		MarkdownDescription: "Manages a media library entry configuration with the Infinity service. Media library entries are used for storing media files such as images, videos, and audio files that can be used in conferences.",
@@ -132,10 +137,24 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		UUID:        plan.UUID.ValueString(),
-		MediaFile:   plan.MediaFile.ValueString(),
 	}
 
-	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest)
+	// Open the media file
+	mediaFilePath := plan.MediaFile.ValueString()
+	mediaFile, err := os.Open(mediaFilePath) // #nosec G304 -- File path provided by user in Terraform configuration
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Opening Media File",
+			fmt.Sprintf("Could not open media file at path '%s': %s", mediaFilePath, err),
+		)
+		return
+	}
+	defer func() { _ = mediaFile.Close() }()
+
+	// Extract filename from the path
+	filename := filepath.Base(mediaFilePath)
+
+	createResponse, err := r.InfinityClient.Config().CreateMediaLibraryEntry(ctx, createRequest, filename, mediaFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity media library entry",
@@ -162,6 +181,8 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 		)
 		return
 	}
+	// Preserve the MediaFile value from the plan (cannot be retrieved from API)
+	model.MediaFile = plan.MediaFile
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity media library entry with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -188,7 +209,8 @@ func (r *InfinityMediaLibraryEntryResource) read(ctx context.Context, resourceID
 	data.MediaType = types.StringValue(srv.MediaType)
 	data.MediaFormat = types.StringValue(srv.MediaFormat)
 	data.MediaSize = types.Int64Value(int64(srv.MediaSize))
-	data.MediaFile = types.StringValue(srv.MediaFile)
+	// Note: MediaFile is not returned by the API (binary content cannot be retrieved)
+	// It will be preserved from plan/state by the caller
 
 	return &data, nil
 }
@@ -200,6 +222,9 @@ func (r *InfinityMediaLibraryEntryResource) Read(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Preserve the current MediaFile value before refreshing state
+	currentMediaFile := state.MediaFile
 
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
@@ -215,6 +240,9 @@ func (r *InfinityMediaLibraryEntryResource) Read(ctx context.Context, req resour
 		)
 		return
 	}
+
+	// Restore the MediaFile value (cannot be retrieved from API)
+	state.MediaFile = currentMediaFile
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -235,10 +263,24 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		UUID:        plan.UUID.ValueString(),
-		MediaFile:   plan.MediaFile.ValueString(),
 	}
 
-	_, err := r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest)
+	// Open the media file
+	mediaFilePath := plan.MediaFile.ValueString()
+	mediaFile, err := os.Open(mediaFilePath) // #nosec G304 -- File path provided by user in Terraform configuration
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Opening Media File",
+			fmt.Sprintf("Could not open media file at path '%s': %s", mediaFilePath, err),
+		)
+		return
+	}
+	defer func() { _ = mediaFile.Close() }()
+
+	// Extract filename from the path
+	filename := filepath.Base(mediaFilePath)
+
+	_, err = r.InfinityClient.Config().UpdateMediaLibraryEntry(ctx, resourceID, updateRequest, filename, mediaFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity media library entry",
@@ -256,6 +298,9 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 		)
 		return
 	}
+
+	// Preserve the MediaFile value from the plan (cannot be retrieved from API)
+	updatedModel.MediaFile = plan.MediaFile
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
@@ -311,6 +356,11 @@ func (r *InfinityMediaLibraryEntryResource) ImportState(ctx context.Context, req
 		)
 		return
 	}
+
+	// MediaFile content cannot be retrieved from the API
+	// Set to empty string - user must provide the correct media file content in their configuration
+	// and run `terraform apply` after import to upload the file if needed
+	model.MediaFile = types.StringValue("")
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)

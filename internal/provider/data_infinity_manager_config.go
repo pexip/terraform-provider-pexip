@@ -35,7 +35,7 @@ func (d *InfinityManagerConfigDataSource) ValidateConfig(ctx context.Context, re
 		return
 	}
 
-	resp.Diagnostics.Append(infinityManagerConfig.validate(ctx)...)
+	resp.Diagnostics.Append(infinityManagerConfig.validate()...)
 }
 
 func (d *InfinityManagerConfigDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

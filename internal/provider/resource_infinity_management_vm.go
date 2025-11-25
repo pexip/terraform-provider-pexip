@@ -319,7 +319,6 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 }
 
 func (r *InfinityManagementVMResource) buildUpdateRequest(plan *InfinityManagementVMResourceModel) *config.ManagementVMUpdateRequest {
-
 	updateRequest := &config.ManagementVMUpdateRequest{
 		Name:        plan.Name.ValueString(),
 		Address:     plan.Address.ValueString(),
@@ -441,7 +440,7 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
-func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int, snmpCommunity, snmpAuthPass, snmpPrivPass, secondaryConfigPass string) (*InfinityManagementVMResourceModel, error) {
+func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int, _snmpCommunity, _snmpAuthPass, _snmpPrivPass, _secondaryConfigPass string) (*InfinityManagementVMResourceModel, error) {
 	var data InfinityManagementVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetManagementVM(ctx)
