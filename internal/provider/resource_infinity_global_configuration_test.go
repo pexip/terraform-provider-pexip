@@ -50,8 +50,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ContentSecurityPolicyState:   false, // default: true
 		CryptoMode:                   "on",  // default: "besteffort"
 		DefaultTheme:                 defaultTheme,
-		DefaultToNewWebapp:           false,    // default: true
-		DefaultWebapp:                "legacy", // default: "latest"
 		DefaultWebappAlias:           test.StringPtr("custom-alias"),
 		DeploymentUUID:               "custom-uuid",
 		DisabledCodecs: []config.CodecValue{
@@ -74,7 +72,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		EnableLyncVbss:                      true,  // default: false
 		EnableMlvad:                         true,  // default: false
 		EnableMultiscreen:                   false, // default: true
-		EnablePushNotifications:             true,  // default: false
 		EnableRTMP:                          false, // default: true
 		EnableSIP:                           false, // default: true
 		EnableSIPUDP:                        true,  // default: false
@@ -99,10 +96,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		LegacyAPIHTTP:                       true, // default: false
 		LegacyAPIUsername:                   "notdefaultuser",
 		LegacyAPIPassword:                   "notdefaultpass",
-		LiveCaptionsAPIGateway:              "notdefaultgateway",
-		LiveCaptionsAppID:                   "notdefaultappid",
-		LiveCaptionsEnabled:                 false, // default: true
-		LiveCaptionsPublicJWTKey:            "notdefaultjwtkey",
 		LiveCaptionsVMRDefault:              true,  // default: false
 		LiveviewShowConferences:             false, // default: true
 		LocalMssipDomain:                    "notdefaultdomain",
@@ -177,8 +170,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.ContentSecurityPolicyHeader = updateRequest.ContentSecurityPolicyHeader
 		mockState.ContentSecurityPolicyState = updateRequest.ContentSecurityPolicyState
 		mockState.DefaultTheme = updateRequest.DefaultTheme
-		mockState.DefaultToNewWebapp = updateRequest.DefaultToNewWebapp
-		mockState.DefaultWebapp = updateRequest.DefaultWebapp
 		mockState.DefaultWebappAlias = updateRequest.DefaultWebappAlias
 		mockState.DeploymentUUID = updateRequest.DeploymentUUID
 		mockState.DisabledCodecs = updateRequest.DisabledCodecs
@@ -197,7 +188,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.EnableLyncVbss = updateRequest.EnableLyncVbss
 		mockState.EnableMlvad = updateRequest.EnableMlvad
 		mockState.EnableMultiscreen = updateRequest.EnableMultiscreen
-		mockState.EnablePushNotifications = updateRequest.EnablePushNotifications
 		mockState.EnableSIPUDP = updateRequest.EnableSIPUDP
 		mockState.EnableSoftmute = updateRequest.EnableSoftmute
 		mockState.EnableSSH = updateRequest.EnableSSH
@@ -219,10 +209,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.LegacyAPIHTTP = updateRequest.LegacyAPIHTTP
 		mockState.LegacyAPIUsername = updateRequest.LegacyAPIUsername
 		mockState.LegacyAPIPassword = updateRequest.LegacyAPIPassword
-		mockState.LiveCaptionsAPIGateway = updateRequest.LiveCaptionsAPIGateway
-		mockState.LiveCaptionsAppID = updateRequest.LiveCaptionsAppID
-		mockState.LiveCaptionsEnabled = updateRequest.LiveCaptionsEnabled
-		mockState.LiveCaptionsPublicJWTKey = updateRequest.LiveCaptionsPublicJWTKey
 		mockState.LiveCaptionsVMRDefault = updateRequest.LiveCaptionsVMRDefault
 		mockState.LiveviewShowConferences = updateRequest.LiveviewShowConferences
 		mockState.LocalMssipDomain = updateRequest.LocalMssipDomain

@@ -1,4 +1,5 @@
 module github.com/pexip/terraform-provider-pexip
+replace github.com/pexip/go-infinity-sdk/v38 => /Users/mikeassel/Documents/github/go-infinity-sdk
 
 go 1.24.3
 
@@ -11,7 +12,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
-	github.com/pexip/go-infinity-sdk/v38 v38.0.11
+	github.com/pexip/go-infinity-sdk/v38 v38.0.12
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.45.0
 )

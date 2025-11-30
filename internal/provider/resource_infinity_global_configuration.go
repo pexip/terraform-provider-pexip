@@ -33,6 +33,17 @@ type InfinityGlobalConfigurationResource struct {
 	InfinityClient InfinityClient
 }
 
+/*
+The following fields have been deprecated in the Infinity API and have been removed from the model:
+  * default_to_new_webapp - use 'default_webapp' instead
+  * default_webapp - use 'default_webapp_alias' instead
+  * enable_push_notifications (Deprecated field)
+  * live_captions_api_gateway - use 'media_processing_server' resource
+  * live_captions_app_id - use 'media_processing_server' resource
+  * live_captions_enabled - this field is deprecated and will be ignored
+  * live_captions_public_jwt_key - use 'media_processing_server' resource
+*/
+
 type InfinityGlobalConfigurationResourceModel struct {
 	ID                                  types.String `tfsdk:"id"`
 	AWSAccessKey                        types.String `tfsdk:"aws_access_key"`
@@ -54,8 +65,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	ContentSecurityPolicyState          types.Bool   `tfsdk:"content_security_policy_state"`
 	CryptoMode                          types.String `tfsdk:"crypto_mode"`
 	DefaultTheme                        types.String `tfsdk:"default_theme"`
-	DefaultToNewWebapp                  types.Bool   `tfsdk:"default_to_new_webapp"`
-	DefaultWebapp                       types.String `tfsdk:"default_webapp"`
 	DefaultWebappAlias                  types.String `tfsdk:"default_webapp_alias"`
 	DeploymentUUID                      types.String `tfsdk:"deployment_uuid"`
 	DisabledCodecs                      types.Set    `tfsdk:"disabled_codecs"`
@@ -75,7 +84,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableLyncVbss                      types.Bool   `tfsdk:"enable_lync_vbss"`
 	EnableMlvad                         types.Bool   `tfsdk:"enable_mlvad"`
 	EnableMultiscreen                   types.Bool   `tfsdk:"enable_multiscreen"`
-	EnablePushNotifications             types.Bool   `tfsdk:"enable_push_notifications"`
 	EnableRTMP                          types.Bool   `tfsdk:"enable_rtmp"`
 	EnableSIP                           types.Bool   `tfsdk:"enable_sip"`
 	EnableSIPUDP                        types.Bool   `tfsdk:"enable_sip_udp"`
@@ -100,10 +108,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	LegacyAPIHTTP                       types.Bool   `tfsdk:"legacy_api_http"`
 	LegacyAPIUsername                   types.String `tfsdk:"legacy_api_username"`
 	LegacyAPIPassword                   types.String `tfsdk:"legacy_api_password"`
-	LiveCaptionsAPIGateway              types.String `tfsdk:"live_captions_api_gateway"`
-	LiveCaptionsAppID                   types.String `tfsdk:"live_captions_app_id"`
-	LiveCaptionsEnabled                 types.Bool   `tfsdk:"live_captions_enabled"`
-	LiveCaptionsPublicJWTKey            types.String `tfsdk:"live_captions_public_jwt_key"`
 	LiveCaptionsVMRDefault              types.Bool   `tfsdk:"live_captions_vmr_default"`
 	LiveviewShowConferences             types.Bool   `tfsdk:"liveview_show_conferences"`
 	LocalMssipDomain                    types.String `tfsdk:"local_mssip_domain"`
@@ -274,20 +278,11 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				MarkdownDescription: "Default theme for services.",
 			},
-			"default_to_new_webapp": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Deprecated field - use 'default_webapp' instead.",
-			},
-			"default_webapp": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("latest"),
-				MarkdownDescription: "Deprecated field - use 'default_webapp_alias' instead.",
-			},
 			"default_webapp_alias": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				// The Infinity API schema erroneously shows the default as null
+				Default:             stringdefault.StaticString("/api/admin/configuration/v1/webapp_alias/3/"),
 				MarkdownDescription: "Default web app path for conferencing nodes.",
 			},
 			// unique for each deployment, not update by users
@@ -402,12 +397,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable dual screen layouts.",
-			},
-			"enable_push_notifications": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Enable push notifications (deprecated).",
 			},
 			"enable_rtmp": schema.BoolAttribute{
 				Optional:            true,
@@ -550,30 +539,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Legacy API password.",
-			},
-			"live_captions_api_gateway": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Live captions API gateway.",
-			},
-			"live_captions_app_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Live captions App ID.",
-			},
-			"live_captions_enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Enable live captions.",
-			},
-			"live_captions_public_jwt_key": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Live captions public JWT key.",
 			},
 			"live_captions_vmr_default": schema.BoolAttribute{
 				Optional:            true,
@@ -776,16 +741,11 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		ContentSecurityPolicyHeader:         plan.ContentSecurityPolicyHeader.ValueString(),
 		ContentSecurityPolicyState:          plan.ContentSecurityPolicyState.ValueBool(),
 		CryptoMode:                          plan.CryptoMode.ValueString(),
-		DefaultWebapp:                       plan.DefaultWebapp.ValueString(),
-		DefaultToNewWebapp:                  plan.DefaultToNewWebapp.ValueBool(),
 		DeploymentUUID:                      plan.DeploymentUUID.ValueString(),
 		ErrorReportingURL:                   plan.ErrorReportingURL.ValueString(),
 		EnableSIPUDP:                        plan.EnableSIPUDP.ValueBool(),
 		LegacyAPIUsername:                   plan.LegacyAPIUsername.ValueString(),
 		LegacyAPIPassword:                   plan.LegacyAPIPassword.ValueString(),
-		LiveCaptionsAPIGateway:              plan.LiveCaptionsAPIGateway.ValueString(),
-		LiveCaptionsAppID:                   plan.LiveCaptionsAppID.ValueString(),
-		LiveCaptionsPublicJWTKey:            plan.LiveCaptionsPublicJWTKey.ValueString(),
 		LiveviewShowConferences:             plan.LiveviewShowConferences.ValueBool(),
 		LocalMssipDomain:                    plan.LocalMssipDomain.ValueString(),
 		LogonBanner:                         plan.LogonBanner.ValueString(),
@@ -819,7 +779,6 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		EnableLyncVbss:                      plan.EnableLyncVbss.ValueBool(),
 		EnableMlvad:                         plan.EnableMlvad.ValueBool(),
 		EnableMultiscreen:                   plan.EnableMultiscreen.ValueBool(),
-		EnablePushNotifications:             plan.EnablePushNotifications.ValueBool(),
 		EnableSoftmute:                      plan.EnableSoftmute.ValueBool(),
 		EnableSSH:                           plan.EnableSSH.ValueBool(),
 		EnableTurn443:                       plan.EnableTurn443.ValueBool(),
@@ -834,7 +793,6 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		ExternalParticipantAvatarLookup:     plan.ExternalParticipantAvatarLookup.ValueBool(),
 		GuestsOnlyTimeout:                   int(plan.GuestsOnlyTimeout.ValueInt64()),
 		LegacyAPIHTTP:                       plan.LegacyAPIHTTP.ValueBool(),
-		LiveCaptionsEnabled:                 plan.LiveCaptionsEnabled.ValueBool(),
 		LiveCaptionsVMRDefault:              plan.LiveCaptionsVMRDefault.ValueBool(),
 		LogsMaxAge:                          int(plan.LogsMaxAge.ValueInt64()),
 		ManagementSessionTimeout:            int(plan.ManagementSessionTimeout.ValueInt64()),
@@ -993,16 +951,11 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.ContentSecurityPolicyHeader = types.StringValue(srv.ContentSecurityPolicyHeader)
 	data.ContentSecurityPolicyState = types.BoolValue(srv.ContentSecurityPolicyState)
 	data.CryptoMode = types.StringValue(srv.CryptoMode)
-	data.DefaultToNewWebapp = types.BoolValue(srv.DefaultToNewWebapp)
-	data.DefaultWebapp = types.StringValue(srv.DefaultWebapp)
 	data.DefaultWebappAlias = types.StringPointerValue(srv.DefaultWebappAlias)
 	data.DeploymentUUID = types.StringValue(srv.DeploymentUUID)
 	data.ErrorReportingURL = types.StringValue(srv.ErrorReportingURL)
 	data.LegacyAPIUsername = types.StringValue(srv.LegacyAPIUsername)
 	data.LegacyAPIPassword = types.StringValue(legacyAPIPassword)
-	data.LiveCaptionsAPIGateway = types.StringValue(srv.LiveCaptionsAPIGateway)
-	data.LiveCaptionsAppID = types.StringValue(srv.LiveCaptionsAppID)
-	data.LiveCaptionsPublicJWTKey = types.StringValue(srv.LiveCaptionsPublicJWTKey)
 	data.LiveviewShowConferences = types.BoolValue(srv.LiveviewShowConferences)
 	data.LocalMssipDomain = types.StringValue(srv.LocalMssipDomain)
 	data.LogonBanner = types.StringValue(srv.LogonBanner)
@@ -1037,7 +990,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.EnableLyncVbss = types.BoolValue(srv.EnableLyncVbss)
 	data.EnableMlvad = types.BoolValue(srv.EnableMlvad)
 	data.EnableMultiscreen = types.BoolValue(srv.EnableMultiscreen)
-	data.EnablePushNotifications = types.BoolValue(srv.EnablePushNotifications)
 	data.EnableSIPUDP = types.BoolValue(srv.EnableSIPUDP)
 	data.EnableSoftmute = types.BoolValue(srv.EnableSoftmute)
 	data.EnableSSH = types.BoolValue(srv.EnableSSH)
@@ -1056,7 +1008,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.GcpPrivateKey = types.StringPointerValue(gcpPrivateKey)
 	data.GuestsOnlyTimeout = types.Int64Value(int64(srv.GuestsOnlyTimeout))
 	data.LegacyAPIHTTP = types.BoolValue(srv.LegacyAPIHTTP)
-	data.LiveCaptionsEnabled = types.BoolValue(srv.LiveCaptionsEnabled)
 	data.LiveCaptionsVMRDefault = types.BoolValue(srv.LiveCaptionsVMRDefault)
 	data.LogsMaxAge = types.Int64Value(int64(srv.LogsMaxAge))
 	data.ManagementSessionTimeout = types.Int64Value(int64(srv.ManagementSessionTimeout))
