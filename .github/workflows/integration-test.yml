@@ -54,7 +54,6 @@ jobs:
         working-directory: ./example/
 
       - name: Terraform apply
-        continue-on-error: true
         run: terraform apply -no-color -auto-approve
         working-directory: ./example/
 
