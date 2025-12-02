@@ -33,7 +33,6 @@ jobs:
         id: auth-gcp
         with:
           service_account_key: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_KEY }}
-
-      - name: Terraform destroy
-        run: terraform destroy -no-color -auto-approve
-        working-directory: ${inputs.path}
+      - uses: pexip/shared-github-actions/terraform-destroy-gcp-action@f963970ec2ab8a70dab31b2ecef5768afb672884
+        with:
+          directory: ${{ inputs.path }}
