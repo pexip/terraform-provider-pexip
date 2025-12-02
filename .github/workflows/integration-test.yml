@@ -39,6 +39,8 @@ jobs:
       contents: read
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/reusable_deploy_infinity.yml
+    with:
+      path: "${{ github.workspace }}/integration_test"
 
   integration-test:
     name: Integration Tests
@@ -79,3 +81,5 @@ jobs:
       contents: read
     if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/reusable_destroy_infinity.yml
+    with:
+      path: "${{ github.workspace }}/integration_test"
