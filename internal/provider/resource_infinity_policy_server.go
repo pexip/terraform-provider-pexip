@@ -192,9 +192,9 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
+					stringvalidator.LengthAtMost(49152),
 				},
-				MarkdownDescription: "Service configuration template. Maximum length: 1000 characters.",
+				MarkdownDescription: "A Jinja2 script that takes the existing service configuration (if any) and optionally modifies or overrides service settings. Maximum length: 49152 characters.",
 			},
 			"participant_configuration_template": schema.StringAttribute{
 				Optional: true,
@@ -232,9 +232,9 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
+					stringvalidator.LengthAtMost(49152),
 				},
-				MarkdownDescription: "Media location configuration template. Maximum length: 1000 characters.",
+				MarkdownDescription: "A Jinja2 script that takes the existing media location configuration and optionally modifies or overrides location settings. Maximum length: 49152 characters.",
 			},
 		},
 		MarkdownDescription: "Manages a policy server configuration with the Infinity service.",
