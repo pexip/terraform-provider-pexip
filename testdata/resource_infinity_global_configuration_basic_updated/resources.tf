@@ -29,8 +29,6 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   content_security_policy_header    = "custom-csp-header"
   content_security_policy_state     = false
   default_theme                     = "dark"
-  default_to_new_webapp             = false
-  default_webapp                    = "legacy"
   default_webapp_alias              = "custom-alias"
   deployment_uuid                   = "custom-uuid"
   disabled_codecs                   = ["H264_H_1", "VP9"]
