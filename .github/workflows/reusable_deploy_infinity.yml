@@ -6,7 +6,7 @@ on:
       path:
         type: string
         description: Path to the terraform code that deploys Infinity
-        required: true
+        default: ./integration_test/
 
 permissions: {}
 
