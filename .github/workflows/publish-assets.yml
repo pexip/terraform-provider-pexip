@@ -56,7 +56,7 @@ jobs:
           echo "SHA256SUMS=terraform-provider-${{ env.PROVIDER_NAME }}_${VERSION_NO_V}_SHA256SUMS" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download build artifacts
         uses: actions/download-artifact@v6

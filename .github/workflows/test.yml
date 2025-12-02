@@ -43,7 +43,7 @@ jobs:
         terraform-version: ["1.12"]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
         terraform-version: ["1.5", "1.6", "1.7"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download dist folder
         uses: actions/download-artifact@v6
@@ -142,7 +142,7 @@ jobs:
       checks: write
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -223,7 +223,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     
     - name: Dependency Review
       uses: actions/dependency-review-action@v4
