@@ -279,8 +279,8 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Default theme for services.",
 			},
 			"default_webapp_alias": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
 				// The Infinity API schema erroneously shows the default as null
 				Default:             stringdefault.StaticString("/api/admin/configuration/v1/webapp_alias/3/"),
 				MarkdownDescription: "Default web app path for conferencing nodes.",
