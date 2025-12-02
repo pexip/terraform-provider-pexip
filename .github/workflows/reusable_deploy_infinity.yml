@@ -18,6 +18,9 @@ jobs:
       contents: read
 
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: pexip/shared-github-actions/auth-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
         id: auth-gcp
         with:
