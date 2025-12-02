@@ -34,7 +34,8 @@ func TestInfinityIvrTheme(t *testing.T) {
 		Name:        "ivr_theme-test",
 	}
 
-	// Mock the CreateIVRTheme API call (now using multipart form)
+	// Mock the CreateIVRTheme API call (two-step process)
+	// Step 1: POST without file
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/ivr_theme/123/",
@@ -42,7 +43,14 @@ func TestInfinityIvrTheme(t *testing.T) {
 	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/",
 		mock.MatchedBy(func(fields map[string]string) bool {
 			return fields["name"] == "ivr_theme-test"
-		}), "package", mock.Anything, mock.Anything, mock.Anything).Return(createResponse, nil)
+		}), "", "", mock.Anything, mock.Anything).Return(createResponse, nil)
+
+	// Step 2: PATCH with package file
+	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/123/",
+		mock.Anything, "package", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
+		ivr_theme := args.Get(6).(*config.IVRTheme)
+		*ivr_theme = *mockState
+	}).Maybe()
 
 	// Mock the GetIVRTheme API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/ivr_theme/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
