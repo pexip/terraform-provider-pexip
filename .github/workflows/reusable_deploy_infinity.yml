@@ -18,25 +18,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Setup gcloud SDK
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Show current gcloud user
-        run: gcloud config list account --format "value(core.account)"
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - uses: pexip/shared-github-actions/auth-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
+        id: auth-gcp
         with:
-          terraform_version: "1.6"
-          terraform_wrapper: false
-
-      - name: Terraform fmt
-        run: terraform fmt -check -recursive ${inputs.path}
-
-      - name: Terraform init
-        run: terraform init
-        working-directory: ${inputs.path}
-
-      - name: Terraform apply
-        run: terraform apply -no-color -auto-approve
-        working-directory: ${inputs.path}
+          service_account_key: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_KEY }}
+      - uses: pexip/shared-github-actions/terraform-deploy-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
+        with:
+          directory: ${{ inputs.path }}
+          token: ${{ secrets.GITHUB_TOKEN }}
