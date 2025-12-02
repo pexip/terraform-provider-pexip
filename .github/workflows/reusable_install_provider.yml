@@ -1,0 +1,30 @@
+name: Install Terraform Provider
+
+on:
+  workflow_call:
+
+permissions: {}
+
+env:
+
+jobs:
+  install:
+    name: Install Terraform Provider
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download provider
+        uses: actions/download-artifact@v6
+        with:
+          path: downloads
+
+      - name: Flatten artifacts into ./dist
+        shell: bash
+        run: |
+          mkdir -p dist
+          for d in downloads/*; do
+            unzip "$d"/*.zip downloads/
+          done
+          ls -laR downloads/

@@ -13,8 +13,36 @@ env:
   GOPRIVATE: github.com/pexip
 
 jobs:
+  build-provider:
+    name: Build Provider
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Build provider
+      uses: ./.github/workflows/reusable_build.yml
+      with:
+        version: "v0.0.1"
+
+  install-provider:
+    name: Install Provider
+    needs: build-provider
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Install provider
+        uses: ./.github/workflows/reusable_install_provider.yml
+
   integation-test:
     name: Integration Tests
+    needs: install-provider
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -23,11 +51,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-
-      - name: Authenticate git for private modules
-        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
 
       - name: Set up Go
         uses: actions/setup-go@v6
