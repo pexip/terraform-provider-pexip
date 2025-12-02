@@ -42,9 +42,24 @@ jobs:
       - name: Install provider
         uses: ./.github/workflows/reusable_install_provider.yml
 
-  integation-test:
+  deploy-infinity:
+    name: Deploy Infinity
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Deploy Infinity
+        uses: ./.github/workflows/reusable_deploy_infinity.yml
+        with:
+          path: ./example/
+
+  integration-test:
     name: Integration Tests
-    needs: install-provider
+    needs: [install-provider, deploy-infinity]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -59,29 +74,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Setup gcloud SDK
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Show current gcloud user
-        run: gcloud config list account --format "value(core.account)"
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-        with:
-          terraform_version: "1.6"
-          terraform_wrapper: false
-
-      - name: Terraform fmt
-        run: terraform fmt -check -recursive ./example/
-
-      - name: Terraform init
-        run: terraform init
-        working-directory: ./example/
-
-      - name: Terraform apply
-        run: terraform apply -no-color -auto-approve
-        working-directory: ./example/
-
       - name: Download dependencies
         run: go mod download
 
@@ -95,7 +87,21 @@ jobs:
         run: |
           echo "Acceptance tests would run here with real Pexip environment"
           go test -v -tags=integration -timeout 30m ./...
+          
+  destroy-infinity:
+    name: Destroy Infinity
+    needs: integration-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
 
-      - name: Terraform destroy
-        run: terraform destroy -no-color -auto-approve
-        working-directory: ./example/
+    steps:
+      - uses: actions/checkout@v6
+      - name: Deploy Infinity
+        uses: ./.github/workflows/reusable_destroy_infinity.yml
+        with:
+          path: ./example/
+
+            
