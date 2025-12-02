@@ -13,6 +13,10 @@ jobs:
       contents: read
 
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Download provider
         uses: actions/download-artifact@v6
         with:
@@ -22,15 +26,14 @@ jobs:
         shell: bash
         run: ls -laR downloads
 
-      - name: Install provider binary into ~/.terraform.d/plugins
+      - name: Move provider .zip to ./dist
         shell: bash
         run: |
-          mkdir -p ~/.terraform.d/plugins/terraform-provider-pexip
-          for f in downloads/terraform-provider-*.zip; do
-            echo "Extracting $f to ~/.terraform.d/plugins/terraform-provider-pexip"
-            unzip "$f" -d ~/.terraform.d/plugins/terraform-provider-pexip
-          done
+          mkdir -p dist
+          ZIP_FILENAME=$(find ./downloads -type f -name 'terraform-provider-*.zip' -print -quit)
+          echo "Moving $ZIP_FILENAME to ./dist"
+          mv "$ZIP_FILENAME" ./dist/
 
-      - name: List installed providers
-        shell: bash
-        run: ls -laR ~/.terraform.d/plugins
+      - name: Install local dev override
+        run: |
+          make install VERSION=v0.0.1
