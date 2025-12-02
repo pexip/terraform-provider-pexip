@@ -18,11 +18,11 @@ jobs:
         with:
           path: downloads
 
-      - name: Flatten artifacts into ./dist
+      - name: Flatten artifacts into ./unpack
         shell: bash
         run: |
-          mkdir -p dist
+          mkdir -p unpack
           for d in downloads/*; do
-            unzip "$d"/*.zip downloads/
+            unzip "$d"/*.zip unpack/
           done
-          ls -laR downloads/
+          ls -laR unpack/
