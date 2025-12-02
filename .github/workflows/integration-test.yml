@@ -22,10 +22,11 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
-    - name: Build provider
-      uses: ./.github/workflows/reusable_build.yml
-      with:
-        version: "v0.0.1"
+      - uses: actions/checkout@v6
+      - name: Build provider
+        uses: ./.github/workflows/reusable_build.yml
+        with:
+          version: "v0.0.1"
 
   install-provider:
     name: Install Provider
@@ -37,6 +38,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
+      - uses: actions/checkout@v6
       - name: Install provider
         uses: ./.github/workflows/reusable_install_provider.yml
 
