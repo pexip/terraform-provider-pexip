@@ -46,7 +46,7 @@ resource "random_string" "disk_encryption_key" {
   numeric = true
 }
 
-# trivy:ignore AVD-GCP-0031 reason: It may be intentional to configure the node with a public IP.
+#tfsec:ignore:AVD-GCP-0031
 resource "google_compute_instance" "infinity_manager" {
   name             = local.hostname
   zone             = "${var.location}-a"
