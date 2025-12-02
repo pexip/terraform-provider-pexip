@@ -1,8 +1,8 @@
 name: Integration Tests
 
 on:
-#  schedule:
-#    - cron: '0 0 * * 0' # Every Sunday at midnight
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight
   workflow_call:
   workflow_dispatch:
 
