@@ -5,8 +5,6 @@ on:
 
 permissions: {}
 
-env:
-
 jobs:
   install:
     name: Install Terraform Provider

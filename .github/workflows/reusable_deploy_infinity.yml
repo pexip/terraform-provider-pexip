@@ -10,8 +10,6 @@ on:
 
 permissions: {}
 
-env:
-
 jobs:
   install:
     name: Deploy Infinity
