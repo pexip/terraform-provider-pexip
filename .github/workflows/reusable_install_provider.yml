@@ -19,14 +19,18 @@ jobs:
           path: downloads
 
       - name: List downloaded files
+        shell: bash
         run: ls -laR downloads
 
       - name: Install provider binary into ~/.terraform.d/plugins
         shell: bash
         run: |
-          mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64
-          for f in downloads/*/*.zip; do
-            echo "Extracting $f to ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64"
-            unzip "$f" -d ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64
+          mkdir -p ~/.terraform.d/plugins/terraform-provider-pexip
+          for f in downloads/terraform-provider-*.zip; do
+            echo "Extracting $f to ~/.terraform.d/plugins/terraform-provider-pexip"
+            unzip "$f" -d ~/.terraform.d/plugins/terraform-provider-pexip
           done
-          ls -laR ~/.terraform.d/plugins
+
+      - name: List installed providers
+        shell: bash
+        run: ls -laR ~/.terraform.d/plugins
