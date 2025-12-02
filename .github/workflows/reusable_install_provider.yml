@@ -18,12 +18,15 @@ jobs:
         with:
           path: downloads
 
-      - name: Flatten artifacts into ./unpack
+      - name: List downloaded files
+        run: ls -laR downloads
+
+      - name: Install provider binary into ~/.terraform.d/plugins
         shell: bash
         run: |
-          mkdir -p unpack
-          for d in downloads/terraform-provider-*.zip; do
-            echo "Extracting $d to unpack/"
-            unzip "$d" unpack/
+          mkdir -p ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64
+          for f in downloads/*/*.zip; do
+            echo "Extracting $f to ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64"
+            unzip "$f" -d ~/.terraform.d/plugins/pexip.com/pexip/pexip/0.0.1/linux_amd64
           done
-          ls -laR unpack/
+          ls -laR ~/.terraform.d/plugins
