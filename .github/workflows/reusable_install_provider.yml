@@ -22,8 +22,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p unpack
-          ls -laR downloads/
-          for d in downloads/*; do
-            unzip "$d"/*.zip unpack/
+          for d in downloads/terraform-provider-*.zip; do
+            echo "Extracting $d to unpack/"
+            unzip "$d" unpack/
           done
           ls -laR unpack/
