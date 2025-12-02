@@ -15,45 +15,30 @@ env:
 jobs:
   build-provider:
     name: Build Provider
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    secrets: inherit
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
-    steps:
-      - uses: actions/checkout@v6
-      - name: Build provider
-        uses: ./.github/workflows/reusable_build.yml
-        with:
-          version: "v0.0.1"
+    uses: ./.github/workflows/reusable_build.yml
+    with:
+      version: "v0.0.1"
 
   install-provider:
     name: Install Provider
     needs: build-provider
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    secrets: inherit
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install provider
-        uses: ./.github/workflows/reusable_install_provider.yml
+    uses: ./.github/workflows/reusable_install_provider.yml
 
   deploy-infinity:
     name: Deploy Infinity
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    secrets: inherit
     permissions:
       contents: read
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
-    steps:
-      - uses: actions/checkout@v6
-      - name: Deploy Infinity
-        uses: ./.github/workflows/reusable_deploy_infinity.yml
+    uses: ./.github/workflows/reusable_deploy_infinity.yml
 
   integration-test:
     name: Integration Tests
@@ -89,13 +74,8 @@ jobs:
   destroy-infinity:
     name: Destroy Infinity
     needs: integration-test
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    secrets: inherit
     permissions:
       contents: read
     if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-
-    steps:
-      - uses: actions/checkout@v6
-      - name: Deploy Infinity
-        uses: ./.github/workflows/reusable_destroy_infinity.yml
+    uses: ./.github/workflows/reusable_destroy_infinity.yml
