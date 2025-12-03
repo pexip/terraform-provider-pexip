@@ -254,10 +254,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The role of this Conferencing Node. Valid choices: CONFERENCING, PROXYING. Defaults to CONFERENCING.",
 			},
 			"password": schema.StringAttribute{
-				Optional:  true,
-				Computed:  true,
+				// password is not required in the Infinity API, but this is a bug and the node will not be accessible without it
+				Required:  true,
 				Sensitive: true,
-				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -392,6 +391,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"tls_certificate": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"transcoding": schema.BoolAttribute{

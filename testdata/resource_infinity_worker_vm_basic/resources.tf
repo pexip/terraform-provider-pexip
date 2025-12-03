@@ -19,7 +19,7 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   node_type               = "CONFERENCING"
   deployment_type         = "MANUAL-PROVISION-ONLY"
   transcoding             = true
-  password                = "test-value"
+  password                = "password-initial"
   maintenance_mode        = true
   maintenance_mode_reason = "test-value"
   vm_cpu_count            = 4
