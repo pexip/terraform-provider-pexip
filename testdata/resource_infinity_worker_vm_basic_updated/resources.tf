@@ -12,4 +12,5 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   netmask         = "255.255.255.0"
   gateway         = "192.168.1.1"
   system_location = "/api/admin/configuration/v1/system_location/200/"
+  password        = "password-updated"
 }
