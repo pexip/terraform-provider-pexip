@@ -18,8 +18,10 @@ import (
 
 const (
 	INFINITY_USERNAME = "admin"
-	INFINITY_PASSWORD = "admin"
-	INFINITY_BASE_URL = "https://dev-manager.dev.pexip.network"
+	INFINITY_PASSWORD = "Pexme123"
+	//INFINITY_PASSWORD = "admin"
+	//INFINITY_BASE_URL = "https://dev-manager.dev.pexip.network"
+	INFINITY_BASE_URL = "https://34.26.104.73"
 )
 
 func GetTestdataLocation() (string, error) {

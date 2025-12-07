@@ -41,7 +41,6 @@ type InfinityConferenceResourceModel struct {
 	AutomaticParticipants           types.Set    `tfsdk:"automatic_participants"`
 	BreakoutRooms                   types.Bool   `tfsdk:"breakout_rooms"`
 	CallType                        types.String `tfsdk:"call_type"`
-	CreationTime                    types.String `tfsdk:"creation_time"`
 	CryptoMode                      types.String `tfsdk:"crypto_mode"`
 	DenoiseEnabled                  types.Bool   `tfsdk:"denoise_enabled"`
 	Description                     types.String `tfsdk:"description"`
@@ -138,7 +137,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether Guest participants are allowed to join the conference. true: the conference will have two types of participants: Hosts and Guests. You must enter a PIN to be used by the Hosts. You can optionally enter a Guest PIN; if you do not enter a Guest PIN, Guests can join without a PIN, but the meeting will not start until the first Host has joined. false: all participants will have Host privileges.",
 			},
-			"automatic_participants": schema.ListAttribute{
+			"automatic_participants": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
@@ -159,15 +158,9 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				},
 				MarkdownDescription: "Maximum media content of the conference. Participants will not be able to escalate beyond the selected capability.",
 			},
-			"creation_time": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The time at which the configuration was created.",
-			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
@@ -238,6 +231,12 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Computed:            true,
 				MarkdownDescription: "Select an access token to use to resolve Google Meet meeting codes.",
 			},
+			"guests_can_present": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "If enabled, Guests and Hosts can present into the conference. If disabled, only Hosts can present.",
+			},
 			"guest_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -256,7 +255,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			"guest_view": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("one_main_seven_pips"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("one_main_zero_pips", "one_main_seven_pips", "one_main_twentyone_pips", "two_mains_twentyone_pips", "four_mains_zero_pips", "nine_mains_zero_pips", "sixteen_mains_zero_pips", "twentyfive_mains_zero_pips", "five_mains_seven_pips"),
 				},
@@ -279,7 +277,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			"host_view": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("one_main_seven_pips"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("one_main_zero_pips", "one_main_seven_pips", "one_main_twentyone_pips", "two_mains_twentyone_pips", "four_mains_zero_pips", "nine_mains_zero_pips", "sixteen_mains_zero_pips", "twentyfive_mains_zero_pips", "five_mains_seven_pips"),
 				},
@@ -357,7 +354,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			"on_completion": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "JSON format is used to specify what happens when the playlist finishes. If omitted, the last video's final frame remains in …the specified alias, for example, a VMR. Role is optional and can be auto, host, or guest. If omitted, the default is auto.",
 			},
 			"participant_limit": schema.Int32Attribute{
@@ -377,6 +373,11 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.LengthBetween(4, 20),
 				},
 				MarkdownDescription: "This optional field allows you to set a secure access code for participants who dial in to the service. Length: 4-20 digits, including any terminal #.",
+			},
+			"pinning_config": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				MarkdownDescription: "The layout pinning configuration that will be used for this conference.",
 			},
 			"post_match_string": schema.StringAttribute{
 				Optional: true,
@@ -499,7 +500,6 @@ func (r *InfinityConferenceResource) Create(ctx context.Context, req resource.Cr
 		AllowGuests:                     plan.AllowGuests.ValueBool(),
 		BreakoutRooms:                   plan.BreakoutRooms.ValueBool(),
 		CallType:                        plan.CallType.ValueString(),
-		CreationTime:                    plan.CreationTime.ValueString(),
 		DenoiseEnabled:                  plan.DenoiseEnabled.ValueBool(),
 		Description:                     plan.Description.ValueString(),
 		DirectMedia:                     plan.DirectMedia.ValueString(),
@@ -714,7 +714,6 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	data.AllowGuests = types.BoolValue(srv.AllowGuests)
 	data.BreakoutRooms = types.BoolValue(srv.BreakoutRooms)
 	data.CallType = types.StringValue(srv.CallType)
-	data.CreationTime = types.StringValue(srv.CreationTime)
 	data.CryptoMode = types.StringPointerValue(srv.CryptoMode)
 	data.DenoiseEnabled = types.BoolValue(srv.DenoiseEnabled)
 	data.Description = types.StringValue(srv.Description)
@@ -779,12 +778,10 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 	data.Aliases = aliasesSetValue
 
-	// Convert conference aliases from SDK to Terraform format
+	// Convert automatic participants from SDK to Terraform format
 	var participants []string
 	if srv.AutomaticParticipants != nil {
-		for _, participant := range srv.AutomaticParticipants {
-			participants = append(participants, participant)
-		}
+		participants = append(participants, srv.AutomaticParticipants...)
 	}
 	participantsSetValue, diags := types.SetValueFrom(ctx, types.StringType, participants)
 	if diags.HasError() {
@@ -839,7 +836,6 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 		AllowGuests:                     plan.AllowGuests.ValueBool(),
 		BreakoutRooms:                   plan.BreakoutRooms.ValueBool(),
 		CallType:                        plan.CallType.ValueString(),
-		CreationTime:                    plan.CreationTime.ValueString(),
 		DenoiseEnabled:                  plan.DenoiseEnabled.ValueBool(),
 		Description:                     plan.Description.ValueString(),
 		DirectMedia:                     plan.DirectMedia.ValueString(),
