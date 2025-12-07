@@ -33,15 +33,15 @@ type InfinityConferenceResource struct {
 }
 
 type InfinityConferenceResourceModel struct {
-	ID                    types.String `tfsdk:"id"`
-	ResourceID            types.Int32  `tfsdk:"resource_id"`
-	Name                  types.String `tfsdk:"name"`
-	Aliases               types.Set    `tfsdk:"aliases"`
-	AllowGuests           types.Bool   `tfsdk:"allow_guests"`
-	AutomaticParticipants types.List   `tfsdk:"automatic_participants"`
-	BreakoutRooms         types.Bool   `tfsdk:"breakout_rooms"`
-	CallType              types.String `tfsdk:"call_type"`
-	//CreationTime                    types.String `tfsdk:"creation_time"`
+	ID                              types.String `tfsdk:"id"`
+	ResourceID                      types.Int32  `tfsdk:"resource_id"`
+	Name                            types.String `tfsdk:"name"`
+	Aliases                         types.Set    `tfsdk:"aliases"`
+	AllowGuests                     types.Bool   `tfsdk:"allow_guests"`
+	AutomaticParticipants           types.Set    `tfsdk:"automatic_participants"`
+	BreakoutRooms                   types.Bool   `tfsdk:"breakout_rooms"`
+	CallType                        types.String `tfsdk:"call_type"`
+	CreationTime                    types.String `tfsdk:"creation_time"`
 	CryptoMode                      types.String `tfsdk:"crypto_mode"`
 	DenoiseEnabled                  types.Bool   `tfsdk:"denoise_enabled"`
 	Description                     types.String `tfsdk:"description"`
@@ -62,8 +62,8 @@ type InfinityConferenceResourceModel struct {
 	IVRTheme                        types.String `tfsdk:"ivr_theme"`
 	LiveCaptionsEnabled             types.String `tfsdk:"live_captions_enabled"`
 	MatchString                     types.String `tfsdk:"match_string"`
-	MaxCallrateIn                   types.Int32  `tfsdk:"max_callrate_in"`
-	MaxCallrateOut                  types.Int32  `tfsdk:"max_callrate_out"`
+	MaxCallRateIn                   types.Int32  `tfsdk:"max_callrate_in"`
+	MaxCallRateOut                  types.Int32  `tfsdk:"max_callrate_out"`
 	MaxPixelsPerSecond              types.String `tfsdk:"max_pixels_per_second"`
 	MediaPlaylist                   types.String `tfsdk:"media_playlist"`
 	MSSIPProxy                      types.String `tfsdk:"mssip_proxy"`
@@ -77,8 +77,6 @@ type InfinityConferenceResourceModel struct {
 	PostReplaceString               types.String `tfsdk:"post_replace_string"`
 	PrimaryOwnerEmailAddress        types.String `tfsdk:"primary_owner_email_address"`
 	ReplaceString                   types.String `tfsdk:"replace_string"`
-	ScheduledConferences            types.List   `tfsdk:"scheduled_conferences"`
-	ScheduledConferencesCount       types.Int32  `tfsdk:"scheduled_conferences_count"`
 	ServiceType                     types.String `tfsdk:"service_type"`
 	SoftmuteEnabled                 types.Bool   `tfsdk:"softmute_enabled"`
 	SyncTag                         types.String `tfsdk:"sync_tag"`
@@ -86,6 +84,8 @@ type InfinityConferenceResourceModel struct {
 	Tag                             types.String `tfsdk:"tag"`
 	TeamsProxy                      types.String `tfsdk:"teams_proxy"`
 	TwoStageDialType                types.String `tfsdk:"two_stage_dial_type"`
+	//ScheduledConferences            types.Set    `tfsdk:"scheduled_conferences"`
+	//ScheduledConferencesCount       types.Int32  `tfsdk:"scheduled_conferences_count"` # Read-only field
 }
 
 func (r *InfinityConferenceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -159,7 +159,11 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				},
 				MarkdownDescription: "Maximum media content of the conference. Participants will not be able to escalate beyond the selected capability.",
 			},
-			//creation_time
+			"creation_time": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The time at which the configuration was created.",
+			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -410,17 +414,19 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				},
 				MarkdownDescription: "An optional regular expression used to transform the alias entered by the caller into the Virtual Reception. (Only applies if a regex match string is also configured and the entered alias matches that regex.) Leave this field blank if you do not want to change the alias entered by the caller. Maximum length: 250 characters.",
 			},
-			"scheduled_conferences": schema.ListAttribute{
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "The scheduled conferences associated with this conference.",
-			},
-			"scheduled_conferences_count": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The number of scheduled conferences associated with this conference.",
-			},
+			// Field will change regularly, so commenting out for now
+			//"scheduled_conferences": schema.ListAttribute{
+			//	Optional:            true,
+			//	Computed:            true,
+			//	ElementType:         types.StringType,
+			//	MarkdownDescription: "The scheduled conferences associated with this conference.",
+			//},
+			// Read-only field
+			//"scheduled_conferences_count": schema.Int32Attribute{
+			//	Optional:            true,
+			//	Computed:            true,
+			//	MarkdownDescription: "The number of scheduled conferences associated with this conference.",
+			//},
 			"service_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -487,47 +493,175 @@ func (r *InfinityConferenceResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	// initialize create request with required fields, list fields, and fields with defaults
 	createRequest := &config.ConferenceCreateRequest{
-		Name:        plan.Name.ValueString(),
-		ServiceType: plan.ServiceType.ValueString(),
+		Name:                            plan.Name.ValueString(),
+		AllowGuests:                     plan.AllowGuests.ValueBool(),
+		BreakoutRooms:                   plan.BreakoutRooms.ValueBool(),
+		CallType:                        plan.CallType.ValueString(),
+		CreationTime:                    plan.CreationTime.ValueString(),
+		DenoiseEnabled:                  plan.DenoiseEnabled.ValueBool(),
+		Description:                     plan.Description.ValueString(),
+		DirectMedia:                     plan.DirectMedia.ValueString(),
+		DirectMediaNotificationDuration: int(plan.DirectMediaNotificationDuration.ValueInt32()),
+		EnableActiveSpeakerIndication:   plan.EnableActiveSpeakerIndication.ValueBool(),
+		EnableChat:                      plan.EnableChat.ValueString(),
+		EnableOverlayText:               plan.EnableOverlayText.ValueBool(),
+		ForcePresenterIntoMain:          plan.ForcePresenterIntoMain.ValueBool(),
+		GuestPIN:                        plan.GuestPIN.ValueString(),
+		GuestsCanPresent:                plan.GuestsCanPresent.ValueBool(),
+		GuestsCanSeeGuests:              plan.GuestsCanSeeGuests.ValueString(),
+		LiveCaptionsEnabled:             plan.LiveCaptionsEnabled.ValueString(),
+		MatchString:                     plan.MatchString.ValueString(),
+		MuteAllGuests:                   plan.MuteAllGuests.ValueBool(),
+		NonIdpParticipants:              plan.NonIdpParticipants.ValueString(),
+		PIN:                             plan.PIN.ValueString(),
+		PostMatchString:                 plan.PostMatchString.ValueString(),
+		PostReplaceString:               plan.PostReplaceString.ValueString(),
+		PrimaryOwnerEmailAddress:        plan.PrimaryOwnerEmailAddress.ValueString(),
+		ReplaceString:                   plan.ReplaceString.ValueString(),
+		ServiceType:                     plan.ServiceType.ValueString(),
+		SoftmuteEnabled:                 plan.SoftmuteEnabled.ValueBool(),
+		SyncTag:                         plan.SyncTag.ValueString(),
+		Tag:                             plan.Tag.ValueString(),
+		TwoStageDialType:                plan.TwoStageDialType.ValueString(),
 	}
 
-	// Set optional string fields
-	if !plan.Description.IsNull() {
-		createRequest.Description = plan.Description.ValueString()
+	// All nullable fields
+	// Only set optional fields if they are not null in the plan
+	if !plan.Aliases.IsNull() && !plan.Aliases.IsUnknown() {
+		aliases, diags := getStringList(ctx, plan.Aliases)
+		resp.Diagnostics.Append(diags...)
+		createRequest.Aliases = &aliases
 	}
-	if !plan.PIN.IsNull() {
-		createRequest.PIN = plan.PIN.ValueString()
+	if !plan.AutomaticParticipants.IsNull() && !plan.AutomaticParticipants.IsUnknown() {
+		automaticParticipants, diags := getStringList(ctx, plan.AutomaticParticipants)
+		resp.Diagnostics.Append(diags...)
+		createRequest.AutomaticParticipants = automaticParticipants
 	}
-	if !plan.GuestPIN.IsNull() {
-		createRequest.GuestPIN = plan.GuestPIN.ValueString()
+	if !plan.CryptoMode.IsNull() && !plan.CryptoMode.IsUnknown() {
+		cryptoMode := plan.CryptoMode.ValueString()
+		createRequest.CryptoMode = &cryptoMode
 	}
-	if !plan.Tag.IsNull() {
-		createRequest.Tag = plan.Tag.ValueString()
+	if !plan.GMSAccessToken.IsNull() && !plan.GMSAccessToken.IsUnknown() {
+		gmsAccessToken := plan.GMSAccessToken.ValueString()
+		createRequest.GMSAccessToken = &gmsAccessToken
 	}
-
-	// Set boolean fields (required fields need default values)
-	if !plan.AllowGuests.IsNull() {
-		createRequest.AllowGuests = plan.AllowGuests.ValueBool()
-	} else {
-		createRequest.AllowGuests = false
+	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
+		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
+		createRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
 	}
-
-	if !plan.GuestsMuted.IsNull() {
-		createRequest.GuestsMuted = plan.GuestsMuted.ValueBool()
-	} else {
-		createRequest.GuestsMuted = false
+	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
+		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
+		createRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
 	}
-
-	if !plan.HostsCanUnmute.IsNull() {
-		createRequest.HostsCanUnmute = plan.HostsCanUnmute.ValueBool()
-	} else {
-		createRequest.HostsCanUnmute = false
+	if !plan.IVRTheme.IsNull() && !plan.IVRTheme.IsUnknown() {
+		ivrTheme := plan.IVRTheme.ValueString()
+		createRequest.IVRTheme = &ivrTheme
 	}
-
-	// Set optional integer fields
-	if !plan.MaxPixelsPerSecond.IsNull() {
-		createRequest.MaxPixelsPerSecond = int(plan.MaxPixelsPerSecond.ValueInt32())
+	if !plan.MaxCallRateIn.IsNull() && !plan.MaxCallRateIn.IsUnknown() {
+		maxCallrateIn := int(plan.MaxCallRateIn.ValueInt32())
+		createRequest.MaxCallRateIn = &maxCallrateIn
+	}
+	if !plan.MaxCallRateOut.IsNull() && !plan.MaxCallRateOut.IsUnknown() {
+		maxCallrateOut := int(plan.MaxCallRateOut.ValueInt32())
+		createRequest.MaxCallRateOut = &maxCallrateOut
+	}
+	if !plan.MaxPixelsPerSecond.IsNull() && !plan.MaxPixelsPerSecond.IsUnknown() {
+		maxPixelsPerSecond := plan.MaxPixelsPerSecond.ValueString()
+		createRequest.MaxPixelsPerSecond = &maxPixelsPerSecond
+	}
+	if !plan.MediaPlaylist.IsNull() && !plan.MediaPlaylist.IsUnknown() {
+		mediaPlaylist := plan.MediaPlaylist.ValueString()
+		createRequest.MediaPlaylist = &mediaPlaylist
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		mssipProxy := plan.MSSIPProxy.ValueString()
+		createRequest.MSSIPProxy = &mssipProxy
+	}
+	if !plan.OnCompletion.IsNull() && !plan.OnCompletion.IsUnknown() {
+		onCompletion := plan.OnCompletion.ValueString()
+		createRequest.OnCompletion = &onCompletion
+	}
+	if !plan.ParticipantLimit.IsNull() && !plan.ParticipantLimit.IsUnknown() {
+		participantLimit := int(plan.ParticipantLimit.ValueInt32())
+		createRequest.ParticipantLimit = &participantLimit
+	}
+	if !plan.PinningConfig.IsNull() && !plan.PinningConfig.IsUnknown() {
+		pinningConfig := plan.PinningConfig.ValueString()
+		createRequest.PinningConfig = &pinningConfig
+	}
+	if !plan.SystemLocation.IsNull() && !plan.SystemLocation.IsUnknown() {
+		systemLocation := plan.SystemLocation.ValueString()
+		createRequest.SystemLocation = &systemLocation
+	}
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
+		teamsProxy := plan.TeamsProxy.ValueString()
+		createRequest.TeamsProxy = &teamsProxy
+	}
+	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
+		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
+		createRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
+	}
+	if !plan.GuestView.IsNull() && !plan.GuestView.IsUnknown() {
+		guestView := plan.GuestView.ValueString()
+		createRequest.GuestView = &guestView
+	}
+	if !plan.HostView.IsNull() && !plan.HostView.IsUnknown() {
+		hostView := plan.HostView.ValueString()
+		createRequest.HostView = &hostView
+	}
+	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
+		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
+		createRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
+	}
+	if plan.HostView.IsNull() && plan.HostView.IsUnknown() {
+		hostView := plan.GuestView.ValueString()
+		createRequest.HostView = &hostView
+	}
+	if plan.IVRTheme.IsNull() && plan.IVRTheme.IsUnknown() {
+		ivrTheme := plan.IVRTheme.ValueString()
+		createRequest.IVRTheme = &ivrTheme
+	}
+	if plan.MaxCallRateIn.IsNull() && plan.MaxCallRateIn.IsUnknown() {
+		maxCallRateIn := int(plan.MaxCallRateIn.ValueInt32())
+		createRequest.MaxCallRateIn = &maxCallRateIn
+	}
+	if plan.MaxCallRateOut.IsNull() && plan.MaxCallRateOut.IsUnknown() {
+		maxCallRateOut := int(plan.MaxCallRateOut.ValueInt32())
+		createRequest.MaxCallRateOut = &maxCallRateOut
+	}
+	if plan.MaxPixelsPerSecond.IsNull() && plan.MaxPixelsPerSecond.IsUnknown() {
+		maxPixelsPerSecond := plan.MaxPixelsPerSecond.ValueString()
+		createRequest.MaxPixelsPerSecond = &maxPixelsPerSecond
+	}
+	if plan.MediaPlaylist.IsNull() && plan.MediaPlaylist.IsUnknown() {
+		mediaPlaylist := plan.MediaPlaylist.ValueString()
+		createRequest.MediaPlaylist = &mediaPlaylist
+	}
+	if plan.MSSIPProxy.IsNull() && plan.MSSIPProxy.IsUnknown() {
+		mssipProxy := plan.MSSIPProxy.ValueString()
+		createRequest.MSSIPProxy = &mssipProxy
+	}
+	if plan.OnCompletion.IsNull() && plan.OnCompletion.IsUnknown() {
+		onCompletion := plan.OnCompletion.ValueString()
+		createRequest.OnCompletion = &onCompletion
+	}
+	if plan.ParticipantLimit.IsNull() && plan.ParticipantLimit.IsUnknown() {
+		participantLimit := int(plan.ParticipantLimit.ValueInt32())
+		createRequest.ParticipantLimit = &participantLimit
+	}
+	if plan.PinningConfig.IsNull() && plan.PinningConfig.IsUnknown() {
+		pinningConfig := plan.PinningConfig.ValueString()
+		createRequest.PinningConfig = &pinningConfig
+	}
+	if plan.SystemLocation.IsNull() && plan.SystemLocation.IsUnknown() {
+		systemLocation := plan.SystemLocation.ValueString()
+		createRequest.SystemLocation = &systemLocation
+	}
+	if plan.TeamsProxy.IsNull() && plan.TeamsProxy.IsUnknown() {
+		teamsProxy := plan.TeamsProxy.ValueString()
+		createRequest.TeamsProxy = &teamsProxy
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateConference(ctx, createRequest)
@@ -575,25 +709,88 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
+	data.ResourceID = types.Int32Value(int32(resourceID))
 	data.Name = types.StringValue(srv.Name)
-	data.Description = types.StringValue(srv.Description)
-	data.ServiceType = types.StringValue(srv.ServiceType)
-	data.PIN = types.StringValue(srv.PIN)
-	data.GuestPIN = types.StringValue(srv.GuestPIN)
-	data.Tag = types.StringValue(srv.Tag)
-
-	// Set boolean fields
 	data.AllowGuests = types.BoolValue(srv.AllowGuests)
-	data.GuestsMuted = types.BoolValue(srv.GuestsMuted)
-	data.HostsCanUnmute = types.BoolValue(srv.HostsCanUnmute)
+	data.BreakoutRooms = types.BoolValue(srv.BreakoutRooms)
+	data.CallType = types.StringValue(srv.CallType)
+	data.CreationTime = types.StringValue(srv.CreationTime)
+	data.CryptoMode = types.StringPointerValue(srv.CryptoMode)
+	data.DenoiseEnabled = types.BoolValue(srv.DenoiseEnabled)
+	data.Description = types.StringValue(srv.Description)
+	data.DirectMedia = types.StringValue(srv.DirectMedia)
+	data.DirectMediaNotificationDuration = types.Int32Value(int32(srv.DirectMediaNotificationDuration))
+	data.EnableActiveSpeakerIndication = types.BoolValue(srv.EnableActiveSpeakerIndication)
+	data.EnableChat = types.StringValue(srv.EnableChat)
+	data.EnableOverlayText = types.BoolValue(srv.EnableOverlayText)
+	data.ForcePresenterIntoMain = types.BoolValue(srv.ForcePresenterIntoMain)
+	data.GMSAccessToken = types.StringPointerValue(srv.GMSAccessToken)
+	data.GuestIdentityProviderGroup = types.StringPointerValue(srv.GuestIdentityProviderGroup)
+	data.GuestPIN = types.StringValue(srv.GuestPIN)
+	data.GuestView = types.StringPointerValue(srv.GuestView)
+	data.GuestsCanPresent = types.BoolValue(srv.GuestsCanPresent)
+	data.GuestsCanSeeGuests = types.StringValue(srv.GuestsCanSeeGuests)
+	data.HostIdentityProviderGroup = types.StringPointerValue(srv.HostIdentityProviderGroup)
+	data.HostView = types.StringPointerValue(srv.HostView)
+	data.IVRTheme = types.StringPointerValue(srv.IVRTheme)
+	data.LiveCaptionsEnabled = types.StringValue(srv.LiveCaptionsEnabled)
+	data.MatchString = types.StringValue(srv.MatchString)
+	data.MaxPixelsPerSecond = types.StringPointerValue(srv.MaxPixelsPerSecond)
+	data.MediaPlaylist = types.StringPointerValue(srv.MediaPlaylist)
+	data.MSSIPProxy = types.StringPointerValue(srv.MSSIPProxy)
+	data.MuteAllGuests = types.BoolValue(srv.MuteAllGuests)
+	data.NonIdpParticipants = types.StringValue(srv.NonIdpParticipants)
+	data.OnCompletion = types.StringPointerValue(srv.OnCompletion)
+	data.PIN = types.StringValue(srv.PIN)
+	data.PinningConfig = types.StringPointerValue(srv.PinningConfig)
+	data.PostMatchString = types.StringValue(srv.PostMatchString)
+	data.PostReplaceString = types.StringValue(srv.PostReplaceString)
+	data.PrimaryOwnerEmailAddress = types.StringValue(srv.PrimaryOwnerEmailAddress)
+	data.ReplaceString = types.StringValue(srv.ReplaceString)
+	data.ServiceType = types.StringValue(srv.ServiceType)
+	data.SoftmuteEnabled = types.BoolValue(srv.SoftmuteEnabled)
+	data.SyncTag = types.StringValue(srv.SyncTag)
+	data.SystemLocation = types.StringPointerValue(srv.SystemLocation)
+	data.Tag = types.StringValue(srv.Tag)
+	data.TeamsProxy = types.StringPointerValue(srv.TeamsProxy)
+	data.TwoStageDialType = types.StringValue(srv.TwoStageDialType)
 
-	// Set integer fields
-	if srv.MaxPixelsPerSecond != 0 {
-		data.MaxPixelsPerSecond = types.Int32Value(int32(srv.MaxPixelsPerSecond)) // #nosec G115 -- API values are expected to be within int32 range
-	} else {
-		data.MaxPixelsPerSecond = types.Int32Null()
+	// Handle nullable integer fields
+	if srv.MaxCallRateIn != nil {
+		data.MaxCallRateIn = types.Int32Value(int32(*srv.MaxCallRateIn)) // #nosec G115 -- API values are expected to be within int32 range
 	}
+	if srv.MaxCallRateOut != nil {
+		data.MaxCallRateOut = types.Int32Value(int32(*srv.MaxCallRateOut)) // #nosec G115 -- API values are expected to be within int32 range
+	}
+	if srv.ParticipantLimit != nil {
+		data.ParticipantLimit = types.Int32Value(int32(*srv.ParticipantLimit)) // #nosec G115 -- API values are expected to be within int32 range
+	}
+
+	// Convert conference aliases from SDK to Terraform format
+	var aliases []string
+	if srv.Aliases != nil {
+		for _, alias := range *srv.Aliases {
+			aliases = append(aliases, fmt.Sprintf("/api/admin/configuration/v1/conference_alias/%d/", alias.ID))
+		}
+	}
+	aliasesSetValue, diags := types.SetValueFrom(ctx, types.StringType, aliases)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting aliases: %v", diags)
+	}
+	data.Aliases = aliasesSetValue
+
+	// Convert conference aliases from SDK to Terraform format
+	var participants []string
+	if srv.AutomaticParticipants != nil {
+		for _, participant := range srv.AutomaticParticipants {
+			participants = append(participants, participant)
+		}
+	}
+	participantsSetValue, diags := types.SetValueFrom(ctx, types.StringType, participants)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting aliases: %v", diags)
+	}
+	data.AutomaticParticipants = participantsSetValue
 
 	return &data, nil
 }
@@ -636,42 +833,175 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
+	// initialize create request with required fields, list fields, and fields with defaults
 	updateRequest := &config.ConferenceUpdateRequest{
-		Name: plan.Name.ValueString(),
+		Name:                            plan.Name.ValueString(),
+		AllowGuests:                     plan.AllowGuests.ValueBool(),
+		BreakoutRooms:                   plan.BreakoutRooms.ValueBool(),
+		CallType:                        plan.CallType.ValueString(),
+		CreationTime:                    plan.CreationTime.ValueString(),
+		DenoiseEnabled:                  plan.DenoiseEnabled.ValueBool(),
+		Description:                     plan.Description.ValueString(),
+		DirectMedia:                     plan.DirectMedia.ValueString(),
+		DirectMediaNotificationDuration: int(plan.DirectMediaNotificationDuration.ValueInt32()),
+		EnableActiveSpeakerIndication:   plan.EnableActiveSpeakerIndication.ValueBool(),
+		EnableChat:                      plan.EnableChat.ValueString(),
+		EnableOverlayText:               plan.EnableOverlayText.ValueBool(),
+		ForcePresenterIntoMain:          plan.ForcePresenterIntoMain.ValueBool(),
+		GuestPIN:                        plan.GuestPIN.ValueString(),
+		GuestsCanPresent:                plan.GuestsCanPresent.ValueBool(),
+		GuestsCanSeeGuests:              plan.GuestsCanSeeGuests.ValueString(),
+		LiveCaptionsEnabled:             plan.LiveCaptionsEnabled.ValueString(),
+		MatchString:                     plan.MatchString.ValueString(),
+		MuteAllGuests:                   plan.MuteAllGuests.ValueBool(),
+		NonIdpParticipants:              plan.NonIdpParticipants.ValueString(),
+		PIN:                             plan.PIN.ValueString(),
+		PostMatchString:                 plan.PostMatchString.ValueString(),
+		PostReplaceString:               plan.PostReplaceString.ValueString(),
+		PrimaryOwnerEmailAddress:        plan.PrimaryOwnerEmailAddress.ValueString(),
+		ReplaceString:                   plan.ReplaceString.ValueString(),
+		ServiceType:                     plan.ServiceType.ValueString(),
+		SoftmuteEnabled:                 plan.SoftmuteEnabled.ValueBool(),
+		SyncTag:                         plan.SyncTag.ValueString(),
+		Tag:                             plan.Tag.ValueString(),
+		TwoStageDialType:                plan.TwoStageDialType.ValueString(),
 	}
 
-	// Set optional string fields
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
+	// All nullable fields
+	// Only set optional fields if they are not null in the plan
+	if !plan.Aliases.IsNull() && !plan.Aliases.IsUnknown() {
+		aliases, diags := getStringList(ctx, plan.Aliases)
+		resp.Diagnostics.Append(diags...)
+		updateRequest.Aliases = &aliases
 	}
-	if !plan.PIN.IsNull() {
-		updateRequest.PIN = plan.PIN.ValueString()
+	if !plan.AutomaticParticipants.IsNull() && !plan.AutomaticParticipants.IsUnknown() {
+		automaticParticipants, diags := getStringList(ctx, plan.AutomaticParticipants)
+		resp.Diagnostics.Append(diags...)
+		updateRequest.AutomaticParticipants = automaticParticipants
 	}
-	if !plan.GuestPIN.IsNull() {
-		updateRequest.GuestPIN = plan.GuestPIN.ValueString()
+	if !plan.CryptoMode.IsNull() && !plan.CryptoMode.IsUnknown() {
+		cryptoMode := plan.CryptoMode.ValueString()
+		updateRequest.CryptoMode = &cryptoMode
 	}
-	if !plan.Tag.IsNull() {
-		updateRequest.Tag = plan.Tag.ValueString()
+	if !plan.GMSAccessToken.IsNull() && !plan.GMSAccessToken.IsUnknown() {
+		gmsAccessToken := plan.GMSAccessToken.ValueString()
+		updateRequest.GMSAccessToken = &gmsAccessToken
 	}
-
-	// Set optional boolean fields (use pointers for update requests)
-	if !plan.AllowGuests.IsNull() {
-		allowGuests := plan.AllowGuests.ValueBool()
-		updateRequest.AllowGuests = &allowGuests
+	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
+		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
+		updateRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
 	}
-	if !plan.GuestsMuted.IsNull() {
-		guestsMuted := plan.GuestsMuted.ValueBool()
-		updateRequest.GuestsMuted = &guestsMuted
+	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
+		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
+		updateRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
 	}
-	if !plan.HostsCanUnmute.IsNull() {
-		hostsCanUnmute := plan.HostsCanUnmute.ValueBool()
-		updateRequest.HostsCanUnmute = &hostsCanUnmute
+	if !plan.IVRTheme.IsNull() && !plan.IVRTheme.IsUnknown() {
+		ivrTheme := plan.IVRTheme.ValueString()
+		updateRequest.IVRTheme = &ivrTheme
 	}
-
-	// Set optional integer fields
-	if !plan.MaxPixelsPerSecond.IsNull() {
-		maxPixelsPerSecond := int(plan.MaxPixelsPerSecond.ValueInt32())
+	if !plan.MaxCallRateIn.IsNull() && !plan.MaxCallRateIn.IsUnknown() {
+		maxCallrateIn := int(plan.MaxCallRateIn.ValueInt32())
+		updateRequest.MaxCallRateIn = &maxCallrateIn
+	}
+	if !plan.MaxCallRateOut.IsNull() && !plan.MaxCallRateOut.IsUnknown() {
+		maxCallrateOut := int(plan.MaxCallRateOut.ValueInt32())
+		updateRequest.MaxCallRateOut = &maxCallrateOut
+	}
+	if !plan.MaxPixelsPerSecond.IsNull() && !plan.MaxPixelsPerSecond.IsUnknown() {
+		maxPixelsPerSecond := plan.MaxPixelsPerSecond.ValueString()
 		updateRequest.MaxPixelsPerSecond = &maxPixelsPerSecond
+	}
+	if !plan.MediaPlaylist.IsNull() && !plan.MediaPlaylist.IsUnknown() {
+		mediaPlaylist := plan.MediaPlaylist.ValueString()
+		updateRequest.MediaPlaylist = &mediaPlaylist
+	}
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
+		mssipProxy := plan.MSSIPProxy.ValueString()
+		updateRequest.MSSIPProxy = &mssipProxy
+	}
+	if !plan.OnCompletion.IsNull() && !plan.OnCompletion.IsUnknown() {
+		onCompletion := plan.OnCompletion.ValueString()
+		updateRequest.OnCompletion = &onCompletion
+	}
+	if !plan.ParticipantLimit.IsNull() && !plan.ParticipantLimit.IsUnknown() {
+		participantLimit := int(plan.ParticipantLimit.ValueInt32())
+		updateRequest.ParticipantLimit = &participantLimit
+	}
+	if !plan.PinningConfig.IsNull() && !plan.PinningConfig.IsUnknown() {
+		pinningConfig := plan.PinningConfig.ValueString()
+		updateRequest.PinningConfig = &pinningConfig
+	}
+	if !plan.SystemLocation.IsNull() && !plan.SystemLocation.IsUnknown() {
+		systemLocation := plan.SystemLocation.ValueString()
+		updateRequest.SystemLocation = &systemLocation
+	}
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
+		teamsProxy := plan.TeamsProxy.ValueString()
+		updateRequest.TeamsProxy = &teamsProxy
+	}
+	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
+		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
+		updateRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
+	}
+	if !plan.GuestView.IsNull() && !plan.GuestView.IsUnknown() {
+		guestView := plan.GuestView.ValueString()
+		updateRequest.GuestView = &guestView
+	}
+	if !plan.HostView.IsNull() && !plan.HostView.IsUnknown() {
+		hostView := plan.HostView.ValueString()
+		updateRequest.HostView = &hostView
+	}
+	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
+		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
+		updateRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
+	}
+	if plan.HostView.IsNull() && plan.HostView.IsUnknown() {
+		hostView := plan.GuestView.ValueString()
+		updateRequest.HostView = &hostView
+	}
+	if plan.IVRTheme.IsNull() && plan.IVRTheme.IsUnknown() {
+		ivrTheme := plan.IVRTheme.ValueString()
+		updateRequest.IVRTheme = &ivrTheme
+	}
+	if plan.MaxCallRateIn.IsNull() && plan.MaxCallRateIn.IsUnknown() {
+		maxCallRateIn := int(plan.MaxCallRateIn.ValueInt32())
+		updateRequest.MaxCallRateIn = &maxCallRateIn
+	}
+	if plan.MaxCallRateOut.IsNull() && plan.MaxCallRateOut.IsUnknown() {
+		maxCallRateOut := int(plan.MaxCallRateOut.ValueInt32())
+		updateRequest.MaxCallRateOut = &maxCallRateOut
+	}
+	if plan.MaxPixelsPerSecond.IsNull() && plan.MaxPixelsPerSecond.IsUnknown() {
+		maxPixelsPerSecond := plan.MaxPixelsPerSecond.ValueString()
+		updateRequest.MaxPixelsPerSecond = &maxPixelsPerSecond
+	}
+	if plan.MediaPlaylist.IsNull() && plan.MediaPlaylist.IsUnknown() {
+		mediaPlaylist := plan.MediaPlaylist.ValueString()
+		updateRequest.MediaPlaylist = &mediaPlaylist
+	}
+	if plan.MSSIPProxy.IsNull() && plan.MSSIPProxy.IsUnknown() {
+		mssipProxy := plan.MSSIPProxy.ValueString()
+		updateRequest.MSSIPProxy = &mssipProxy
+	}
+	if plan.OnCompletion.IsNull() && plan.OnCompletion.IsUnknown() {
+		onCompletion := plan.OnCompletion.ValueString()
+		updateRequest.OnCompletion = &onCompletion
+	}
+	if plan.ParticipantLimit.IsNull() && plan.ParticipantLimit.IsUnknown() {
+		participantLimit := int(plan.ParticipantLimit.ValueInt32())
+		updateRequest.ParticipantLimit = &participantLimit
+	}
+	if plan.PinningConfig.IsNull() && plan.PinningConfig.IsUnknown() {
+		pinningConfig := plan.PinningConfig.ValueString()
+		updateRequest.PinningConfig = &pinningConfig
+	}
+	if plan.SystemLocation.IsNull() && plan.SystemLocation.IsUnknown() {
+		systemLocation := plan.SystemLocation.ValueString()
+		updateRequest.SystemLocation = &systemLocation
+	}
+	if plan.TeamsProxy.IsNull() && plan.TeamsProxy.IsUnknown() {
+		teamsProxy := plan.TeamsProxy.ValueString()
+		updateRequest.TeamsProxy = &teamsProxy
 	}
 
 	_, err := r.InfinityClient.Config().UpdateConference(ctx, resourceID, updateRequest)
