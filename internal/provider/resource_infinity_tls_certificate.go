@@ -12,9 +12,6 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -28,23 +25,6 @@ import (
 var (
 	_ resource.ResourceWithImportState = (*InfinityTLSCertificateResource)(nil)
 )
-
-// forceEmptySetPlanModifier is a plan modifier that forces a set attribute to always be empty.
-// This is used for the nodes attribute which should be managed from the node resource side.
-type forceEmptySetPlanModifier struct{}
-
-func (m forceEmptySetPlanModifier) Description(ctx context.Context) string {
-	return "Ensures the nodes attribute is always an empty set. Node-certificate associations should be managed from the node resource."
-}
-
-func (m forceEmptySetPlanModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ensures the nodes attribute is always an empty set. Node-certificate associations should be managed from the node resource."
-}
-
-func (m forceEmptySetPlanModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	// Always set the plan value to an empty set
-	resp.PlanValue = types.SetValueMust(types.StringType, []attr.Value{})
-}
 
 type InfinityTLSCertificateResource struct {
 	InfinityClient InfinityClient
@@ -138,15 +118,9 @@ func (r *InfinityTLSCertificateResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Additional parameters for the certificate. Maximum length: 1000 characters.",
 			},
 			"nodes": schema.SetAttribute{
-				Optional:    true,
-				Computed:    true,
-				ElementType: types.StringType,
-				Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
-				PlanModifiers: []planmodifier.Set{
-					forceEmptySetPlanModifier{},
-					setplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "List of node resource URIs where this certificate should be deployed. Note: This attribute is always empty. Node-certificate associations should be managed from the node resource by setting the tls_certificate attribute.",
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of node resource URIs where this certificate is deployed. This attribute is read-only and always empty. Node-certificate associations should be managed from the node resource by setting the tls_certificate attribute on each node.",
 			},
 			"start_date": schema.StringAttribute{
 				Computed:            true,
