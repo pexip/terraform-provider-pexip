@@ -206,9 +206,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
-	var nodes []string
-	plan.Nodes.ElementsAs(ctx, &nodes, false)
-	createRequest.Nodes = nodes
+	createRequest.Nodes = []string{}
 
 	createResponse, err := r.InfinityClient.Config().CreateTLSCertificate(ctx, createRequest)
 	if err != nil {
@@ -343,9 +341,7 @@ func (r *InfinityTLSCertificateResource) Update(ctx context.Context, req resourc
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
-	var nodes []string
-	plan.Nodes.ElementsAs(ctx, &nodes, false)
-	updateRequest.Nodes = nodes
+	updateRequest.Nodes = []string{}
 
 	_, err := r.InfinityClient.Config().UpdateTLSCertificate(ctx, resourceID, updateRequest)
 	if err != nil {
