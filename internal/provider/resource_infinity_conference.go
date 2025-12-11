@@ -83,8 +83,8 @@ type InfinityConferenceResourceModel struct {
 	Tag                             types.String `tfsdk:"tag"`
 	TeamsProxy                      types.String `tfsdk:"teams_proxy"`
 	TwoStageDialType                types.String `tfsdk:"two_stage_dial_type"`
-	//ScheduledConferences            types.Set    `tfsdk:"scheduled_conferences"`
-	//ScheduledConferencesCount       types.Int32  `tfsdk:"scheduled_conferences_count"` # Read-only field
+	// ScheduledConferences            types.Set    `tfsdk:"scheduled_conferences"`
+	// ScheduledConferencesCount       types.Int32  `tfsdk:"scheduled_conferences_count"` # Read-only field
 }
 
 func (r *InfinityConferenceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -375,8 +375,8 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "This optional field allows you to set a secure access code for participants who dial in to the service. Length: 4-20 digits, including any terminal #.",
 			},
 			"pinning_config": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The layout pinning configuration that will be used for this conference.",
 			},
 			"post_match_string": schema.StringAttribute{
@@ -709,7 +709,7 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ResourceID = types.Int32Value(int32(resourceID))
+	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
 	data.AllowGuests = types.BoolValue(srv.AllowGuests)
 	data.BreakoutRooms = types.BoolValue(srv.BreakoutRooms)
@@ -718,7 +718,7 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	data.DenoiseEnabled = types.BoolValue(srv.DenoiseEnabled)
 	data.Description = types.StringValue(srv.Description)
 	data.DirectMedia = types.StringValue(srv.DirectMedia)
-	data.DirectMediaNotificationDuration = types.Int32Value(int32(srv.DirectMediaNotificationDuration))
+	data.DirectMediaNotificationDuration = types.Int32Value(int32(srv.DirectMediaNotificationDuration)) // #nosec G115 -- API values are expected to be within int32 range
 	data.EnableActiveSpeakerIndication = types.BoolValue(srv.EnableActiveSpeakerIndication)
 	data.EnableChat = types.StringValue(srv.EnableChat)
 	data.EnableOverlayText = types.BoolValue(srv.EnableOverlayText)
