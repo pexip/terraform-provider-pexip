@@ -1,0 +1,39 @@
+name: Install Terraform Provider
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  install:
+    name: Install Terraform Provider
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download provider
+        uses: actions/download-artifact@v6
+        with:
+          path: downloads
+
+      - name: List downloaded files
+        shell: bash
+        run: ls -laR downloads
+
+      - name: Move provider .zip to ./dist
+        shell: bash
+        run: |
+          mkdir -p dist
+          ZIP_FILENAME=$(find ./downloads -type f -name 'terraform-provider-*.zip' -print -quit)
+          echo "Moving $ZIP_FILENAME to ./dist"
+          mv "$ZIP_FILENAME" ./dist/
+
+      - name: Install local dev override
+        run: |
+          make install VERSION=v0.0.1

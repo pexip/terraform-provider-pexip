@@ -12,9 +12,43 @@ env:
   GO_VERSION: "1.24"
   GOPRIVATE: github.com/pexip
 
+concurrency:
+  group: terraform-provider-pexip-integration-test
+  cancel-in-progress: true
+
 jobs:
-  integation-test:
+  build-provider:
+    name: Build Provider
+    secrets: inherit
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/reusable_build.yml
+    with:
+      version: "v0.0.1"
+
+  install-provider:
+    name: Install Provider
+    needs: build-provider
+    secrets: inherit
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/reusable_install_provider.yml
+
+  deploy-infinity:
+    name: Deploy Infinity
+    secrets: inherit
+    permissions:
+      contents: read
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/reusable_deploy_infinity.yml
+    with:
+      path: "./integration_test/"
+
+  integration-test:
     name: Integration Tests
+    needs: [install-provider, deploy-infinity]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -24,39 +58,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Authenticate git for private modules
-        run: git config --global url."https://${GH_PAT}@github.com/pexip/go-infinity-sdk".insteadOf "https://github.com/pexip/go-infinity-sdk"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
-
-      - name: Setup gcloud SDK
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Show current gcloud user
-        run: gcloud config list account --format "value(core.account)"
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-        with:
-          terraform_version: "1.6"
-          terraform_wrapper: false
-
-      - name: Terraform fmt
-        run: terraform fmt -check -recursive ./example/
-
-      - name: Terraform init
-        run: terraform init
-        working-directory: ./example/
-
-      - name: Terraform apply
-        continue-on-error: true
-        run: terraform apply -no-color -auto-approve
-        working-directory: ./example/
 
       - name: Download dependencies
         run: go mod download
@@ -71,7 +76,14 @@ jobs:
         run: |
           echo "Acceptance tests would run here with real Pexip environment"
           go test -v -tags=integration -timeout 30m ./...
-
-      - name: Terraform destroy
-        run: terraform destroy -no-color -auto-approve
-        working-directory: ./example/
+          
+  destroy-infinity:
+    name: Destroy Infinity
+    needs: integration-test
+    secrets: inherit
+    permissions:
+      contents: read
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/reusable_destroy_infinity.yml
+    with:
+      path: "./integration_test/"

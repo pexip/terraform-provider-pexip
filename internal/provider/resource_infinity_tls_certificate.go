@@ -12,7 +12,6 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -119,11 +118,9 @@ func (r *InfinityTLSCertificateResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Additional parameters for the certificate. Maximum length: 1000 characters.",
 			},
 			"nodes": schema.SetAttribute{
-				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
-				MarkdownDescription: "List of node resource URIs where this certificate should be deployed.",
+				MarkdownDescription: "List of node resource URIs where this certificate is deployed. This attribute is read-only and always empty. Node-certificate associations should be managed from the node resource by setting the tls_certificate attribute on each node.",
 			},
 			"start_date": schema.StringAttribute{
 				Computed:            true,
@@ -206,9 +203,7 @@ func (r *InfinityTLSCertificateResource) Create(ctx context.Context, req resourc
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
-	var nodes []string
-	plan.Nodes.ElementsAs(ctx, &nodes, false)
-	createRequest.Nodes = nodes
+	createRequest.Nodes = []string{}
 
 	createResponse, err := r.InfinityClient.Config().CreateTLSCertificate(ctx, createRequest)
 	if err != nil {
@@ -343,9 +338,7 @@ func (r *InfinityTLSCertificateResource) Update(ctx context.Context, req resourc
 	// ignore nodes if set in plan, always send empty list
 	// set tls_certificate on the node resource instead
 	tflog.Debug(ctx, "Ignoring nodes set in plan, always sending empty list. Set tls_certificate on the node resource instead.")
-	var nodes []string
-	plan.Nodes.ElementsAs(ctx, &nodes, false)
-	updateRequest.Nodes = nodes
+	updateRequest.Nodes = []string{}
 
 	_, err := r.InfinityClient.Config().UpdateTLSCertificate(ctx, resourceID, updateRequest)
 	if err != nil {
