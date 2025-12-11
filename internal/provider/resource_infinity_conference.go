@@ -935,10 +935,6 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 		hostView := plan.HostView.ValueString()
 		updateRequest.HostView = &hostView
 	}
-	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
-		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
-		updateRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
-	}
 	if plan.HostView.IsNull() && plan.HostView.IsUnknown() {
 		hostView := plan.GuestView.ValueString()
 		updateRequest.HostView = &hostView
