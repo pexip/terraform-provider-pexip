@@ -7,5 +7,5 @@
 resource "pexip_infinity_azure_tenant" "azure_tenant-test" {
   name        = "azure_tenant-test"
   description = "Test AzureTenant"
-  tenant_id   = "test-value"
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
 }

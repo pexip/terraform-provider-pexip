@@ -36,9 +36,26 @@ func TestInfinityCACertificate(t *testing.T) {
 
 	// Shared state for mocking
 	mockState := &config.CACertificate{
-		ID:                  123,
-		ResourceURI:         "/api/admin/configuration/v1/ca_certificate/123/",
-		Certificate:         "test-value",
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/ca_certificate/123/",
+		Certificate: `-----BEGIN CERTIFICATE-----
+MIIDXTCCAkWgAwIBAgIJAKJ5JqfJzhqBMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
+BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX
+aWRnaXRzIFB0eSBMdGQwHhcNMjMwMTAxMDAwMDAwWhcNMjQwMTAxMDAwMDAwWjBF
+MQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50
+ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEAtxvDqPhIZgQEo5bN4qhKqAJhvfxPzMEBjQVf9yQcNwVzXrKKQiJcPPjD
+xaZRNGxN7H5qr+xVqJhYnXKjXzGRzCbNn6KnKEWnYJC7qR9pYLqAHWHQpzPqLa2V
+lZqsL3cXZ3uOr5qnLsE8nNfnRqV5j8qPqCvKgLtNRhHnNQ2VWKYqNnGzPqLj8LWY
+xLCnW3xNcBqH5qRHYPnQpRdLqNQzKVzQqPqLj8LWYxLCnW3xNcBqH5qRHYPnQpRd
+LqNQzKVzQqPqLjcXZ3uOr5qnLsE8nNfnRqV5j8qPqCvKgLtNRhHnNQ2VWKYqNnGz
+PqLj8LWYxLCnW3xNcBqH5qRHYPnQpRdLqNQzKVzQqPqLjQIDAQABo1AwTjAdBgNV
+HQ4EFgQUX8mfqCJhJ8HQNGKjGN6wQVqPXdYwHwYDVR0jBBgwFoAUX8mfqCJhJ8HQ
+NGKjGN6wQVqPXdYwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAjKpO
+nZqNz0bHvYkBvPqLj8LWYxLCnW3xNcBqH5qRHYPnQpRdLqNQzKVzQqPqLjcXZ3uO
+r5qnLsE8nNfnRqV5j8qPqCvKgLtNRhHnNQ2VWKYqNnGzPqLj8LWYxLCnW3xNcBqH
+-----END CERTIFICATE-----
+`,
 		TrustedIntermediate: true,
 		SubjectName:         "ca_certificate-test",
 		IssuerName:          "ca_certificate-test",

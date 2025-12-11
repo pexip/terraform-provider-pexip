@@ -40,7 +40,7 @@ func TestInfinityGoogleAuthServer(t *testing.T) {
 		ResourceURI:     "/api/admin/configuration/v1/google_auth_server/123/",
 		Name:            "google_auth_server-test",
 		Description:     "Test GoogleAuthServer",
-		ApplicationType: "web",
+		ApplicationType: "installed",
 		ClientID:        test.StringPtr("test-value"),
 		ClientSecret:    "test-value",
 	}

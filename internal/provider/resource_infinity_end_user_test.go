@@ -50,7 +50,7 @@ func TestInfinityEndUser(t *testing.T) {
 		UserGroups:          []string{},
 		UserOID:             test.StringPtr("user-oid-123"),
 		ExchangeUserID:      test.StringPtr("exchange-123"),
-		MSExchangeGUID:      test.StringPtr("ms-guid-123"),
+		MSExchangeGUID:      test.StringPtr("11111111-2222-3333-4444-555555555555"),
 		SyncTag:             "sync-tag",
 	}
 
@@ -138,7 +138,7 @@ func testInfinityEndUser(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "avatar_url", "https://example.com/avatar.jpg"),
 					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "user_oid", "user-oid-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "exchange_user_id", "exchange-123"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "ms_exchange_guid", "ms-guid-123"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "ms_exchange_guid", "11111111-2222-3333-4444-555555555555"),
 					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "sync_tag", "sync-tag"),
 				),
 			},
