@@ -87,6 +87,7 @@ func (r *InfinityDiagnosticGraphResource) Schema(ctx context.Context, req resour
 			"datasets": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "List of dataset identifiers to include in this diagnostic graph.",
 			},
 		},
@@ -108,7 +109,7 @@ func (r *InfinityDiagnosticGraphResource) Create(ctx context.Context, req resour
 	}
 
 	// Handle list field
-	if !plan.Datasets.IsNull() {
+	if !plan.Datasets.IsNull() && !plan.Datasets.IsUnknown() {
 		var datasets []string
 		resp.Diagnostics.Append(plan.Datasets.ElementsAs(ctx, &datasets, false)...)
 		if resp.Diagnostics.HasError() {
@@ -227,7 +228,7 @@ func (r *InfinityDiagnosticGraphResource) Update(ctx context.Context, req resour
 	}
 
 	// Handle list field
-	if !plan.Datasets.IsNull() {
+	if !plan.Datasets.IsNull() && !plan.Datasets.IsUnknown() {
 		var datasets []string
 		resp.Diagnostics.Append(plan.Datasets.ElementsAs(ctx, &datasets, false)...)
 		if resp.Diagnostics.HasError() {

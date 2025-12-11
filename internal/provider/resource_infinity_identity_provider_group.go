@@ -86,6 +86,7 @@ func (r *InfinityIdentityProviderGroupResource) Schema(ctx context.Context, req 
 			"identity_provider": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "List of identity provider URIs associated with this group.",
 			},
 		},
@@ -107,7 +108,7 @@ func (r *InfinityIdentityProviderGroupResource) Create(ctx context.Context, req 
 	}
 
 	// Handle list field
-	if !plan.IdentityProvider.IsNull() {
+	if !plan.IdentityProvider.IsNull() && !plan.IdentityProvider.IsUnknown() {
 		var providers []string
 		resp.Diagnostics.Append(plan.IdentityProvider.ElementsAs(ctx, &providers, false)...)
 		if resp.Diagnostics.HasError() {
@@ -221,7 +222,7 @@ func (r *InfinityIdentityProviderGroupResource) Update(ctx context.Context, req 
 	}
 
 	// Handle list field
-	if !plan.IdentityProvider.IsNull() {
+	if !plan.IdentityProvider.IsNull() && !plan.IdentityProvider.IsUnknown() {
 		var providers []string
 		resp.Diagnostics.Append(plan.IdentityProvider.ElementsAs(ctx, &providers, false)...)
 		if resp.Diagnostics.HasError() {

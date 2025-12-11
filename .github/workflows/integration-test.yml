@@ -67,7 +67,6 @@ jobs:
         run: go mod download
 
       - name: Run acceptance tests
-        continue-on-error: true
         env:
           TF_ACC: "1"
           PEXIP_ADDRESS: ${{ secrets.PEXIP_ADDRESS }}
