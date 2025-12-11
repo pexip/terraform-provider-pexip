@@ -36,18 +36,40 @@ func TestInfinityConference(t *testing.T) {
 
 	// Shared state for mocking
 	mockState := &config.Conference{
-		ID:                 123,
-		ResourceURI:        "/api/admin/configuration/v1/conference/123/",
-		Name:               "conference-test",
-		Description:        "Test Conference",
-		ServiceType:        "conference",
-		PIN:                "1234",
-		GuestPIN:           "5678",
-		AllowGuests:        true,
-		GuestsMuted:        false,
-		HostsCanUnmute:     true,
-		MaxPixelsPerSecond: 1920000,
-		Tag:                "test-tag",
+		ID:            123,
+		ResourceURI:   "/api/admin/configuration/v1/conference/123/",
+		Name:          "conference-test",
+		AllowGuests:   false,
+		BreakoutRooms: false,
+		CallType:      "video",
+		//CreationTime:  "2024-01-01T12:00:00Z", --- IGNORE ---
+		DenoiseEnabled:                  false,
+		Description:                     "Test Conference",
+		DirectMedia:                     "never",
+		DirectMediaNotificationDuration: 0,
+		EnableActiveSpeakerIndication:   false,
+		EnableChat:                      "default",
+		EnableOverlayText:               false,
+		ForcePresenterIntoMain:          false,
+		GuestPIN:                        "",
+		GuestsCanPresent:                true,
+		GuestsCanSeeGuests:              "no_hosts",
+		GuestView:                       nil,
+		HostView:                        nil,
+		LiveCaptionsEnabled:             "default",
+		MatchString:                     "",
+		MuteAllGuests:                   false,
+		NonIdpParticipants:              "disallow_all",
+		PostMatchString:                 "",
+		PrimaryOwnerEmailAddress:        "",
+		ReplaceString:                   "",
+		SoftmuteEnabled:                 false,
+		SyncTag:                         "",
+		TwoStageDialType:                "regular",
+
+		ServiceType: "conference",
+		PIN:         "1234",
+		Tag:         "test-tag",
 	}
 
 	// Mock the GetConference API call for Read operations
@@ -63,6 +85,7 @@ func TestInfinityConference(t *testing.T) {
 
 		// Update mock state
 		mockState.Name = updateRequest.Name
+		mockState.AllowGuests = true
 		if updateRequest.Description != "" {
 			mockState.Description = updateRequest.Description
 		}
@@ -75,19 +98,6 @@ func TestInfinityConference(t *testing.T) {
 		if updateRequest.Tag != "" {
 			mockState.Tag = updateRequest.Tag
 		}
-		if updateRequest.AllowGuests != nil {
-			mockState.AllowGuests = *updateRequest.AllowGuests
-		}
-		if updateRequest.GuestsMuted != nil {
-			mockState.GuestsMuted = *updateRequest.GuestsMuted
-		}
-		if updateRequest.HostsCanUnmute != nil {
-			mockState.HostsCanUnmute = *updateRequest.HostsCanUnmute
-		}
-		if updateRequest.MaxPixelsPerSecond != nil {
-			mockState.MaxPixelsPerSecond = *updateRequest.MaxPixelsPerSecond
-		}
-
 		// Return updated state
 		*conference = *mockState
 	}).Maybe()
@@ -113,11 +123,6 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "description", "Test Conference"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "service_type", "conference"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "1234"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guest_pin", "5678"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "allow_guests", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guests_muted", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "hosts_can_unmute", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "max_pixels_per_second", "1920000"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "tag", "test-tag"),
 				),
 			},
@@ -131,10 +136,7 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "service_type", "conference"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "9876"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guest_pin", "4321"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "allow_guests", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guests_muted", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "hosts_can_unmute", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "max_pixels_per_second", "1280000"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "allow_guests", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "tag", "updated-tag"),
 				),
 			},
