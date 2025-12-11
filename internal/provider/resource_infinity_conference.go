@@ -607,10 +607,6 @@ func (r *InfinityConferenceResource) Create(ctx context.Context, req resource.Cr
 		hostView := plan.HostView.ValueString()
 		createRequest.HostView = &hostView
 	}
-	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {
-		hostIdentityProviderGroup := plan.HostIdentityProviderGroup.ValueString()
-		createRequest.HostIdentityProviderGroup = &hostIdentityProviderGroup
-	}
 	if plan.HostView.IsNull() && plan.HostView.IsUnknown() {
 		hostView := plan.GuestView.ValueString()
 		createRequest.HostView = &hostView
