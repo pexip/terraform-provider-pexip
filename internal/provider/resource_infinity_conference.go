@@ -416,18 +416,18 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "An optional regular expression used to transform the alias entered by the caller into the Virtual Reception. (Only applies if a regex match string is also configured and the entered alias matches that regex.) Leave this field blank if you do not want to change the alias entered by the caller. Maximum length: 250 characters.",
 			},
 			// Field will change regularly, so commenting out for now
-			//"scheduled_conferences": schema.ListAttribute{
-			//	Optional:            true,
-			//	Computed:            true,
-			//	ElementType:         types.StringType,
-			//	MarkdownDescription: "The scheduled conferences associated with this conference.",
-			//},
+			// "scheduled_conferences": schema.ListAttribute{
+			// 	Optional:            true,
+			// 	Computed:            true,
+			// 	ElementType:         types.StringType,
+			// 	MarkdownDescription: "The scheduled conferences associated with this conference.",
+			// },
 			// Read-only field
-			//"scheduled_conferences_count": schema.Int32Attribute{
-			//	Optional:            true,
-			//	Computed:            true,
-			//	MarkdownDescription: "The number of scheduled conferences associated with this conference.",
-			//},
+			// "scheduled_conferences_count": schema.Int32Attribute{
+			// 	Optional:            true,
+			// 	Computed:            true,
+			// 	MarkdownDescription: "The number of scheduled conferences associated with this conference.",
+			// },
 			"service_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
