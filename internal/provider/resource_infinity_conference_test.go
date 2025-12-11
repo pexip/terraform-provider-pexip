@@ -54,6 +54,8 @@ func TestInfinityConference(t *testing.T) {
 		GuestPIN:                        "",
 		GuestsCanPresent:                true,
 		GuestsCanSeeGuests:              "no_hosts",
+		GuestView:                       nil,
+		HostView:                        nil,
 		LiveCaptionsEnabled:             "default",
 		MatchString:                     "",
 		MuteAllGuests:                   false,
@@ -77,7 +79,7 @@ func TestInfinityConference(t *testing.T) {
 	}).Maybe()
 
 	// Mock the UpdateConference API call
-	client.On("PatchJSON", mock.Anything, "configuration/v1/conference/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PutJSON", mock.Anything, "configuration/v1/conference/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.ConferenceUpdateRequest)
 		conference := args.Get(3).(*config.Conference)
 
