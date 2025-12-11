@@ -5,7 +5,7 @@
  */
 
 resource "pexip_infinity_ca_certificate" "ca_certificate-test" {
-  certificate = <<-EOT
+  certificate          = <<-EOT
     -----BEGIN CERTIFICATE-----
     MIIDXTCCAkWgAwIBAgIJAKJ5JqfJzhqBMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
     BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX
