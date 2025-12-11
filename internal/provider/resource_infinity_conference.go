@@ -599,10 +599,6 @@ func (r *InfinityConferenceResource) Create(ctx context.Context, req resource.Cr
 		teamsProxy := plan.TeamsProxy.ValueString()
 		createRequest.TeamsProxy = &teamsProxy
 	}
-	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
-		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
-		createRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
-	}
 	if !plan.GuestView.IsNull() && !plan.GuestView.IsUnknown() {
 		guestView := plan.GuestView.ValueString()
 		createRequest.GuestView = &guestView
