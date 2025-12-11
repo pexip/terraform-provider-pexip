@@ -927,10 +927,6 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 		teamsProxy := plan.TeamsProxy.ValueString()
 		updateRequest.TeamsProxy = &teamsProxy
 	}
-	if !plan.GuestIdentityProviderGroup.IsNull() && !plan.GuestIdentityProviderGroup.IsUnknown() {
-		guestIdentityProviderGroup := plan.GuestIdentityProviderGroup.ValueString()
-		updateRequest.GuestIdentityProviderGroup = &guestIdentityProviderGroup
-	}
 	if !plan.GuestView.IsNull() && !plan.GuestView.IsUnknown() {
 		guestView := plan.GuestView.ValueString()
 		updateRequest.GuestView = &guestView
