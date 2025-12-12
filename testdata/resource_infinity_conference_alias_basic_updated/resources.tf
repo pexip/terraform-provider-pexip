@@ -11,7 +11,7 @@ resource "pexip_infinity_conference" "test-conference" {
 }
 
 resource "pexip_infinity_conference_alias" "conference_alias-test" {
-  alias       = "test-alias-updated"            // Updated value
+  alias       = "test-alias-updated"           // Updated value
   description = "Updated Test ConferenceAlias" // Updated description
   conference  = pexip_infinity_conference.test-conference.id
 
