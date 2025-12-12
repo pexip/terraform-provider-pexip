@@ -190,8 +190,14 @@ func (r *InfinityUserGroupResource) read(ctx context.Context, resourceID int) (*
 	}
 	data.Users = usersSet
 
-	// Convert user group entity mappings to types.Set
-	mappingsSet, diags := types.SetValueFrom(ctx, types.StringType, srv.UserGroupEntityMappings)
+	// Convert user group entity mappings to types.Set (extract resource URIs)
+	var mappingURIs []string
+	if srv.UserGroupEntityMappings != nil {
+		for _, mapping := range *srv.UserGroupEntityMappings {
+			mappingURIs = append(mappingURIs, mapping.ResourceURI)
+		}
+	}
+	mappingsSet, diags := types.SetValueFrom(ctx, types.StringType, mappingURIs)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting user group entity mappings: %v", diags)
 	}
