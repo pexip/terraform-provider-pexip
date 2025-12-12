@@ -91,7 +91,7 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			"webapp_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("pexapp", "management", "admin"),
+					stringvalidator.OneOf("webapp1", "webapp2", "webapp3"),
 				},
 				MarkdownDescription: "The type of webapp this branding applies to. Valid values: pexapp, management, admin.",
 			},
