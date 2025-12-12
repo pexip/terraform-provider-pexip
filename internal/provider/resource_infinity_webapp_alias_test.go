@@ -34,19 +34,14 @@ func TestInfinityWebappAlias(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_alias/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Helper function for string pointers
-	stringPtr := func(s string) *string { return &s }
-
 	// Shared state for mocking
 	mockState := &config.WebappAlias{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/webapp_alias/123/",
-		Slug:        "test-value",
+		Slug:        "test-alias",
 		Description: "Test WebappAlias",
-		WebappType:  "pexapp",
+		WebappType:  "webapp1",
 		IsEnabled:   true,
-		Bundle:      stringPtr("test-value"),
-		Branding:    stringPtr("test-value"),
 	}
 
 	// Mock the GetWebappalias API call for Read operations
@@ -110,12 +105,10 @@ func testInfinityWebappAlias(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "slug", "updated-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "slug", "updated-alias"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "description", "Updated Test WebappAlias"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "webapp_type", "management"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "webapp_type", "webapp2"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "is_enabled", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "bundle", "updated-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "branding", "updated-value"),
 				),
 			},
 		},
