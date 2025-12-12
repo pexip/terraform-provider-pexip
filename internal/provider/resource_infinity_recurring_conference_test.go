@@ -27,6 +27,53 @@ func TestInfinityRecurringConference(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Mock conference creation
+	conferenceCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/conference/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(conferenceCreateResponse, nil)
+
+	conferenceState := &config.Conference{
+		ID:                              1,
+		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
+		Name:                            "test-conference",
+		Description:                     "Test Conference",
+		ServiceType:                     "conference",
+		AllowGuests:                     false,
+		BreakoutRooms:                   false,
+		CallType:                        "video",
+		DenoiseEnabled:                  false,
+		DirectMedia:                     "never",
+		DirectMediaNotificationDuration: 0,
+		EnableActiveSpeakerIndication:   false,
+		EnableChat:                      "default",
+		EnableOverlayText:               false,
+		ForcePresenterIntoMain:          false,
+		GuestPIN:                        "",
+		GuestsCanPresent:                true,
+		GuestsCanSeeGuests:              "no_hosts",
+		LiveCaptionsEnabled:             "default",
+		MatchString:                     "",
+		MuteAllGuests:                   false,
+		NonIdpParticipants:              "disallow_all",
+		PostMatchString:                 "",
+		PostReplaceString:               "",
+		PrimaryOwnerEmailAddress:        "",
+		ReplaceString:                   "",
+		SoftmuteEnabled:                 false,
+		SyncTag:                         "",
+		Tag:                             "",
+		TwoStageDialType:                "regular",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		conf := args.Get(3).(*config.Conference)
+		*conf = *conferenceState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything).Return(nil).Maybe()
+
 	// Mock the CreateRecurringconference API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -38,12 +85,12 @@ func TestInfinityRecurringConference(t *testing.T) {
 	mockState := &config.RecurringConference{
 		ID:             123,
 		ResourceURI:    "/api/admin/configuration/v1/recurring_conference/123/",
-		Conference:     "test-value",
+		Conference:     "/api/admin/configuration/v1/conference/1/",
 		CurrentIndex:   1,
-		EWSItemID:      "test-value",
-		IsDepleted:     true,
-		Subject:        "test-value",
-		ScheduledAlias: test.StringPtr("test-value"),
+		EWSItemID:      "test-ews-item-id",
+		IsDepleted:     false,
+		Subject:        "Test Recurring Conference",
+		ScheduledAlias: nil,
 	}
 
 	// Mock the GetRecurringconference API call for Read operations
@@ -98,7 +145,7 @@ func testInfinityRecurringConference(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_recurring_conference.recurring_conference-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_recurring_conference.recurring_conference-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_recurring_conference.recurring_conference-test", "is_depleted", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_recurring_conference.recurring_conference-test", "is_depleted", "false"),
 				),
 			},
 			{
@@ -106,7 +153,7 @@ func testInfinityRecurringConference(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_recurring_conference.recurring_conference-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_recurring_conference.recurring_conference-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_recurring_conference.recurring_conference-test", "is_depleted", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_recurring_conference.recurring_conference-test", "is_depleted", "true"),
 				),
 			},
 		},
