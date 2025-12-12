@@ -30,26 +30,26 @@ func TestInfinityLocation(t *testing.T) {
 	// Mock the CreateLocation API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/location/123/",
+		ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/location/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
 	// Shared state for mocking
 	mockState := &config.Location{
 		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/location/123/",
+		ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 		Name:        "location-test",
 		Description: "Test Location",
 	}
 
 	// Mock the GetLocation API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		location := args.Get(3).(*config.Location)
 		*location = *mockState
 	}).Maybe()
 
 	// Mock the UpdateLocation API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PutJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.LocationUpdateRequest)
 		location := args.Get(3).(*config.Location)
 
@@ -65,7 +65,7 @@ func TestInfinityLocation(t *testing.T) {
 
 	// Mock the DeleteLocation API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/location/123/"
+		return path == "configuration/v1/system_location/123/"
 	}), mock.Anything).Return(nil)
 
 	testInfinityLocation(t, client)
