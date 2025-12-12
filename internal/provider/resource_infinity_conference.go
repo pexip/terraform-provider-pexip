@@ -773,11 +773,13 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	// Convert automatic participants from SDK to Terraform format
 	var participants []string
 	if srv.AutomaticParticipants != nil {
-		participants = append(participants, srv.AutomaticParticipants...)
+		for _, participant := range *srv.AutomaticParticipants {
+			participants = append(participants, participant.ResourceURI)
+		}
 	}
 	participantsSetValue, diags := types.SetValueFrom(ctx, types.StringType, participants)
 	if diags.HasError() {
-		return nil, fmt.Errorf("error converting aliases: %v", diags)
+		return nil, fmt.Errorf("error converting automatic participants: %v", diags)
 	}
 	data.AutomaticParticipants = participantsSetValue
 
