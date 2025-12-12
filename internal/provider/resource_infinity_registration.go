@@ -79,57 +79,57 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"refresh_strategy": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("adaptive", "maximum", "natted"),
+					stringvalidator.OneOf("adaptive", "maximum"),
 				},
-				MarkdownDescription: "The refresh strategy to use. Valid values: adaptive, maximum, natted.",
+				MarkdownDescription: "The refresh strategy to use. Valid values: adaptive, maximum.",
 			},
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for adaptive strategy in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Minimum refresh interval for adaptive strategy in seconds. Valid range: 60-3600.",
 			},
 			"adaptive_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for adaptive strategy in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Maximum refresh interval for adaptive strategy in seconds. Valid range: 60-3600.",
 			},
 			"maximum_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for maximum strategy in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Minimum refresh interval for maximum strategy in seconds. Valid range: 60-3600.",
 			},
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for maximum strategy in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Maximum refresh interval for maximum strategy in seconds. Valid range: 60-3600.",
 			},
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for NATted connections in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Minimum refresh interval for NATted connections in seconds. Valid range: 60-3600.",
 			},
 			"natted_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.Int64{
-					int64validator.Between(30, 3600),
+					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for NATted connections in seconds. Valid range: 30-3600.",
+				MarkdownDescription: "Maximum refresh interval for NATted connections in seconds. Valid range: 60-3600.",
 			},
 			"route_via_registrar": schema.BoolAttribute{
 				Optional:            true,
@@ -172,26 +172,31 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	if !plan.AdaptiveMinRefresh.IsNull() {
-		refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
-		updateRequest.AdaptiveMinRefresh = &refresh
+	// Only send refresh values that match the strategy to avoid validation errors
+	strategy := plan.RefreshStrategy.ValueString()
+	if strategy == "adaptive" || strategy == "" {
+		if !plan.AdaptiveMinRefresh.IsNull() {
+			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
+			updateRequest.AdaptiveMinRefresh = &refresh
+		}
+		if !plan.AdaptiveMaxRefresh.IsNull() {
+			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
+			updateRequest.AdaptiveMaxRefresh = &refresh
+		}
 	}
 
-	if !plan.AdaptiveMaxRefresh.IsNull() {
-		refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
-		updateRequest.AdaptiveMaxRefresh = &refresh
+	if strategy == "maximum" {
+		if !plan.MaximumMinRefresh.IsNull() {
+			refresh := int(plan.MaximumMinRefresh.ValueInt64())
+			updateRequest.MaximumMinRefresh = &refresh
+		}
+		if !plan.MaximumMaxRefresh.IsNull() {
+			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
+			updateRequest.MaximumMaxRefresh = &refresh
+		}
 	}
 
-	if !plan.MaximumMinRefresh.IsNull() {
-		refresh := int(plan.MaximumMinRefresh.ValueInt64())
-		updateRequest.MaximumMinRefresh = &refresh
-	}
-
-	if !plan.MaximumMaxRefresh.IsNull() {
-		refresh := int(plan.MaximumMaxRefresh.ValueInt64())
-		updateRequest.MaximumMaxRefresh = &refresh
-	}
-
+	// Natted fields apply to all strategies
 	if !plan.NattedMinRefresh.IsNull() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
@@ -217,7 +222,10 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 		updateRequest.EnableGoogleCloudMessaging = &enable
 	}
 
-	_, err := r.InfinityClient.Config().UpdateRegistration(ctx, updateRequest)
+	// Use PatchJSON directly since the API only supports PATCH, not PUT
+	endpoint := "configuration/v1/registration/1/"
+	var result config.Registration
+	err := r.InfinityClient.PatchJSON(ctx, endpoint, updateRequest, &result)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity registration configuration",
@@ -227,7 +235,7 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 	}
 
 	// Read the current state from the API to get all computed values
-	model, err := r.read(ctx)
+	model, err := r.read(ctx, plan.PushToken)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity registration configuration",
@@ -240,7 +248,7 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityRegistrationResource) read(ctx context.Context) (*InfinityRegistrationResourceModel, error) {
+func (r *InfinityRegistrationResource) read(ctx context.Context, planPushToken types.String) (*InfinityRegistrationResourceModel, error) {
 	var data InfinityRegistrationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetRegistration(ctx)
@@ -291,13 +299,22 @@ func (r *InfinityRegistrationResource) read(ctx context.Context) (*InfinityRegis
 	data.RouteViaRegistrar = types.BoolValue(srv.RouteViaRegistrar)
 	data.EnablePushNotifications = types.BoolValue(srv.EnablePushNotifications)
 	data.EnableGoogleCloudMessaging = types.BoolValue(srv.EnableGoogleCloudMessaging)
-	data.PushToken = types.StringValue(srv.PushToken)
+
+	// PushToken is write-only and not returned by the API
+	// Always use the planned/state value to maintain consistency
+	data.PushToken = planPushToken
 
 	return &data, nil
 }
 
 func (r *InfinityRegistrationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state, err := r.read(ctx)
+	var currentState InfinityRegistrationResourceModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &currentState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state, err := r.read(ctx, currentState.PushToken)
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources
 		if isNotFoundError(err) {
@@ -332,26 +349,31 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	if !plan.AdaptiveMinRefresh.IsNull() {
-		refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
-		updateRequest.AdaptiveMinRefresh = &refresh
+	// Only send refresh values that match the strategy to avoid validation errors
+	strategy := plan.RefreshStrategy.ValueString()
+	if strategy == "adaptive" || strategy == "" {
+		if !plan.AdaptiveMinRefresh.IsNull() {
+			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
+			updateRequest.AdaptiveMinRefresh = &refresh
+		}
+		if !plan.AdaptiveMaxRefresh.IsNull() {
+			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
+			updateRequest.AdaptiveMaxRefresh = &refresh
+		}
 	}
 
-	if !plan.AdaptiveMaxRefresh.IsNull() {
-		refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
-		updateRequest.AdaptiveMaxRefresh = &refresh
+	if strategy == "maximum" {
+		if !plan.MaximumMinRefresh.IsNull() {
+			refresh := int(plan.MaximumMinRefresh.ValueInt64())
+			updateRequest.MaximumMinRefresh = &refresh
+		}
+		if !plan.MaximumMaxRefresh.IsNull() {
+			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
+			updateRequest.MaximumMaxRefresh = &refresh
+		}
 	}
 
-	if !plan.MaximumMinRefresh.IsNull() {
-		refresh := int(plan.MaximumMinRefresh.ValueInt64())
-		updateRequest.MaximumMinRefresh = &refresh
-	}
-
-	if !plan.MaximumMaxRefresh.IsNull() {
-		refresh := int(plan.MaximumMaxRefresh.ValueInt64())
-		updateRequest.MaximumMaxRefresh = &refresh
-	}
-
+	// Natted fields apply to all strategies
 	if !plan.NattedMinRefresh.IsNull() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
@@ -377,7 +399,10 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 		updateRequest.EnableGoogleCloudMessaging = &enable
 	}
 
-	_, err := r.InfinityClient.Config().UpdateRegistration(ctx, updateRequest)
+	// Use PatchJSON directly since the API only supports PATCH, not PUT
+	endpoint := "configuration/v1/registration/1/"
+	var result config.Registration
+	err := r.InfinityClient.PatchJSON(ctx, endpoint, updateRequest, &result)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity registration configuration",
@@ -387,7 +412,7 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx)
+	updatedModel, err := r.read(ctx, plan.PushToken)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity registration configuration",
@@ -408,7 +433,10 @@ func (r *InfinityRegistrationResource) Delete(ctx context.Context, req resource.
 		Enable: func() *bool { v := false; return &v }(),
 	}
 
-	_, err := r.InfinityClient.Config().UpdateRegistration(ctx, updateRequest)
+	// Use PatchJSON directly since the API only supports PATCH, not PUT
+	endpoint := "configuration/v1/registration/1/"
+	var result config.Registration
+	err := r.InfinityClient.PatchJSON(ctx, endpoint, updateRequest, &result)
 	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
 			"Error Deleting Infinity registration configuration",
@@ -422,8 +450,8 @@ func (r *InfinityRegistrationResource) ImportState(ctx context.Context, req reso
 	// For singleton resources, the import ID doesn't matter since there's only one instance
 	tflog.Trace(ctx, "Importing Infinity registration configuration")
 
-	// Read the resource from the API
-	model, err := r.read(ctx)
+	// Read the resource from the API - use empty string for push_token placeholder on import
+	model, err := r.read(ctx, types.StringValue(""))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Importing Infinity Registration Configuration",
