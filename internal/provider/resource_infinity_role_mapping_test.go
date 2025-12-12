@@ -39,8 +39,9 @@ func TestInfinityRoleMapping(t *testing.T) {
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/role_mapping/123/",
 		Name:        "role_mapping-test",
-		Source:      "saml_attribute",
+		Source:      "LDAP",
 		Value:       "test-value",
+		Roles:       []string{},
 	}
 
 	// Mock the GetRolemapping API call for Read operations
@@ -81,7 +82,7 @@ func testInfinityRoleMapping(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_role_mapping.role_mapping-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_role_mapping.role_mapping-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "name", "role_mapping-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "source", "saml_attribute"),
+					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "source", "LDAP"),
 					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "value", "test-value"),
 				),
 			},
@@ -90,8 +91,8 @@ func testInfinityRoleMapping(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_role_mapping.role_mapping-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_role_mapping.role_mapping-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "name", "role_mapping-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "source", "ldap_attribute"),
+					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "name", "role_mapping-test-updated"),
+					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "source", "OIDC"),
 					resource.TestCheckResourceAttr("pexip_infinity_role_mapping.role_mapping-test", "value", "updated-value"),
 				),
 			},

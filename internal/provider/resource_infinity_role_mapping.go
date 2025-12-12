@@ -80,9 +80,9 @@ func (r *InfinityRoleMappingResource) Schema(ctx context.Context, req resource.S
 			"source": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("saml_attribute", "ldap_attribute", "oauth_claim"),
+					stringvalidator.OneOf("LDAP", "OIDC"),
 				},
-				MarkdownDescription: "The source type for role mapping. Valid values: saml_attribute, ldap_attribute, oauth_claim.",
+				MarkdownDescription: "The source type for role mapping. Valid values: LDAP, OIDC. Default: LDAP",
 			},
 			"value": schema.StringAttribute{
 				Required: true,
@@ -94,6 +94,7 @@ func (r *InfinityRoleMappingResource) Schema(ctx context.Context, req resource.S
 			"roles": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "List of role URIs to assign when this mapping matches.",
 			},
 		},
@@ -116,7 +117,7 @@ func (r *InfinityRoleMappingResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Handle list field
-	if !plan.Roles.IsNull() {
+	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		var roles []string
 		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
 		if resp.Diagnostics.HasError() {
@@ -232,7 +233,7 @@ func (r *InfinityRoleMappingResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Handle list field
-	if !plan.Roles.IsNull() {
+	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		var roles []string
 		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
 		if resp.Diagnostics.HasError() {
