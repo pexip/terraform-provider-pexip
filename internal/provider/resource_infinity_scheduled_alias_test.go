@@ -27,6 +27,88 @@ func TestInfinityScheduledAlias(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Mock MS Exchange connector creation
+	exchangeConnectorCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/ms_exchange_connector/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ms_exchange_connector/", mock.Anything, mock.Anything).Return(exchangeConnectorCreateResponse, nil)
+
+	stringPtr := func(s string) *string { return &s }
+
+	exchangeConnectorState := &config.MsExchangeConnector{
+		ID:                             1,
+		ResourceURI:                    "/api/admin/configuration/v1/ms_exchange_connector/1/",
+		Name:                           "test-exchange-connector",
+		Description:                    "Test Exchange Connector",
+		MeetingBufferBefore:            300,
+		MeetingBufferAfter:             300,
+		ScheduledAliasSuffixLength:     6,
+		RoomMailboxEmailAddress:        stringPtr("test@example.com"),
+		RoomMailboxName:                "test-exchange-connector",
+		URL:                            "https://exchange.test.local",
+		Username:                       "testuser",
+		Password:                       "testpass",
+		AuthenticationMethod:           "oauth2",
+		AuthProvider:                   "azure",
+		UUID:                           "test-uuid-value",
+		ScheduledAliasPrefix:           stringPtr("test"),
+		ScheduledAliasDomain:           "example.com",
+		EnableDynamicVmrs:              true,
+		EnablePersonalVmrs:             true,
+		AllowNewUsers:                  true,
+		DisableProxy:                   true,
+		UseCustomAddInSources:          true,
+		EnableAddinDebugLogs:           true,
+		OauthClientID:                  stringPtr("test-client-id"),
+		OauthClientSecret:              "test-secret",
+		OauthAuthEndpoint:              "test-auth-endpoint",
+		OauthTokenEndpoint:             "test-token-endpoint",
+		OauthRedirectURI:               "test-redirect-uri",
+		OauthRefreshToken:              "test-refresh-token",
+		OauthState:                     stringPtr("test-state"),
+		KerberosRealm:                  "test-realm",
+		KerberosKdc:                    "test-kdc",
+		KerberosKdcHttpsProxy:          "test-proxy",
+		KerberosExchangeSpn:            "test-spn",
+		KerberosEnableTls:              true,
+		KerberosAuthEveryRequest:       true,
+		KerberosVerifyTlsUsingCustomCa: true,
+		AddinServerDomain:              "test-domain",
+		AddinDisplayName:               "test-exchange-connector",
+		AddinDescription:               "Test Exchange Connector",
+		AddinProviderName:              "test-exchange-connector",
+		AddinButtonLabel:               "test-button",
+		AddinGroupLabel:                "test-group",
+		AddinSupertipTitle:             "test-title",
+		AddinSupertipDescription:       "Test Exchange Connector",
+		AddinApplicationID:             stringPtr("test-app-id"),
+		AddinAuthorityURL:              "https://example.com",
+		AddinOidcMetadataURL:           "https://example.com",
+		AddinAuthenticationMethod:      "web_api",
+		AddinNaaWebApiApplicationID:    stringPtr("test-naa-app-id"),
+		PersonalVmrOauthClientID:       stringPtr("test-vmr-client-id"),
+		PersonalVmrOauthClientSecret:   "test-vmr-secret",
+		PersonalVmrOauthAuthEndpoint:   "test-vmr-auth",
+		PersonalVmrOauthTokenEndpoint:  "test-vmr-token",
+		PersonalVmrAdfsRelyingPartyTrustIdentifier: "test-adfs",
+		OfficeJsURL:                  "https://example.com",
+		MicrosoftFabricURL:           "https://example.com",
+		MicrosoftFabricComponentsURL: "https://example.com",
+		AdditionalAddInScriptSources: "test-sources",
+		Domains:                      stringPtr("test-domain"),
+		HostIdentityProviderGroup:    nil,
+		IvrTheme:                     nil,
+		NonIdpParticipants:           "test-participants",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/ms_exchange_connector/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		connector := args.Get(3).(*config.MsExchangeConnector)
+		*connector = *exchangeConnectorState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/ms_exchange_connector/1/", mock.Anything).Return(nil).Maybe()
+
 	// Mock the CreateScheduledalias API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -38,13 +120,13 @@ func TestInfinityScheduledAlias(t *testing.T) {
 	mockState := &config.ScheduledAlias{
 		ID:                123,
 		ResourceURI:       "/api/admin/configuration/v1/scheduled_alias/123/",
-		Alias:             "test-value",
+		Alias:             "test-scheduled-alias",
 		AliasNumber:       1234567890,
-		NumericAlias:      "test-value",
-		UUID:              "test-value",
-		ExchangeConnector: "test-value",
+		NumericAlias:      "123456",
+		UUID:              "11111111-1111-1111-1111-111111111111",
+		ExchangeConnector: "/api/admin/configuration/v1/ms_exchange_connector/1/",
 		IsUsed:            true,
-		EWSItemUID:        test.StringPtr("test-value"),
+		EWSItemUID:        test.StringPtr("test-ews-uid"),
 	}
 
 	// Mock the GetScheduledalias API call for Read operations
