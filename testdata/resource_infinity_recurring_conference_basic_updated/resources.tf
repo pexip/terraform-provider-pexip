@@ -12,10 +12,10 @@ resource "pexip_infinity_conference" "test-conference" {
 
 resource "pexip_infinity_recurring_conference" "recurring_conference-test" {
   conference    = pexip_infinity_conference.test-conference.id
-  current_index = 2                                     // Updated value
-  ews_item_id   = "updated-ews-item-id"                 // Updated value
-  is_depleted   = true                                  // Updated to true
-  subject       = "Updated Test Recurring Conference"   // Updated value
+  current_index = 2                                   // Updated value
+  ews_item_id   = "updated-ews-item-id"               // Updated value
+  is_depleted   = true                                // Updated to true
+  subject       = "Updated Test Recurring Conference" // Updated value
 
   depends_on = [
     pexip_infinity_conference.test-conference
