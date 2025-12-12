@@ -176,13 +176,17 @@ func (r *InfinityScheduledConferenceResource) Create(ctx context.Context, req re
 	if !plan.EWSItemUID.IsNull() {
 		createRequest.EWSItemUID = plan.EWSItemUID.ValueString()
 	}
-	if !plan.RecurringConference.IsNull() {
+	if !plan.RecurringConference.IsNull() && !plan.RecurringConference.IsUnknown() {
 		recurringConference := plan.RecurringConference.ValueString()
-		createRequest.RecurringConference = &recurringConference
+		if recurringConference != "" {
+			createRequest.RecurringConference = &recurringConference
+		}
 	}
-	if !plan.ScheduledAlias.IsNull() {
+	if !plan.ScheduledAlias.IsNull() && !plan.ScheduledAlias.IsUnknown() {
 		scheduledAlias := plan.ScheduledAlias.ValueString()
-		createRequest.ScheduledAlias = &scheduledAlias
+		if scheduledAlias != "" {
+			createRequest.ScheduledAlias = &scheduledAlias
+		}
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateScheduledConference(ctx, createRequest)
@@ -329,13 +333,17 @@ func (r *InfinityScheduledConferenceResource) Update(ctx context.Context, req re
 	if !plan.EWSItemUID.IsNull() {
 		updateRequest.EWSItemUID = plan.EWSItemUID.ValueString()
 	}
-	if !plan.RecurringConference.IsNull() {
+	if !plan.RecurringConference.IsNull() && !plan.RecurringConference.IsUnknown() {
 		recurringConference := plan.RecurringConference.ValueString()
-		updateRequest.RecurringConference = &recurringConference
+		if recurringConference != "" {
+			updateRequest.RecurringConference = &recurringConference
+		}
 	}
-	if !plan.ScheduledAlias.IsNull() {
+	if !plan.ScheduledAlias.IsNull() && !plan.ScheduledAlias.IsUnknown() {
 		scheduledAlias := plan.ScheduledAlias.ValueString()
-		updateRequest.ScheduledAlias = &scheduledAlias
+		if scheduledAlias != "" {
+			updateRequest.ScheduledAlias = &scheduledAlias
+		}
 	}
 
 	_, err := r.InfinityClient.Config().UpdateScheduledConference(ctx, resourceID, updateRequest)
