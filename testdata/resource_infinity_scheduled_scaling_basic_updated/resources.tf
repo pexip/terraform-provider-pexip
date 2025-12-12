@@ -7,7 +7,7 @@
 resource "pexip_infinity_scheduled_scaling" "scheduled_scaling-test" {
   policy_name         = "scheduled_scaling-test"
   policy_type         = "TeamsConnectorScaling"
-  resource_identifier = "updated-value"   // Updated value
+  resource_identifier = "updated-value"    // Updated value
   enabled             = false              // Updated to false
   local_timezone      = "America/New_York" // Updated value
   start_date          = "2024-02-01"       // Updated value
