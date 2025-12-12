@@ -27,6 +27,53 @@ func TestInfinityConferenceAlias(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Mock conference creation
+	conferenceCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/conference/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(conferenceCreateResponse, nil)
+
+	conferenceState := &config.Conference{
+		ID:                              1,
+		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
+		Name:                            "test-conference",
+		Description:                     "Test Conference",
+		ServiceType:                     "conference",
+		AllowGuests:                     false,
+		BreakoutRooms:                   false,
+		CallType:                        "video",
+		DenoiseEnabled:                  false,
+		DirectMedia:                     "never",
+		DirectMediaNotificationDuration: 0,
+		EnableActiveSpeakerIndication:   false,
+		EnableChat:                      "default",
+		EnableOverlayText:               false,
+		ForcePresenterIntoMain:          false,
+		GuestPIN:                        "",
+		GuestsCanPresent:                true,
+		GuestsCanSeeGuests:              "no_hosts",
+		LiveCaptionsEnabled:             "default",
+		MatchString:                     "",
+		MuteAllGuests:                   false,
+		NonIdpParticipants:              "disallow_all",
+		PostMatchString:                 "",
+		PostReplaceString:               "",
+		PrimaryOwnerEmailAddress:        "",
+		ReplaceString:                   "",
+		SoftmuteEnabled:                 false,
+		SyncTag:                         "",
+		Tag:                             "",
+		TwoStageDialType:                "regular",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		conf := args.Get(3).(*config.Conference)
+		*conf = *conferenceState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything).Return(nil).Maybe()
+
 	// Mock the CreateConferencealias API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -38,9 +85,9 @@ func TestInfinityConferenceAlias(t *testing.T) {
 	mockState := &config.ConferenceAlias{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/conference_alias/123/",
-		Alias:       "test-value",
+		Alias:       "test-alias",
 		Description: "Test ConferenceAlias",
-		Conference:  "test-value",
+		Conference:  "/api/admin/configuration/v1/conference/1/",
 	}
 
 	// Mock the GetConferencealias API call for Read operations

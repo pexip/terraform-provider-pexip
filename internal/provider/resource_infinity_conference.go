@@ -128,6 +128,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"aliases": schema.SetAttribute{
 				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The aliases associated with this conference.",
 			},

@@ -27,23 +27,32 @@ func TestInfinityWebappBranding(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateWebappbranding API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/webapp_branding/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_branding/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
 	mockState := &config.WebappBranding{
 		ResourceURI:  "/api/admin/configuration/v1/webapp_branding/123/",
 		Name:         "webapp_branding-test",
 		Description:  "Test WebappBranding",
 		UUID:         "test-value",
-		WebappType:   "pexapp",
+		WebappType:   "webapp1",
 		IsDefault:    true,
 		BrandingFile: "test-value",
 	}
+
+	// Mock the CreateWebappbranding API call
+	createResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/webapp_branding/123/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_branding/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.WebappBrandingCreateRequest)
+		// Update mock state based on create request
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.UUID = createReq.UUID
+		mockState.WebappType = createReq.WebappType
+		mockState.IsDefault = createReq.IsDefault
+		mockState.BrandingFile = createReq.BrandingFile
+	})
 
 	// Mock the GetWebappbranding API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_branding/webapp_branding-test/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
