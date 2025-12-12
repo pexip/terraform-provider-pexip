@@ -96,6 +96,7 @@ func (r *InfinityMediaLibraryPlaylistResource) Schema(ctx context.Context, req r
 			"playlist_entries": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "List of media library entry URIs that make up this playlist.",
 			},
 		},
@@ -119,7 +120,7 @@ func (r *InfinityMediaLibraryPlaylistResource) Create(ctx context.Context, req r
 	}
 
 	// Handle playlist entries
-	if !plan.PlaylistEntries.IsNull() {
+	if !plan.PlaylistEntries.IsNull() && !plan.PlaylistEntries.IsUnknown() {
 		var entries []string
 		resp.Diagnostics.Append(plan.PlaylistEntries.ElementsAs(ctx, &entries, false)...)
 		if resp.Diagnostics.HasError() {
@@ -248,7 +249,7 @@ func (r *InfinityMediaLibraryPlaylistResource) Update(ctx context.Context, req r
 	}
 
 	// Handle playlist entries
-	if !plan.PlaylistEntries.IsNull() {
+	if !plan.PlaylistEntries.IsNull() && !plan.PlaylistEntries.IsUnknown() {
 		var entries []string
 		resp.Diagnostics.Append(plan.PlaylistEntries.ElementsAs(ctx, &entries, false)...)
 		if resp.Diagnostics.HasError() {
