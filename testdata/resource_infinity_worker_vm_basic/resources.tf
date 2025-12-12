@@ -24,18 +24,12 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   maintenance_mode_reason = "test-value"
   vm_cpu_count            = 4
   vm_system_memory        = 4096
-  secondary_address       = "172.16.0.10"
-  secondary_netmask       = "255.255.255.0"
-  media_priority_weight   = 10
-  ssh_authorized_keys = [
-    "/api/admin/configuration/v1/ssh_authorized_key/1/",
-  ]
+  secondary_address             = "172.16.0.10"
+  secondary_netmask             = "255.255.255.0"
+  media_priority_weight         = 10
   ssh_authorized_keys_use_cloud = true
   static_nat_address            = "203.0.113.2"
-  static_routes = [
-    "/api/admin/configuration/v1/static_route/1/",
-  ]
-  snmp_authentication_password = "auth-password1"
+  snmp_authentication_password  = "auth-password1"
   snmp_community               = "public1"
   snmp_mode                    = "STANDARD"
   snmp_privacy_password        = "privacy-password1"
