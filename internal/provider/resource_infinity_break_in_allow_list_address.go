@@ -107,9 +107,9 @@ func (r *InfinityBreakInAllowListAddressResource) Schema(ctx context.Context, re
 			"allowlist_entry_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("temporary", "permanent"),
+					stringvalidator.OneOf("user", "proxy"),
 				},
-				MarkdownDescription: "The type of allow list entry. Valid values: temporary, permanent.",
+				MarkdownDescription: "The entry type of this address range. Use 'user' for IP ranges containing trusted end-user workstations or hardware video endpoints; use 'proxy' for trusted reverse proxies. Valid values: user, proxy.",
 			},
 			"ignore_incorrect_aliases": schema.BoolAttribute{
 				Required:            true,
