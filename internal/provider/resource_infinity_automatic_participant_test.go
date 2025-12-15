@@ -26,6 +26,81 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 
 	client := infinity.NewClientMock()
 
+	// Mock conference creation
+	conferenceCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/conference/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(conferenceCreateResponse, nil)
+
+	conferenceState := &config.Conference{
+		ID:                              1,
+		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
+		Name:                            "test-conference",
+		Description:                     "Test Conference",
+		ServiceType:                     "conference",
+		AllowGuests:                     false,
+		BreakoutRooms:                   false,
+		CallType:                        "video",
+		DenoiseEnabled:                  false,
+		DirectMedia:                     "never",
+		DirectMediaNotificationDuration: 0,
+		EnableActiveSpeakerIndication:   false,
+		EnableChat:                      "default",
+		EnableOverlayText:               false,
+		ForcePresenterIntoMain:          false,
+		GuestPIN:                        "",
+		GuestsCanPresent:                true,
+		GuestsCanSeeGuests:              "no_hosts",
+		LiveCaptionsEnabled:             "default",
+		MatchString:                     "",
+		MuteAllGuests:                   false,
+		NonIdpParticipants:              "disallow_all",
+		PostMatchString:                 "",
+		PostReplaceString:               "",
+		PrimaryOwnerEmailAddress:        "",
+		ReplaceString:                   "",
+		SoftmuteEnabled:                 false,
+		SyncTag:                         "",
+		Tag:                             "",
+		TwoStageDialType:                "regular",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		conf := args.Get(3).(*config.Conference)
+		*conf = *conferenceState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything).Return(nil).Maybe()
+
+	// Mock system_location creation
+	locationCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(locationCreateResponse, nil)
+
+	locationState := &config.SystemLocation{
+		ID:                        1,
+		ResourceURI:               "/api/admin/configuration/v1/system_location/1/",
+		Name:                      "test-location",
+		Description:               "Test Location",
+		MTU:                       1460,
+		SignallingQoS:             test.IntPtr(0),
+		MediaQoS:                  test.IntPtr(0),
+		BDPMPinChecksEnabled:      "GLOBAL",
+		BDPMScanQuarantineEnabled: "GLOBAL",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		loc := args.Get(3).(*config.SystemLocation)
+		*loc = *locationState
+	}).Maybe()
+
+	client.On("PatchJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything, mock.Anything).Return(nil).Maybe()
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything).Return(nil).Maybe()
+
+	// Mock automatic_participant creation
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/automatic_participant/123/",
@@ -37,14 +112,14 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 		ResourceURI:         "/api/admin/configuration/v1/automatic_participant/123/",
 		Alias:               "automatic-participant-test",
 		Description:         "Test AutomaticParticipant",
-		Conference:          "test-conference",
+		Conference:          []string{"/api/admin/configuration/v1/conference/1/"},
 		Protocol:            "sip",
 		CallType:            "video",
 		Role:                "guest",
 		DTMFSequence:        "123#",
 		KeepConferenceAlive: "keep_conference_alive",
-		Routing:             "auto",
-		SystemLocation:      test.StringPtr("test-location"),
+		Routing:             "manual",
+		SystemLocation:      test.StringPtr("/api/admin/configuration/v1/system_location/1/"),
 		Streaming:           true,
 		RemoteDisplayName:   "automatic_participant-test",
 		PresentationURL:     "https://example.com",
@@ -58,6 +133,8 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 	client.On("PutJSON", mock.Anything, "configuration/v1/automatic_participant/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.AutomaticParticipantUpdateRequest)
 		participant := args.Get(3).(*config.AutomaticParticipant)
+
+		// Update the mock state with all fields from the update request
 		mockState.Alias = updateRequest.Alias
 		mockState.Description = updateRequest.Description
 		mockState.Conference = updateRequest.Conference
@@ -73,6 +150,8 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 		}
 		mockState.RemoteDisplayName = updateRequest.RemoteDisplayName
 		mockState.PresentationURL = updateRequest.PresentationURL
+
+		// Return the updated state
 		*participant = *mockState
 	}).Maybe()
 
@@ -93,6 +172,16 @@ func testInfinityAutomaticParticipant(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "automatic-participant-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Test AutomaticParticipant"),
+				),
+			},
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_basic_updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "automatic-participant-updated"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Updated Test AutomaticParticipant"),
 				),
 			},
 		},

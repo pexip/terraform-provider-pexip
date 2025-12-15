@@ -14,6 +14,6 @@ resource "pexip_infinity_end_user" "end-user-test" {
   title                 = "Software Engineer"
   department            = "Engineering"
   avatar_url            = "https://example.com/avatar.jpg"
-  ms_exchange_guid      = "ms-guid-123"
+  ms_exchange_guid      = "11111111-2222-3333-4444-555555555555"
   sync_tag              = "sync-tag"
 }

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -33,7 +34,7 @@ type InfinityAutomaticParticipantResourceModel struct {
 	ResourceID          types.Int32  `tfsdk:"resource_id"`
 	Alias               types.String `tfsdk:"alias"`
 	Description         types.String `tfsdk:"description"`
-	Conference          types.String `tfsdk:"conference"`
+	Conference          types.Set    `tfsdk:"conference"`
 	Protocol            types.String `tfsdk:"protocol"`
 	CallType            types.String `tfsdk:"call_type"`
 	Role                types.String `tfsdk:"role"`
@@ -94,12 +95,13 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				},
 				MarkdownDescription: "A description of the automatic participant. Maximum length: 250 characters.",
 			},
-			"conference": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+			"conference": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(stringvalidator.LengthAtMost(250)),
 				},
-				MarkdownDescription: "The conference URI or reference. Maximum length: 250 characters.",
+				MarkdownDescription: "List of conference URIs or references. Maximum length: 250 characters.",
 			},
 			"protocol": schema.StringAttribute{
 				Required: true,
@@ -133,9 +135,9 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 			"keep_conference_alive": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("keep_conference_alive", "end_conference_when_alone"),
+					stringvalidator.OneOf("keep_conference_alive", "keep_conference_alive_if_multiple", "keep_conference_alive_never"),
 				},
-				MarkdownDescription: "Conference behavior when only this participant remains. Valid choices: keep_conference_alive, end_conference_when_alone.",
+				MarkdownDescription: "Conference behavior when only this participant remains. Valid choices: keep_conference_alive, keep_conference_alive_if_multiple or keep_conference_alive_never.",
 			},
 			"routing": schema.StringAttribute{
 				Required: true,
@@ -187,9 +189,12 @@ func (r *InfinityAutomaticParticipantResource) Create(ctx context.Context, req r
 		return
 	}
 
+	conference, diags := getStringList(ctx, plan.Conference)
+	resp.Diagnostics.Append(diags...)
+
 	createRequest := &config.AutomaticParticipantCreateRequest{
 		Alias:               plan.Alias.ValueString(),
-		Conference:          plan.Conference.ValueString(),
+		Conference:          conference,
 		Protocol:            plan.Protocol.ValueString(),
 		CallType:            plan.CallType.ValueString(),
 		Role:                plan.Role.ValueString(),
@@ -264,22 +269,31 @@ func (r *InfinityAutomaticParticipantResource) read(ctx context.Context, resourc
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Alias = types.StringValue(srv.Alias)
 	data.Description = types.StringValue(srv.Description)
-	data.Conference = types.StringValue(srv.Conference)
 	data.Protocol = types.StringValue(srv.Protocol)
 	data.CallType = types.StringValue(srv.CallType)
 	data.Role = types.StringValue(srv.Role)
 	data.DTMFSequence = types.StringValue(srv.DTMFSequence)
 	data.KeepConferenceAlive = types.StringValue(srv.KeepConferenceAlive)
 	data.Routing = types.StringValue(srv.Routing)
+	data.Streaming = types.BoolValue(srv.Streaming)
+	data.RemoteDisplayName = types.StringValue(srv.RemoteDisplayName)
+	data.PresentationURL = types.StringValue(srv.PresentationURL)
+	data.CreationTime = types.StringValue(srv.CreationTime.String())
 	if srv.SystemLocation != nil {
 		data.SystemLocation = types.StringValue(*srv.SystemLocation)
 	} else {
 		data.SystemLocation = types.StringNull()
 	}
-	data.Streaming = types.BoolValue(srv.Streaming)
-	data.RemoteDisplayName = types.StringValue(srv.RemoteDisplayName)
-	data.PresentationURL = types.StringValue(srv.PresentationURL)
-	data.CreationTime = types.StringValue(srv.CreationTime.String())
+
+	var conferences []string
+	for _, c := range srv.Conference {
+		conferences = append(conferences, c)
+	}
+	confSetValue, diags := types.SetValueFrom(ctx, types.StringType, conferences)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting conferences: %v", diags)
+	}
+	data.Conference = confSetValue
 
 	return &data, nil
 }
@@ -322,9 +336,12 @@ func (r *InfinityAutomaticParticipantResource) Update(ctx context.Context, req r
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
+	conference, diags := getStringList(ctx, plan.Conference)
+	resp.Diagnostics.Append(diags...)
+
 	updateRequest := &config.AutomaticParticipantUpdateRequest{
 		Alias:               plan.Alias.ValueString(),
-		Conference:          plan.Conference.ValueString(),
+		Conference:          conference,
 		Protocol:            plan.Protocol.ValueString(),
 		CallType:            plan.CallType.ValueString(),
 		Role:                plan.Role.ValueString(),

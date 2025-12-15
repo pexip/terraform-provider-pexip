@@ -27,23 +27,32 @@ func TestInfinityWebappBranding(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateWebappbranding API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/webapp_branding/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_branding/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
 	mockState := &config.WebappBranding{
 		ResourceURI:  "/api/admin/configuration/v1/webapp_branding/123/",
 		Name:         "webapp_branding-test",
 		Description:  "Test WebappBranding",
 		UUID:         "test-value",
-		WebappType:   "pexapp",
+		WebappType:   "webapp1",
 		IsDefault:    true,
 		BrandingFile: "test-value",
 	}
+
+	// Mock the CreateWebappbranding API call
+	createResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/webapp_branding/123/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_branding/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.WebappBrandingCreateRequest)
+		// Update mock state based on create request
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.UUID = createReq.UUID
+		mockState.WebappType = createReq.WebappType
+		mockState.IsDefault = createReq.IsDefault
+		mockState.BrandingFile = createReq.BrandingFile
+	})
 
 	// Mock the GetWebappbranding API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_branding/webapp_branding-test/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -96,6 +105,7 @@ func testInfinityWebappBranding(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "webapp_branding-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "Test WebappBranding"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "is_default", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "./webapp2-brand.zip"),
 				),
 			},
 			{
@@ -105,9 +115,9 @@ func testInfinityWebappBranding(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "webapp_branding-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "Updated Test WebappBranding"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "uuid", "updated-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "management"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "webapp2"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "is_default", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "updated-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "./webapp3-brand.zip"),
 				),
 			},
 		},

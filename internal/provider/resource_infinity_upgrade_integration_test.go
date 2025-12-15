@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityUpgradeIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires valid upgrade package")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

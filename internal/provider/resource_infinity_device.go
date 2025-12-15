@@ -233,9 +233,11 @@ func (r *InfinityDeviceResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Set optional pointer fields
-	if !plan.SSOIdentityProviderGroup.IsNull() {
+	if !plan.SSOIdentityProviderGroup.IsNull() && !plan.SSOIdentityProviderGroup.IsUnknown() {
 		ssoGroup := plan.SSOIdentityProviderGroup.ValueString()
-		createRequest.SSOIdentityProviderGroup = &ssoGroup
+		if ssoGroup != "" {
+			createRequest.SSOIdentityProviderGroup = &ssoGroup
+		}
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateDevice(ctx, createRequest)
@@ -265,6 +267,10 @@ func (r *InfinityDeviceResource) Create(ctx context.Context, req resource.Create
 		)
 		return
 	}
+
+	// Preserve the password from the plan since the API doesn't return it
+	model.Password = plan.Password
+
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity device with ID: %s, alias: %s", model.ID, model.Alias))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -317,6 +323,9 @@ func (r *InfinityDeviceResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
+	// Preserve password from current state
+	currentPassword := state.Password
+
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
 	if err != nil {
@@ -331,6 +340,9 @@ func (r *InfinityDeviceResource) Read(ctx context.Context, req resource.ReadRequ
 		)
 		return
 	}
+
+	// Restore the password from the previous state since API doesn't return it
+	state.Password = currentPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -394,9 +406,11 @@ func (r *InfinityDeviceResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Set optional pointer fields
-	if !plan.SSOIdentityProviderGroup.IsNull() {
+	if !plan.SSOIdentityProviderGroup.IsNull() && !plan.SSOIdentityProviderGroup.IsUnknown() {
 		ssoGroup := plan.SSOIdentityProviderGroup.ValueString()
-		updateRequest.SSOIdentityProviderGroup = &ssoGroup
+		if ssoGroup != "" {
+			updateRequest.SSOIdentityProviderGroup = &ssoGroup
+		}
 	}
 
 	_, err := r.InfinityClient.Config().UpdateDevice(ctx, resourceID, updateRequest)
@@ -417,6 +431,9 @@ func (r *InfinityDeviceResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
+
+	// Preserve the password from the plan since the API doesn't return it
+	updatedModel.Password = plan.Password
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }

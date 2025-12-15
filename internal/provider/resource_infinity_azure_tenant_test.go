@@ -40,7 +40,7 @@ func TestInfinityAzureTenant(t *testing.T) {
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/123/",
 		Name:        "azure_tenant-test",
 		Description: "Test AzureTenant",
-		TenantID:    "test-value",
+		TenantID:    "12345678-1234-1234-1234-123456789012",
 	}
 
 	// Mock the GetAzureTenant API call for Read operations
@@ -86,7 +86,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "azure_tenant-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "12345678-1234-1234-1234-123456789012"),
 				),
 			},
 			{
@@ -96,7 +96,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "azure_tenant-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Updated Test AzureTenant"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "updated-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "87654321-4321-4321-4321-210987654321"),
 				),
 			},
 		},

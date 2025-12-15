@@ -27,7 +27,7 @@ func TestInfinityRegistration(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Registration is a singleton resource with ID 1
-	// Mock the UpdateRegistration API call (Registration uses PUT for create/update)
+	// Mock the PatchJSON API call (Registration uses PATCH for create/update)
 	mockState := &config.Registration{
 		ID:                         1,
 		ResourceURI:                "/api/admin/configuration/v1/registration/1/",
@@ -45,7 +45,7 @@ func TestInfinityRegistration(t *testing.T) {
 		PushToken:                  "test-value",
 	}
 
-	client.On("PutJSON", mock.Anything, "configuration/v1/registration/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PatchJSON", mock.Anything, "configuration/v1/registration/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.RegistrationUpdateRequest)
 		registration := args.Get(3).(*config.Registration)
 

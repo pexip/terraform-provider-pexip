@@ -95,9 +95,9 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 			"policy_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("worker_vm", "management_vm"),
+					stringvalidator.OneOf("TeamsConnectorScaling"),
 				},
-				MarkdownDescription: "The type of resource to scale. Valid values: worker_vm, management_vm.",
+				MarkdownDescription: "The type of resource to scale. Valid values: TeamsConnectorScaling.",
 			},
 			"resource_identifier": schema.StringAttribute{
 				Required: true,

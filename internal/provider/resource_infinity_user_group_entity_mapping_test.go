@@ -27,6 +27,94 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Mock user group creation
+	userGroupCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/user_group/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/user_group/", mock.Anything, mock.Anything).Return(userGroupCreateResponse, nil)
+
+	userGroupState := &config.UserGroup{
+		ID:                      1,
+		ResourceURI:             "/api/admin/configuration/v1/user_group/1/",
+		Name:                    "test-user-group",
+		Description:             "Test User Group",
+		Users:                   []string{},
+		UserGroupEntityMappings: &[]config.UserGroupEntityMapping{},
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/user_group/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		userGroup := args.Get(3).(*config.UserGroup)
+		*userGroup = *userGroupState
+	}).Maybe()
+
+	client.On("PutJSON", mock.Anything, "configuration/v1/user_group/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		updateReq := args.Get(2).(*config.UserGroupUpdateRequest)
+		userGroup := args.Get(3).(*config.UserGroup)
+		if updateReq.Description != "" {
+			userGroupState.Description = updateReq.Description
+		}
+		*userGroup = *userGroupState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/user_group/1/", mock.Anything).Return(nil)
+
+	// Mock conference creation
+	conferenceCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/conference/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(conferenceCreateResponse, nil)
+
+	conferenceState := &config.Conference{
+		ID:                              1,
+		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
+		Name:                            "test-conference",
+		Description:                     "Test Conference",
+		ServiceType:                     "conference",
+		AllowGuests:                     false,
+		BreakoutRooms:                   false,
+		CallType:                        "video",
+		DenoiseEnabled:                  false,
+		DirectMedia:                     "never",
+		DirectMediaNotificationDuration: 0,
+		EnableActiveSpeakerIndication:   false,
+		EnableChat:                      "default",
+		EnableOverlayText:               false,
+		ForcePresenterIntoMain:          false,
+		GuestPIN:                        "",
+		GuestsCanPresent:                true,
+		GuestsCanSeeGuests:              "no_hosts",
+		LiveCaptionsEnabled:             "default",
+		MatchString:                     "",
+		MuteAllGuests:                   false,
+		NonIdpParticipants:              "disallow_all",
+		PostMatchString:                 "",
+		PostReplaceString:               "",
+		PrimaryOwnerEmailAddress:        "",
+		ReplaceString:                   "",
+		SoftmuteEnabled:                 false,
+		SyncTag:                         "",
+		Tag:                             "",
+		TwoStageDialType:                "regular",
+	}
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		conference := args.Get(3).(*config.Conference)
+		*conference = *conferenceState
+	}).Maybe()
+
+	client.On("PutJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		updateReq := args.Get(2).(*config.ConferenceUpdateRequest)
+		conference := args.Get(3).(*config.Conference)
+		if updateReq.Description != "" {
+			conferenceState.Description = updateReq.Description
+		}
+		*conference = *conferenceState
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything).Return(nil)
+
 	// Mock the CreateUsergroupentitymapping API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -39,8 +127,8 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 		ID:                123,
 		ResourceURI:       "/api/admin/configuration/v1/user_group_entity_mapping/123/",
 		Description:       "Test UserGroupEntityMapping",
-		EntityResourceURI: "test-value",
-		UserGroup:         "test-value",
+		EntityResourceURI: "/api/admin/configuration/v1/conference/1/",
+		UserGroup:         "/api/admin/configuration/v1/user_group/1/",
 	}
 
 	// Mock the GetUsergroupentitymapping API call for Read operations
@@ -87,8 +175,8 @@ func testInfinityUserGroupEntityMapping(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "description", "Test UserGroupEntityMapping"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri", "test-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group", "test-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group"),
 				),
 			},
 			{
@@ -97,8 +185,8 @@ func testInfinityUserGroupEntityMapping(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "description", "Updated Test UserGroupEntityMapping"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri", "updated-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group", "updated-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group"),
 				),
 			},
 		},

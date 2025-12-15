@@ -117,7 +117,7 @@ func (r *InfinityGMSAccessTokenResource) Create(ctx context.Context, req resourc
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Token.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity GMS access token",
@@ -130,7 +130,7 @@ func (r *InfinityGMSAccessTokenResource) Create(ctx context.Context, req resourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityGMSAccessTokenResource) read(ctx context.Context, resourceID int) (*InfinityGMSAccessTokenResourceModel, error) {
+func (r *InfinityGMSAccessTokenResource) read(ctx context.Context, resourceID int, token string) (*InfinityGMSAccessTokenResourceModel, error) {
 	var data InfinityGMSAccessTokenResourceModel
 
 	srv, err := r.InfinityClient.Config().GetGMSAccessToken(ctx, resourceID)
@@ -145,7 +145,8 @@ func (r *InfinityGMSAccessTokenResource) read(ctx context.Context, resourceID in
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Name = types.StringValue(srv.Name)
-	data.Token = types.StringValue(srv.Token)
+	// The token is sensitive and not returned by the API, so we use the value from the plan/state
+	data.Token = types.StringValue(token)
 
 	return &data, nil
 }
@@ -159,7 +160,7 @@ func (r *InfinityGMSAccessTokenResource) Read(ctx context.Context, req resource.
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Token.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -203,7 +204,7 @@ func (r *InfinityGMSAccessTokenResource) Update(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Token.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity GMS access token",
@@ -250,7 +251,8 @@ func (r *InfinityGMSAccessTokenResource) ImportState(ctx context.Context, req re
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity GMS access token with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// Note: Token cannot be retrieved during import, so it will be empty
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

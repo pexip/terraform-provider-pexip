@@ -36,12 +36,33 @@ func TestInfinityCACertificate(t *testing.T) {
 
 	// Shared state for mocking
 	mockState := &config.CACertificate{
-		ID:                  123,
-		ResourceURI:         "/api/admin/configuration/v1/ca_certificate/123/",
-		Certificate:         "test-value",
-		TrustedIntermediate: true,
-		SubjectName:         "ca_certificate-test",
-		IssuerName:          "ca_certificate-test",
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/ca_certificate/123/",
+		Certificate: `-----BEGIN CERTIFICATE-----
+MIIDeTCCAmGgAwIBAgIUBM8euKK5qdSr9d5bFtCFOGk/GnQwDQYJKoZIhvcNAQEL
+BQAwTDELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxDTALBgNVBAcMBFRlc3Qx
+DTALBgNVBAoMBFRlc3QxEDAOBgNVBAMMB1Rlc3QgQ0EwHhcNMjUxMjEyMTk0MjIw
+WhcNMjYxMjEyMTk0MjIwWjBMMQswCQYDVQQGEwJVUzENMAsGA1UECAwEVGVzdDEN
+MAsGA1UEBwwEVGVzdDENMAsGA1UECgwEVGVzdDEQMA4GA1UEAwwHVGVzdCBDQTCC
+ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMu69O8MRO1gNjTgmkRIyNJV
+ASmVqT1GhM7R+epArMfRnPYkMCsv2wPrWzqnwvzMY/UUIrwplon0gdb6fopJR40y
+bmEY26sYfgLK9n7Nij0QGRMBvlz+fvXabJZE+pkVu5u9iompUuqGgSo0R/jqDi6+
+gVupTtDGQVL2olj5jaeBKg/WMcxSNHTIkCzO7402nYyULyyG4n7a8KHWhR7SGaoM
+ssl5MYRiUZ1lt6Rt31oIFwCmWks0LxrFcHiT7YiVbgSh5g9G942E9MMcSf2H/D2J
+JwzQUFk7CSQRmFZa1H9WkGsAMSuJ8zKR81zIseowBJDegX7+mKcqePKyQkkLyO8C
+AwEAAaNTMFEwHQYDVR0OBBYEFBJp92iZ2kfjm7sjet7PAOgxEt6TMB8GA1UdIwQY
+MBaAFBJp92iZ2kfjm7sjet7PAOgxEt6TMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZI
+hvcNAQELBQADggEBALqCSgcWwSxia54EKv5dWqEUmNWbchHC+/08TyjiFhwN+q6f
+TAZ0ZzKueB/FguaPsyCRDkbc3Y2eSDNwMf4wJsf913bw52bTQ6DwtauerHsF9Ywp
+H/M2VwkoN31qjaV1BRJmyvSpgMWyoBuCY7j24fSNACRrVCqdclW3wer9fcNY0O+8
+pUt7qzJf9L2tYEpehIoI69tX2UWfOjkSp7kWmFTIT3UfF+UWii3RXab5WaVF0DV6
+uD8tWBa2wjkjNBGri2IIRYdgDNy9YcnExLeu6p2XrlxgHiyclA52AspuSwKcwnAS
+g2OX6o8rGmwv2UgI1X+x9kLrdj0OFenKrwaBiEI=
+-----END CERTIFICATE-----
+`,
+		TrustedIntermediate: false, // Root CAs (Subject == Issuer) have trusted_intermediate = false
+		SubjectName:         "Test CA",
+		IssuerName:          "Test CA",
 	}
 
 	// Mock the GetCACertificate API call for Read operations
@@ -56,8 +77,11 @@ func TestInfinityCACertificate(t *testing.T) {
 		caCertificate := args.Get(3).(*config.CACertificate)
 
 		// Update mock state
-		if updateRequest.Certificate != "" {
+		if updateRequest.Certificate != "" && updateRequest.Certificate != mockState.Certificate {
+			// Certificate is being updated - update subject and issuer
 			mockState.Certificate = updateRequest.Certificate
+			mockState.SubjectName = "Updated CA"
+			mockState.IssuerName = "Updated CA"
 		}
 		mockState.TrustedIntermediate = updateRequest.TrustedIntermediate
 
@@ -82,9 +106,9 @@ func testInfinityCACertificate(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ca_certificate.ca_certificate-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ca_certificate.ca_certificate-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "trusted_intermediate", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "subject_name", "ca_certificate-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "issuer_name", "ca_certificate-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "trusted_intermediate", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "subject_name", "Test CA"),
+					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "issuer_name", "Test CA"),
 				),
 			},
 			{
@@ -93,8 +117,8 @@ func testInfinityCACertificate(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_ca_certificate.ca_certificate-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ca_certificate.ca_certificate-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "trusted_intermediate", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "subject_name", "ca_certificate-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "issuer_name", "ca_certificate-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "subject_name", "Updated CA"),
+					resource.TestCheckResourceAttr("pexip_infinity_ca_certificate.ca_certificate-test", "issuer_name", "Updated CA"),
 				),
 			},
 		},

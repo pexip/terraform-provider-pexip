@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityAzureTenantIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires valid Azure tenant data and credentials")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

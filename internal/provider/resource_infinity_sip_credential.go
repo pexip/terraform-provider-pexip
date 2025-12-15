@@ -85,7 +85,7 @@ func (r *InfinitySIPCredentialResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "The SIP username for authentication. Maximum length: 250 characters.",
 			},
 			"password": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				Sensitive:           true,
 				MarkdownDescription: "The SIP password for authentication. This field is sensitive.",
 			},
@@ -127,7 +127,7 @@ func (r *InfinitySIPCredentialResource) Create(ctx context.Context, req resource
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity SIP credential",
@@ -140,7 +140,7 @@ func (r *InfinitySIPCredentialResource) Create(ctx context.Context, req resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinitySIPCredentialResource) read(ctx context.Context, resourceID int) (*InfinitySIPCredentialResourceModel, error) {
+func (r *InfinitySIPCredentialResource) read(ctx context.Context, resourceID int, planPassword types.String) (*InfinitySIPCredentialResourceModel, error) {
 	var data InfinitySIPCredentialResourceModel
 
 	srv, err := r.InfinityClient.Config().GetSIPCredential(ctx, resourceID)
@@ -156,7 +156,10 @@ func (r *InfinitySIPCredentialResource) read(ctx context.Context, resourceID int
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.Realm = types.StringValue(srv.Realm)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+
+	// Password is write-only and not returned by the API
+	// Always use the planned/state value to maintain consistency
+	data.Password = planPassword
 
 	return &data, nil
 }
@@ -170,7 +173,8 @@ func (r *InfinitySIPCredentialResource) Read(ctx context.Context, req resource.R
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	currentPassword := state.Password
+	state, err := r.read(ctx, resourceID, currentPassword)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -214,7 +218,7 @@ func (r *InfinitySIPCredentialResource) Update(ctx context.Context, req resource
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity SIP credential",
@@ -261,7 +265,8 @@ func (r *InfinitySIPCredentialResource) ImportState(ctx context.Context, req res
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity SIP credential with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// For import, use placeholder password since API doesn't return it
+	model, err := r.read(ctx, resourceID, types.StringValue(""))
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

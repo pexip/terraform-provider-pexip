@@ -14,6 +14,6 @@ resource "pexip_infinity_end_user" "end-user-test" {
   title                 = "Senior Engineer"                        // Updated title
   department            = "Product"                                // Updated department
   avatar_url            = "https://example.com/updated-avatar.jpg" // Updated avatar
-  ms_exchange_guid      = "updated-guid-456"                       // Updated GUID
+  ms_exchange_guid      = "66666666-7777-8888-9999-aaaaaaaaaaaa"   // Updated GUID
   sync_tag              = "updated-sync-tag"                       // Updated sync tag
 }

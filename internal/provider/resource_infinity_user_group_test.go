@@ -41,7 +41,7 @@ func TestInfinityUserGroup(t *testing.T) {
 		Name:                    "user-group-test",
 		Description:             "Test User Group",
 		Users:                   []string{},
-		UserGroupEntityMappings: []string{},
+		UserGroupEntityMappings: &[]config.UserGroupEntityMapping{},
 	}
 
 	// Mock the GetUserGroup API call for Read operations
@@ -66,7 +66,12 @@ func TestInfinityUserGroup(t *testing.T) {
 			mockState.Users = updateRequest.Users
 		}
 		if updateRequest.UserGroupEntityMappings != nil {
-			mockState.UserGroupEntityMappings = updateRequest.UserGroupEntityMappings
+			// Convert string URIs to UserGroupEntityMapping objects
+			mappings := make([]config.UserGroupEntityMapping, len(updateRequest.UserGroupEntityMappings))
+			for i, uri := range updateRequest.UserGroupEntityMappings {
+				mappings[i] = config.UserGroupEntityMapping{ResourceURI: uri}
+			}
+			mockState.UserGroupEntityMappings = &mappings
 		}
 
 		// Return updated state

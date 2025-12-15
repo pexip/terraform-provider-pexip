@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityMjxIntegrationIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires MJX integration setup")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

@@ -40,9 +40,9 @@ func TestInfinityGoogleAuthServer(t *testing.T) {
 		ResourceURI:     "/api/admin/configuration/v1/google_auth_server/123/",
 		Name:            "google_auth_server-test",
 		Description:     "Test GoogleAuthServer",
-		ApplicationType: "web",
-		ClientID:        test.StringPtr("test-value"),
-		ClientSecret:    "test-value",
+		ApplicationType: "installed",
+		ClientID:        test.StringPtr("123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com"),
+		ClientSecret:    "GOCSPX-abcdefghijklmnopqrstuvwxyz",
 	}
 
 	// Mock the GetGoogleauthserver API call for Read operations

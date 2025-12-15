@@ -13,8 +13,8 @@ resource "pexip_infinity_device" "device-test" {
   enable_sip                      = false                 // Updated to false
   enable_h323                     = true                  // Updated to true
   enable_infinity_connect_non_sso = false                 // Updated to false
-  enable_infinity_connect_sso     = true                  // Updated to true
-  enable_standard_sso             = true                  // Updated to true
+  enable_infinity_connect_sso     = false                 // Keep disabled (requires identity provider)
+  enable_standard_sso             = false                 // Keep disabled (requires identity provider)
   tag                             = "updated-tag"         // Updated tag
   sync_tag                        = "updated-sync-tag"    // Updated sync tag
 }

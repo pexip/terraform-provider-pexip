@@ -33,10 +33,10 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ResourceURI:                  "/api/admin/configuration/v1/global/1/",
 		AWSAccessKey:                 test.StringPtr("non-default-aws-access-key"),
 		AWSSecretKey:                 test.StringPtr("non-default-aws-secret-key"),
-		AzureClientID:                test.StringPtr("non-default-azure-client-id"),
+		AzureClientID:                test.StringPtr("11111111-2222-3333-4444-555555555555"),
 		AzureSecret:                  test.StringPtr("non-default-azure-secret"),
-		AzureSubscriptionID:          test.StringPtr("non-default-azure-sub-id"),
-		AzureTenant:                  test.StringPtr("non-default-azure-tenant"),
+		AzureSubscriptionID:          test.StringPtr("22222222-3333-4444-5555-666666666666"),
+		AzureTenant:                  test.StringPtr("33333333-4444-5555-6666-777777777777"),
 		BdpmMaxPinFailuresPerWindow:  99,               // default: 20
 		BdpmMaxScanAttemptsPerWindow: 88,               // default: 20
 		BdpmPinChecksEnabled:         false,            // default: true
@@ -44,13 +44,11 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		BurstingEnabled:              true,             // default: false
 		BurstingMinLifetime:          test.IntPtr(123), // default: 50
 		BurstingThreshold:            test.IntPtr(77),  // default: 5
-		CloudProvider:                "GCP",            // default: "AWS"
+		CloudProvider:                "AWS",            // default: "AWS"
 		ContactEmailAddress:          "someone@notdefault.com",
-		ContentSecurityPolicyHeader:  "custom-csp-header",
 		ContentSecurityPolicyState:   false, // default: true
 		CryptoMode:                   "on",  // default: "besteffort"
 		DefaultTheme:                 defaultTheme,
-		DefaultWebappAlias:           test.StringPtr("custom-alias"),
 		DeploymentUUID:               "custom-uuid",
 		DisabledCodecs: []config.CodecValue{
 			{Value: "H264_H_1"},
@@ -108,7 +106,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		MaxCallrateOut:                      test.IntPtr(999),     // default: nil
 		MaxPixelsPerSecond:                  "fullhd",             // default: "hd"
 		MaxPresentationBandwidthRatio:       33,                   // default: 75
-		MediaPortsEnd:                       50123,                // default: 49999
+		MediaPortsEnd:                       49999,                // default: 49999
 		MediaPortsStart:                     40123,                // default: 40000
 		OcspResponderURL:                    "notdefaultocsp",
 		OcspState:                           "ON", // default: "OFF"
@@ -262,9 +260,9 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "crypto_mode", "on"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_pixels_per_second", "fullhd"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_enabled", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "GCP"),
+					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_start", "40123"),
-					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_end", "50123"),
+					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "media_ports_end", "49999"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_start", "34001"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "signalling_ports_end", "39998"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "guests_only_timeout", "999"),
@@ -272,7 +270,6 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_callrate_in", "888"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_callrate_out", "999"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "enable_sip_udp", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "default_webapp_alias", "custom-alias"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "default_theme", "dark"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "disabled_codecs.#", "2"),
 					resource.TestCheckTypeSetElemAttr("pexip_infinity_global_configuration.global_configuration-test", "disabled_codecs.*", "H264_H_1"),

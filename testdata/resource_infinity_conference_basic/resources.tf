@@ -5,9 +5,9 @@
  */
 
 resource "pexip_infinity_conference" "conference-test" {
-  name                  = "conference-test"
-  description           = "Test Conference"
-  service_type          = "conference"
-  pin                   = "1234"
-  tag                   = "test-tag"
+  name         = "conference-test"
+  description  = "Test Conference"
+  service_type = "conference"
+  pin          = "1234"
+  tag          = "test-tag"
 }

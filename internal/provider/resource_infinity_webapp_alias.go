@@ -89,9 +89,9 @@ func (r *InfinityWebappAliasResource) Schema(ctx context.Context, req resource.S
 			"webapp_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("pexapp", "management", "admin"),
+					stringvalidator.OneOf("webapp1", "webapp2", "webapp3"),
 				},
-				MarkdownDescription: "The type of webapp this alias serves. Valid values: pexapp, management, admin.",
+				MarkdownDescription: "The type of webapp this alias serves. Valid values: webapp1, webapp2, webapp3.",
 			},
 			"is_enabled": schema.BoolAttribute{
 				Required:            true,
