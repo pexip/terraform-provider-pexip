@@ -36,18 +36,33 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 
 	// Shared state for mocking
 	mockState := &config.GatewayRoutingRule{
-		ID:               123,
-		ResourceURI:      "/api/admin/configuration/v1/gateway_routing_rule/123/",
-		Name:             "gateway_routing_rule-test",
-		Description:      "Test GatewayRoutingRule",
-		Priority:         123,
-		Enable:           true,
-		MatchString:      "test-value",
-		ReplaceString:    "test-value",
-		CalledDeviceType: "unknown",
-		OutgoingProtocol: "sip",
-		CallType:         "video",
-		IVRTheme:         test.StringPtr("test-value"),
+		ID:                              123,
+		ResourceURI:                     "/api/admin/configuration/v1/gateway_routing_rule/123/",
+		Name:                            "gateway_routing_rule-test",
+		Description:                     "Test GatewayRoutingRule",
+		Priority:                        123,
+		Enable:                          true,
+		MatchString:                     "test-value",
+		ReplaceString:                   "test-value",
+		CalledDeviceType:                "external",
+		OutgoingProtocol:                "sip",
+		CallType:                        "video",
+		IVRTheme:                        test.StringPtr("test-value"),
+		CryptoMode:                      test.StringPtr(""),
+		DenoiseAudio:                    true,
+		ExternalParticipantAvatarLookup: test.StringPtr("default"),
+		LiveCaptionsEnabled:             "default",
+		MatchIncomingCalls:              true,
+		MatchIncomingH323:               true,
+		MatchIncomingMSSIP:              true,
+		MatchIncomingOnlyIfRegistered:   false,
+		MatchIncomingSIP:                true,
+		MatchIncomingTeams:              false,
+		MatchIncomingWebRTC:             true,
+		MatchOutgoingCalls:              false,
+		MatchStringFull:                 false,
+		Tag:                             "",
+		TreatAsTrusted:                  false,
 	}
 
 	// Mock the GetGatewayroutingrule API call for Read operations
@@ -72,6 +87,21 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.OutgoingProtocol = updateRequest.OutgoingProtocol
 		mockState.CallType = updateRequest.CallType
 		mockState.IVRTheme = updateRequest.IVRTheme
+		mockState.CryptoMode = updateRequest.CryptoMode
+		mockState.DenoiseAudio = updateRequest.DenoiseAudio
+		mockState.ExternalParticipantAvatarLookup = updateRequest.ExternalParticipantAvatarLookup
+		mockState.LiveCaptionsEnabled = updateRequest.LiveCaptionsEnabled
+		mockState.MatchIncomingCalls = updateRequest.MatchIncomingCalls
+		mockState.MatchIncomingH323 = updateRequest.MatchIncomingH323
+		mockState.MatchIncomingMSSIP = updateRequest.MatchIncomingMSSIP
+		mockState.MatchIncomingOnlyIfRegistered = updateRequest.MatchIncomingOnlyIfRegistered
+		mockState.MatchIncomingSIP = updateRequest.MatchIncomingSIP
+		mockState.MatchIncomingTeams = updateRequest.MatchIncomingTeams
+		mockState.MatchIncomingWebRTC = updateRequest.MatchIncomingWebRTC
+		mockState.MatchOutgoingCalls = updateRequest.MatchOutgoingCalls
+		mockState.MatchStringFull = updateRequest.MatchStringFull
+		mockState.Tag = updateRequest.Tag
+		mockState.TreatAsTrusted = updateRequest.TreatAsTrusted
 
 		// Return updated state
 		*gateway_routing_rule = *mockState
