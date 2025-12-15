@@ -105,6 +105,7 @@ func testInfinityWebappBranding(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "webapp_branding-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "Test WebappBranding"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "is_default", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "./webapp2-brand.zip"),
 				),
 			},
 			{
@@ -116,7 +117,7 @@ func testInfinityWebappBranding(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "uuid", "updated-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "webapp2"),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "is_default", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "updated-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file", "./webapp3-brand.zip"),
 				),
 			},
 		},
