@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityScheduledScalingIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires scaling policy configuration")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

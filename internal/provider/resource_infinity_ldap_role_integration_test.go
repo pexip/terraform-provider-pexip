@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityLdapRoleIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires LDAP server connection")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

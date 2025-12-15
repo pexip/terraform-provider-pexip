@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityScheduledAliasIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires scheduled alias configuration")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

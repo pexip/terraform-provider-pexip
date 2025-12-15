@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityMsExchangeConnectorIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires Microsoft Exchange")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

@@ -23,6 +23,7 @@ import (
 )
 
 func TestInfinityMediaProcessingServerIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires media processing server")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(
