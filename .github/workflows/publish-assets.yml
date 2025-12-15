@@ -78,7 +78,7 @@ jobs:
           make manifest VERSION=${{ inputs.version }} PROVIDER_NAME=${{ env.PROVIDER_NAME }}
 
       - name: Upload MANIFEST artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.MANIFEST }}
           path: "dist/${{ env.MANIFEST }}"
@@ -106,7 +106,7 @@ jobs:
             ${{ env.SHA256SUMS }}
 
       - name: Upload SHA256SUMS artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.SHA256SUMS }}
           path: "dist/${{ env.SHA256SUMS }}"
