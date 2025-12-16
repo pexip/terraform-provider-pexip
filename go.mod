@@ -6,12 +6,13 @@ toolchain go1.24.4
 
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
+	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
-	github.com/pexip/go-infinity-sdk/v38 v38.0.16
+	github.com/pexip/go-infinity-sdk/v38 v38.0.17
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.45.0
 )

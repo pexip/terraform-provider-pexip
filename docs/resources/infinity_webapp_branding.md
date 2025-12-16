@@ -4,8 +4,23 @@ Manages webapp branding configuration with the Infinity service. Webapp branding
 
 ## Example Usage
 
+### With Auto-Generated UUID
+
 ```hcl
 resource "pexip_infinity_webapp_branding" "example" {
+  name          = "Corporate Branding"
+  description   = "Corporate branding for Pexip web applications"
+  webapp_type   = "pexapp"
+  is_default    = true
+  branding_file = "/path/to/branding/package.zip"
+  # uuid will be automatically generated if not provided
+}
+```
+
+### With Custom UUID
+
+```hcl
+resource "pexip_infinity_webapp_branding" "example_custom_uuid" {
   name          = "Corporate Branding"
   description   = "Corporate branding for Pexip web applications"
   uuid          = "12345678-1234-1234-1234-123456789012"
@@ -20,7 +35,7 @@ resource "pexip_infinity_webapp_branding" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the webapp branding configuration. This is used as the identifier. Maximum length: 100 characters.
-* `uuid` - (Required) The UUID for this branding configuration.
+* `uuid` - (Optional) The UUID for this branding configuration. If not provided, a UUID will be automatically generated. Must be a valid RFC 4122 UUID format (e.g., `550e8400-e29b-41d4-a716-446655440000`).
 * `webapp_type` - (Required) The type of webapp this branding applies to. Valid values: `pexapp`, `management`, `admin`.
 * `is_default` - (Required) Whether this is the default branding configuration for the webapp type.
 * `branding_file` - (Required) The path or identifier for the branding file to use for customization.

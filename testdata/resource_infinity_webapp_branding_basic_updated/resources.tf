@@ -6,9 +6,8 @@
 
 resource "pexip_infinity_webapp_branding" "webapp_branding-test" {
   name          = "webapp_branding-test"
-  description   = "Updated Test WebappBranding" // Updated description
-  uuid          = "updated-value"               // Updated value
-  webapp_type   = "webapp2"                     // Updated value
-  is_default    = false                         // Updated to false
-  branding_file = "${path.module}/webapp3-brand.zip"
+  description   = "Updated Test WebappBranding"          // Updated description
+  uuid          = "87654321-4321-4321-4321-210987654321" // Updated value
+  webapp_type   = "webapp3"                              // Updated value
+  branding_file = "${path.module}/webapp3-brand.zip"     // Updated file
 }
