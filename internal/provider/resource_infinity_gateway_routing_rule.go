@@ -658,10 +658,6 @@ func (r *InfinityGatewayRoutingRuleResource) Update(ctx context.Context, req res
 		value := plan.ExternalParticipantAvatarLookup.ValueString()
 		updateRequest.ExternalParticipantAvatarLookup = &value
 	}
-	if !plan.ExternalParticipantAvatarLookup.IsNull() && !plan.ExternalParticipantAvatarLookup.IsUnknown() {
-		value := plan.ExternalParticipantAvatarLookup.ValueString()
-		updateRequest.ExternalParticipantAvatarLookup = &value
-	}
 	if !plan.GMSAccessToken.IsNull() && !plan.GMSAccessToken.IsUnknown() {
 		value := plan.GMSAccessToken.ValueString()
 		updateRequest.GMSAccessToken = &value
