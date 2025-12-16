@@ -14,12 +14,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/pexip/terraform-provider-pexip/internal/helpers"
 )
 
-const (
-	INFINITY_USERNAME = "admin"
-	INFINITY_PASSWORD = "admin"
-	INFINITY_BASE_URL = "https://dev-manager.dev.pexip.network"
+var (
+	INFINITY_USERNAME = helpers.GetEnvStringOrDefault("PEXIP_USERNAME", "admin")
+	INFINITY_PASSWORD = helpers.GetEnvStringOrDefault("PEXIP_PASSWORD", "admin")
+	INFINITY_BASE_URL = helpers.GetEnvStringOrDefault("PEXIP_ADDRESS", "https://dev-manager.dev.pexip.network")
 )
 
 func GetTestdataLocation() (string, error) {
