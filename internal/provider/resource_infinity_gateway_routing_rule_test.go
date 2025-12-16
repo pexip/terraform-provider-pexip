@@ -137,7 +137,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "name", "gateway_routing_rule-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "description", "Updated Test GatewayRoutingRule"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "priority", "456"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "priority", "156"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.gateway_routing_rule-test", "enable", "false"),
 				),
 			},

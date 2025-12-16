@@ -23,7 +23,6 @@ import (
 )
 
 func TestInfinityGatewayRoutingRuleIntegration(t *testing.T) {
-	t.Skip("Skipping: Requires gateway routing configuration")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(
