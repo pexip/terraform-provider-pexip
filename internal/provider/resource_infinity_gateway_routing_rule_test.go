@@ -64,12 +64,8 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		// Update mock state based on request
 		mockState.Name = updateRequest.Name
 		mockState.Description = updateRequest.Description
-		if updateRequest.Priority != nil {
-			mockState.Priority = *updateRequest.Priority
-		}
-		if updateRequest.Enable != nil {
-			mockState.Enable = *updateRequest.Enable
-		}
+		mockState.Priority = updateRequest.Priority
+		mockState.Enable = updateRequest.Enable
 		mockState.MatchString = updateRequest.MatchString
 		mockState.ReplaceString = updateRequest.ReplaceString
 		mockState.CalledDeviceType = updateRequest.CalledDeviceType
