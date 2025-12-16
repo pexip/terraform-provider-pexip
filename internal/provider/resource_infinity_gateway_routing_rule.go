@@ -418,10 +418,6 @@ func (r *InfinityGatewayRoutingRuleResource) Create(ctx context.Context, req res
 		value := plan.ExternalParticipantAvatarLookup.ValueString()
 		createRequest.ExternalParticipantAvatarLookup = &value
 	}
-	if !plan.ExternalParticipantAvatarLookup.IsNull() && !plan.ExternalParticipantAvatarLookup.IsUnknown() {
-		value := plan.ExternalParticipantAvatarLookup.ValueString()
-		createRequest.ExternalParticipantAvatarLookup = &value
-	}
 	if !plan.GMSAccessToken.IsNull() && !plan.GMSAccessToken.IsUnknown() {
 		value := plan.GMSAccessToken.ValueString()
 		createRequest.GMSAccessToken = &value
