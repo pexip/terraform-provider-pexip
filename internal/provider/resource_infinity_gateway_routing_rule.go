@@ -299,17 +299,15 @@ func (r *InfinityGatewayRoutingRuleResource) Update(ctx context.Context, req res
 		MatchString: plan.MatchString.ValueString(),
 	}
 
-	// Set priority as pointer
-	priority := int(plan.Priority.ValueInt32())
-	updateRequest.Priority = &priority
+	// Set priority
+	updateRequest.Priority = int(plan.Priority.ValueInt32())
 
 	// Set optional fields
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
 	}
 	if !plan.Enable.IsNull() {
-		enable := plan.Enable.ValueBool()
-		updateRequest.Enable = &enable
+		updateRequest.Enable = plan.Enable.ValueBool()
 	}
 	if !plan.ReplaceString.IsNull() {
 		updateRequest.ReplaceString = plan.ReplaceString.ValueString()
