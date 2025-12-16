@@ -11,8 +11,8 @@ resource "pexip_infinity_gateway_routing_rule" "gateway_routing_rule-test" {
   enable             = true
   match_string       = "test-value"
   replace_string     = "test-value"
-  called_device_type = "unknown"
+  called_device_type = "external"
   outgoing_protocol  = "sip"
   call_type          = "video"
-  ivr_theme          = "test-value"
+  //ivr_theme          = "test-value"
 }
