@@ -69,8 +69,8 @@ jobs:
       - name: Run acceptance tests
         env:
           TF_ACC: "1"
-          PEXIP_ADDRESS: ${{ secrets.PEXIP_ADDRESS }}
-          PEXIP_USERNAME: ${{ secrets.PEXIP_USERNAME }}
+          PEXIP_ADDRESS: ${{ vars.PEXIP_ADDRESS }}
+          PEXIP_USERNAME: ${{ vars.PEXIP_USERNAME }}
           PEXIP_PASSWORD: ${{ secrets.PEXIP_PASSWORD }}
         run: |
           echo "Acceptance tests would run here with real Pexip environment"
