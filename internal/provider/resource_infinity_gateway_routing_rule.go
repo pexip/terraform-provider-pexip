@@ -183,7 +183,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			"ivr_theme": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "When calling an external system, this is the H.323 gatekeeper to use for outbound H.323 calls. Select Use DNS to try to use normal H.323 resolution procedures to route the call.",
+				MarkdownDescription: "The theme for use with this service. If no theme is selected here, files from the theme that has been selected as the default (Platform > Global settings > Default theme) will be applied.",
 			},
 			"live_captions_enabled": schema.StringAttribute{
 				Optional: true,
