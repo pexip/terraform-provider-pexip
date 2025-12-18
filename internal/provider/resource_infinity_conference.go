@@ -278,7 +278,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			"host_view": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString("one_main_seven_pips"),
+				Default:  stringdefault.StaticString("one_main_seven_pips"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
