@@ -256,6 +256,9 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			"guest_view": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50),
+				},
 				MarkdownDescription: "The layout that Guests will see. Guests only see Host participants. one_main_zero_pips: full-screen main speaker only. one_main_seven_pips: large main speaker and up to 7 other participants. one_main_twentyone_pips: main speaker and up to 21 other participants. two_mains_twentyone_pips: two main speakers and up to 21 other participants. four_mains_zero_pips: up to four main speakers, in a 2x2 layout. nine_mains_zero_pips: up to nine main speakers, in a 3x3 layout. sixteen_mains_zero_pips: up to sixteen main speakers, in a 4x4 layout. twentyfive_mains_zero_pips: up to twenty five main speakers, in a 5x5 layout. five_mains_seven_pips: Adaptive Composition layout (does not apply to service_type of 'lecture').",
 			},
 			"guests_can_see_guests": schema.StringAttribute{
@@ -276,6 +279,9 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Optional: true,
 				Computed: true,
 				Default: stringdefault.StaticString("one_main_seven_pips"),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50),
+				},
 				MarkdownDescription: "The layout that Hosts will see. one_main_zero_pips: full-screen main speaker only. one_main_seven_pips: large main speaker and up to 7 other participants. one_main_twentyone_pips: main speaker and up to 21 other participants. two_mains_twentyone_pips: two main speakers and up to 21 other participants. four_mains_zero_pips: up to four main speakers in a 2x2 layout. nine_mains_zero_pips: up to nine main speakers, in a 3x3 layout. sixteen_mains_zero_pips: up to sixteen main speakers, in a 4x4 layout. twentyfive_mains_zero_pips: up to twenty five main speakers, in a 5x5 layout. five_mains_seven_pips: Adaptive Composition layout (does not apply to service_type of 'lecture').",
 			},
 			"ivr_theme": schema.StringAttribute{
