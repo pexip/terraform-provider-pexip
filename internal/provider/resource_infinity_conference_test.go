@@ -35,6 +35,7 @@ func TestInfinityConference(t *testing.T) {
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
 	// Shared state for mocking
+	hostView := "one_main_seven_pips"
 	mockState := &config.Conference{
 		ID:            123,
 		ResourceURI:   "/api/admin/configuration/v1/conference/123/",
@@ -55,7 +56,7 @@ func TestInfinityConference(t *testing.T) {
 		GuestsCanPresent:                true,
 		GuestsCanSeeGuests:              "no_hosts",
 		GuestView:                       nil,
-		HostView:                        nil,
+		HostView:                        &hostView,
 		LiveCaptionsEnabled:             "default",
 		MatchString:                     "",
 		MuteAllGuests:                   false,
