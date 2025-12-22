@@ -29,11 +29,11 @@ jobs:
           echo "TF_VAR_infinity_contact_email_address=${{ vars.INFINITY_CONTACT_EMAIL_ADDRESS }}" >> $GITHUB_ENV
           echo "TF_VAR_infinity_password=${{ secrets.INFINITY_ADMIN_PASSWORD }}" >> $GITHUB_ENV
           echo "TF_VAR_infinity_license_key=${{ secrets.INFINITY_LICENSE_KEY }}" >> $GITHUB_ENV
-      - uses: pexip/shared-github-actions/auth-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
+      - uses: pexip/shared-github-actions/auth-gcp-action@f596d7f32b05fa5ffebbb6634734860d5d1d6c2c
         id: auth-gcp
         with:
           service_account_key: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_KEY }}
-      - uses: pexip/shared-github-actions/terraform-deploy-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
+      - uses: pexip/shared-github-actions/terraform-deploy-gcp-action@f596d7f32b05fa5ffebbb6634734860d5d1d6c2c
         with:
           directory: ${{ inputs.path }}
           token: ${{ secrets.GITHUB_TOKEN }}
