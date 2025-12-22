@@ -66,6 +66,7 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference/", mock.Anything, mock.Anything).Return(conferenceCreateResponse, nil)
 
+	hostView := "one_main_seven_pips"
 	conferenceState := &config.Conference{
 		ID:                              1,
 		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
@@ -86,6 +87,7 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 		GuestsCanPresent:                true,
 		GuestsCanSeeGuests:              "no_hosts",
 		LiveCaptionsEnabled:             "default",
+		HostView:                        &hostView,
 		MatchString:                     "",
 		MuteAllGuests:                   false,
 		NonIdpParticipants:              "disallow_all",
