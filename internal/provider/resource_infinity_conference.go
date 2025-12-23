@@ -709,7 +709,6 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	data.GuestsCanSeeGuests = types.StringValue(srv.GuestsCanSeeGuests)
 	data.HostIdentityProviderGroup = types.StringPointerValue(srv.HostIdentityProviderGroup)
 	data.HostView = types.StringPointerValue(srv.HostView)
-	data.IVRTheme = types.StringPointerValue(srv.IVRTheme)
 	data.LiveCaptionsEnabled = types.StringValue(srv.LiveCaptionsEnabled)
 	data.MatchString = types.StringValue(srv.MatchString)
 	data.MaxPixelsPerSecond = types.StringPointerValue(srv.MaxPixelsPerSecond)
@@ -741,6 +740,11 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 	if srv.ParticipantLimit != nil {
 		data.ParticipantLimit = types.Int32Value(int32(*srv.ParticipantLimit)) // #nosec G115 -- API values are expected to be within int32 range
+	}
+
+	// Convert default theme from SDK to Terraform format
+	if srv.IVRTheme != nil {
+		data.IVRTheme = types.StringValue(fmt.Sprintf("/api/admin/configuration/v1/ivr_theme/%d/", srv.IVRTheme.ID))
 	}
 
 	// Convert conference aliases from SDK to Terraform format
