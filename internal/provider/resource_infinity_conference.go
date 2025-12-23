@@ -923,10 +923,6 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 		hostView := plan.HostView.ValueString()
 		updateRequest.HostView = &hostView
 	}
-	if !plan.HostView.IsNull() && !plan.HostView.IsUnknown() {
-		hostView := plan.GuestView.ValueString()
-		updateRequest.HostView = &hostView
-	}
 	if !plan.IVRTheme.IsNull() && !plan.IVRTheme.IsUnknown() {
 		ivrTheme := plan.IVRTheme.ValueString()
 		updateRequest.IVRTheme = &ivrTheme
