@@ -161,7 +161,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
@@ -229,7 +228,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"gms_access_token": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Select an access token to use to resolve Google Meet meeting codes.",
 			},
 			"guests_can_present": schema.BoolAttribute{
@@ -240,7 +238,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"guest_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Select the set of Identity Providers to be offered to Guests to authenticate with, in order to join the conference. If this is blank, Guests will not be required to authenticate. ",
 			},
 			"guest_pin": schema.StringAttribute{
@@ -255,7 +252,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"guest_view": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
@@ -272,7 +268,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"host_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Select the set of Identity Providers to be offered to Hosts to authenticate with, in order to join the conference. If this is blank, Hosts will not be required to authenticate.",
 			},
 			"host_view": schema.StringAttribute{
@@ -286,7 +281,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"ivr_theme": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The IVR theme to use for this conference.",
 			},
 			"live_captions_enabled": schema.StringAttribute{
@@ -306,7 +300,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"max_callrate_in": schema.Int32Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(128, 8192),
 				},
@@ -314,7 +307,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"max_callrate_out": schema.Int32Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(128, 8192),
 				},
@@ -322,7 +314,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"max_pixels_per_second": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("sd", "hd", "fullhd"),
 				},
@@ -330,12 +321,10 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"media_playlist": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The playlist to run when this Media Playback Service is used.",
 			},
 			"mssip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The Lync / Skype for Business server to use to resolve the Lync / Skype for Business Conference ID entered by the user. You must then ensure that your Call Routing Rule that routes calls to your Lync / Skype for Business environment has Match against full alias URI selected and a Destination alias regex match in the style .+@example.com.",
 			},
 			"mute_all_guests": schema.BoolAttribute{
@@ -355,12 +344,10 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"on_completion": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "JSON format is used to specify what happens when the playlist finishes. If omitted, the last video's final frame remains in …the specified alias, for example, a VMR. Role is optional and can be auto, host, or guest. If omitted, the default is auto.",
 			},
 			"participant_limit": schema.Int32Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(0, 1000000),
 				},
@@ -378,7 +365,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"pinning_config": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The layout pinning configuration that will be used for this conference.",
 			},
 			"post_match_string": schema.StringAttribute{
@@ -456,7 +442,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"system_location": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "If selected, a Conferencing Node in this system location will perform the Lync / Skype for Business Conference ID lookup on the Lync / Skype for Business server. If a location is not selected, the IVR ingress node will perform the lookup.",
 			},
 			"tag": schema.StringAttribute{
@@ -470,7 +455,6 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"teams_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The Teams Connector to use to resolve the Conference ID entered by the user.",
 			},
 			"two_stage_dial_type": schema.StringAttribute{
@@ -725,7 +709,6 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	data.GuestsCanSeeGuests = types.StringValue(srv.GuestsCanSeeGuests)
 	data.HostIdentityProviderGroup = types.StringPointerValue(srv.HostIdentityProviderGroup)
 	data.HostView = types.StringPointerValue(srv.HostView)
-	data.IVRTheme = types.StringPointerValue(srv.IVRTheme)
 	data.LiveCaptionsEnabled = types.StringValue(srv.LiveCaptionsEnabled)
 	data.MatchString = types.StringValue(srv.MatchString)
 	data.MaxPixelsPerSecond = types.StringPointerValue(srv.MaxPixelsPerSecond)
@@ -757,6 +740,11 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 	if srv.ParticipantLimit != nil {
 		data.ParticipantLimit = types.Int32Value(int32(*srv.ParticipantLimit)) // #nosec G115 -- API values are expected to be within int32 range
+	}
+
+	// Convert default theme from SDK to Terraform format
+	if srv.IVRTheme != nil {
+		data.IVRTheme = types.StringValue(fmt.Sprintf("/api/admin/configuration/v1/ivr_theme/%d/", srv.IVRTheme.ID))
 	}
 
 	// Convert conference aliases from SDK to Terraform format
@@ -939,51 +927,47 @@ func (r *InfinityConferenceResource) Update(ctx context.Context, req resource.Up
 		hostView := plan.HostView.ValueString()
 		updateRequest.HostView = &hostView
 	}
-	if plan.HostView.IsNull() && plan.HostView.IsUnknown() {
-		hostView := plan.GuestView.ValueString()
-		updateRequest.HostView = &hostView
-	}
-	if plan.IVRTheme.IsNull() && plan.IVRTheme.IsUnknown() {
+	if !plan.IVRTheme.IsNull() && !plan.IVRTheme.IsUnknown() {
 		ivrTheme := plan.IVRTheme.ValueString()
 		updateRequest.IVRTheme = &ivrTheme
 	}
-	if plan.MaxCallRateIn.IsNull() && plan.MaxCallRateIn.IsUnknown() {
+	if !plan.MaxCallRateIn.IsNull() && !plan.MaxCallRateIn.IsUnknown() {
 		maxCallRateIn := int(plan.MaxCallRateIn.ValueInt32())
 		updateRequest.MaxCallRateIn = &maxCallRateIn
 	}
-	if plan.MaxCallRateOut.IsNull() && plan.MaxCallRateOut.IsUnknown() {
+	if !plan.MaxCallRateOut.IsNull() && !plan.MaxCallRateOut.IsUnknown() {
 		maxCallRateOut := int(plan.MaxCallRateOut.ValueInt32())
 		updateRequest.MaxCallRateOut = &maxCallRateOut
 	}
-	if plan.MaxPixelsPerSecond.IsNull() && plan.MaxPixelsPerSecond.IsUnknown() {
+	if !plan.MaxPixelsPerSecond.IsNull() && !plan.MaxPixelsPerSecond.IsUnknown() {
 		maxPixelsPerSecond := plan.MaxPixelsPerSecond.ValueString()
 		updateRequest.MaxPixelsPerSecond = &maxPixelsPerSecond
 	}
-	if plan.MediaPlaylist.IsNull() && plan.MediaPlaylist.IsUnknown() {
+	if !plan.MediaPlaylist.IsNull() && !plan.MediaPlaylist.IsUnknown() {
 		mediaPlaylist := plan.MediaPlaylist.ValueString()
 		updateRequest.MediaPlaylist = &mediaPlaylist
 	}
-	if plan.MSSIPProxy.IsNull() && plan.MSSIPProxy.IsUnknown() {
+	if !plan.MSSIPProxy.IsNull() && !plan.MSSIPProxy.IsUnknown() {
 		mssipProxy := plan.MSSIPProxy.ValueString()
 		updateRequest.MSSIPProxy = &mssipProxy
 	}
-	if plan.OnCompletion.IsNull() && plan.OnCompletion.IsUnknown() {
+	if !plan.OnCompletion.IsNull() && !plan.OnCompletion.IsUnknown() {
 		onCompletion := plan.OnCompletion.ValueString()
 		updateRequest.OnCompletion = &onCompletion
 	}
-	if plan.ParticipantLimit.IsNull() && plan.ParticipantLimit.IsUnknown() {
+	if !plan.ParticipantLimit.IsNull() && !plan.ParticipantLimit.IsUnknown() {
 		participantLimit := int(plan.ParticipantLimit.ValueInt32())
 		updateRequest.ParticipantLimit = &participantLimit
 	}
-	if plan.PinningConfig.IsNull() && plan.PinningConfig.IsUnknown() {
+	if !plan.PinningConfig.IsNull() && !plan.PinningConfig.IsUnknown() {
 		pinningConfig := plan.PinningConfig.ValueString()
 		updateRequest.PinningConfig = &pinningConfig
 	}
-	if plan.SystemLocation.IsNull() && plan.SystemLocation.IsUnknown() {
+	if !plan.SystemLocation.IsNull() && !plan.SystemLocation.IsUnknown() {
 		systemLocation := plan.SystemLocation.ValueString()
 		updateRequest.SystemLocation = &systemLocation
 	}
-	if plan.TeamsProxy.IsNull() && plan.TeamsProxy.IsUnknown() {
+	if !plan.TeamsProxy.IsNull() && !plan.TeamsProxy.IsUnknown() {
 		teamsProxy := plan.TeamsProxy.ValueString()
 		updateRequest.TeamsProxy = &teamsProxy
 	}
