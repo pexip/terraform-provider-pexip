@@ -11,13 +11,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -70,9 +68,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
-				Optional: false,
-				Required: false,
+				Computed:            true,
+				Optional:            false,
+				Required:            false,
 				MarkdownDescription: "Resource URI for the webapp branding in Infinity",
 			},
 			"name": schema.StringAttribute{
@@ -91,9 +89,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Description of the webapp branding configuration. Maximum length: 500 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Computed: true,
-				Optional: false,
-				Required: false,
+				Computed:            true,
+				Optional:            false,
+				Required:            false,
 				MarkdownDescription: "The UUID for this branding configuration. If not provided, a UUID will be automatically generated.",
 			},
 			"webapp_type": schema.StringAttribute{
@@ -107,9 +105,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The type of webapp this branding applies to. Valid values: pexapp, management, admin.",
 			},
 			"is_default": schema.BoolAttribute{
-				Computed: true,
-				Optional: false,
-				Required: false,
+				Computed:            true,
+				Optional:            false,
+				Required:            false,
 				MarkdownDescription: "Whether this is the default branding configuration for the webapp type.",
 			},
 			"branding_file": schema.StringAttribute{
@@ -123,9 +121,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The path or identifier for the branding file to use for customization.",
 			},
 			"last_updated": schema.StringAttribute{
-				Computed: true,
-				Optional: false,
-				Required: false,
+				Computed:            true,
+				Optional:            false,
+				Required:            false,
 				MarkdownDescription: "Timestamp when this branding configuration was last updated.",
 			},
 		},
