@@ -70,7 +70,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				Optional: false,
+				Required: false,
 				MarkdownDescription: "Resource URI for the webapp branding in Infinity",
 			},
 			"name": schema.StringAttribute{
@@ -79,9 +81,6 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(100),
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				MarkdownDescription: "The name of the webapp branding configuration. This is used as the identifier. Maximum length: 100 characters.",
 			},
 			"description": schema.StringAttribute{
@@ -89,23 +88,12 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				MarkdownDescription: "Description of the webapp branding configuration. Maximum length: 500 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`),
-						"must be a valid RFC 4122 UUID format (e.g., '550e8400-e29b-41d4-a716-446655440000')",
-					),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
+				Optional: false,
+				Required: false,
 				MarkdownDescription: "The UUID for this branding configuration. If not provided, a UUID will be automatically generated.",
 			},
 			"webapp_type": schema.StringAttribute{
@@ -120,10 +108,8 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			},
 			"is_default": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
+				Optional: false,
+				Required: false,
 				MarkdownDescription: "Whether this is the default branding configuration for the webapp type.",
 			},
 			"branding_file": schema.StringAttribute{
@@ -137,7 +123,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The path or identifier for the branding file to use for customization.",
 			},
 			"last_updated": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				Optional: false,
+				Required: false,
 				MarkdownDescription: "Timestamp when this branding configuration was last updated.",
 			},
 		},
