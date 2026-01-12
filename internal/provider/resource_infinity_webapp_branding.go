@@ -228,10 +228,40 @@ func (r *InfinityWebappBrandingResource) Read(ctx context.Context, req resource.
 }
 
 func (r *InfinityWebappBrandingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError(
-		"Update not supported",
-		"This resource does not support in-place updates. Terraform should replace it instead.",
-	)
+	var plan, state InfinityWebappBrandingResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateRequest := &config.WebappBrandingUpdateRequest{
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		WebappType:  plan.WebappType.ValueString(),
+	}
+
+	_, err := r.InfinityClient.Config().UpdateWebappBranding(ctx, updateRequest, state.UUID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Infinity webapp branding",
+			fmt.Sprintf("Could not update Infinity webapp branding UUID '%s': %s", state.UUID.ValueString(), err),
+		)
+		return
+	}
+
+	// Read the updated resource from the API
+	model, err := r.read(ctx, state.UUID.ValueString(), plan.BrandingFile.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity webapp branding",
+			fmt.Sprintf("Could not read updated Infinity webapp branding UUID '%s': %s", state.UUID.ValueString(), err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *InfinityWebappBrandingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
