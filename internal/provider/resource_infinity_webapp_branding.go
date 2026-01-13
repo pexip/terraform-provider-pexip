@@ -242,7 +242,7 @@ func (r *InfinityWebappBrandingResource) Update(ctx context.Context, req resourc
 		WebappType:  plan.WebappType.ValueString(),
 	}
 
-	_, err := r.InfinityClient.Config().UpdateWebappBranding(ctx, updateRequest, state.UUID.ValueString())
+	_, err := r.InfinityClient.Config().UpdateWebappBranding(ctx, state.UUID.ValueString(), updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity webapp branding",
