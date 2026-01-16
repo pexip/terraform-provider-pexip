@@ -77,7 +77,7 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			"description": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				Default: stringdefault.StaticString(""),
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
