@@ -34,9 +34,7 @@ func TestInfinityWebappBranding(t *testing.T) {
 		ResourceURI: "/api/admin/configuration/v1/webapp_branding/123/",
 		Name:        "webapp_branding-test",
 		Description: "Test WebappBranding",
-		UUID:        "12345678-1234-1234-1234-123456789012",
 		WebappType:  "webapp1",
-		IsDefault:   true,
 	}
 
 	// Mock the CreateWebappBranding API call (multipart form)

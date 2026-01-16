@@ -85,8 +85,6 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			},
 			"uuid": schema.StringAttribute{
 				Computed:            true,
-				Optional:            false,
-				Required:            false,
 				MarkdownDescription: "The UUID for this branding configuration. If not provided, a UUID will be automatically generated.",
 			},
 			"webapp_type": schema.StringAttribute{
@@ -111,8 +109,6 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			},
 			"last_updated": schema.StringAttribute{
 				Computed:            true,
-				Optional:            false,
-				Required:            false,
 				MarkdownDescription: "Timestamp when this branding configuration was last updated.",
 			},
 		},
@@ -167,6 +163,13 @@ func (r *InfinityWebappBrandingResource) Create(ctx context.Context, req resourc
 	}
 
 	resourceUUID, err := createResponse.ResUUID()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Retrieving Infinity webapp branding UUID",
+			fmt.Sprintf("Could not retrieve UUID for created Infinity webapp branding: %s", err),
+		)
+		return
+	}
 
 	// Read the state from the API to get all computed values
 	model, err := r.read(ctx, resourceUUID, plan.BrandingFile.ValueString())
