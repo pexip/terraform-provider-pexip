@@ -7,6 +7,6 @@
 resource "pexip_infinity_webapp_branding" "webapp_branding-test" {
   name          = "webapp_branding-test"
   description   = "Updated Test WebappBranding"          // Updated description
-  webapp_type   = "webapp3"                              // Updated value
-  branding_file = "${path.module}/webapp3-brand.zip"     // Updated file
+  webapp_type   = "webapp2"
+  branding_file = "${path.module}/webapp2-brand.zip"
 }
