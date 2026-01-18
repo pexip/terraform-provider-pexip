@@ -24,6 +24,12 @@ func TestInfinityWebappBranding(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
+	// Register cleanup function to remove test artifacts
+	t.Cleanup(func() {
+		_ = os.Remove("webapp2-brand.zip")
+		_ = os.Remove("webapp3-brand.zip")
+	})
+
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
