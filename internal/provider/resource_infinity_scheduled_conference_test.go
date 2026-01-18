@@ -16,7 +16,7 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38/util"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
 
 	"github.com/pexip/terraform-provider-pexip/internal/test"
