@@ -11,14 +11,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,12 +34,10 @@ type InfinityWebappBrandingResource struct {
 }
 
 type InfinityWebappBrandingResourceModel struct {
-	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Description  types.String `tfsdk:"description"`
 	UUID         types.String `tfsdk:"uuid"`
 	WebappType   types.String `tfsdk:"webapp_type"`
-	IsDefault    types.Bool   `tfsdk:"is_default"`
 	BrandingFile types.String `tfsdk:"branding_file"`
 	LastUpdated  types.String `tfsdk:"last_updated"`
 }
@@ -69,43 +66,25 @@ func (r *InfinityWebappBrandingResource) Configure(ctx context.Context, req reso
 func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Resource URI for the webapp branding in Infinity",
-			},
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(100),
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				MarkdownDescription: "The name of the webapp branding configuration. This is used as the identifier. Maximum length: 100 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				MarkdownDescription: "Description of the webapp branding configuration. Maximum length: 500 characters.",
+				MarkdownDescription: "Description of the webapp branding configuration. Maximum length: 250 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`),
-						"must be a valid RFC 4122 UUID format (e.g., '550e8400-e29b-41d4-a716-446655440000')",
-					),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
+				Computed:            true,
 				MarkdownDescription: "The UUID for this branding configuration. If not provided, a UUID will be automatically generated.",
 			},
 			"webapp_type": schema.StringAttribute{
@@ -117,14 +96,6 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The type of webapp this branding applies to. Valid values: pexapp, management, admin.",
-			},
-			"is_default": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
-				MarkdownDescription: "Whether this is the default branding configuration for the webapp type.",
 			},
 			"branding_file": schema.StringAttribute{
 				Required: true,
@@ -164,9 +135,7 @@ func (r *InfinityWebappBrandingResource) Create(ctx context.Context, req resourc
 	createRequest := &config.WebappBrandingCreateRequest{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
-		UUID:        uuidValue,
 		WebappType:  plan.WebappType.ValueString(),
-		IsDefault:   plan.IsDefault.ValueBool(),
 	}
 
 	// Open the branding_file file
@@ -184,7 +153,7 @@ func (r *InfinityWebappBrandingResource) Create(ctx context.Context, req resourc
 	// Extract filename from the path
 	filename := filepath.Base(brandingFilePath)
 
-	_, err = r.InfinityClient.Config().CreateWebappBranding(ctx, createRequest, filename, brandingFile)
+	createResponse, err := r.InfinityClient.Config().CreateWebappBranding(ctx, createRequest, filename, brandingFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Creating Infinity webapp branding",
@@ -193,12 +162,21 @@ func (r *InfinityWebappBrandingResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	resourceUUID, err := createResponse.ResUUID()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Retrieving Infinity webapp branding UUID",
+			fmt.Sprintf("Could not retrieve UUID for created Infinity webapp branding: %s", err),
+		)
+		return
+	}
+
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, createRequest.UUID, plan.BrandingFile.ValueString())
+	model, err := r.read(ctx, resourceUUID, plan.BrandingFile.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity webapp branding",
-			fmt.Sprintf("Could not read created Infinity webapp branding UUID '%s': %s", createRequest.UUID, err),
+			fmt.Sprintf("Could not read created Infinity webapp branding UUID '%s': %s", resourceUUID, err),
 		)
 		return
 	}
@@ -217,12 +195,10 @@ func (r *InfinityWebappBrandingResource) read(ctx context.Context, uuid string, 
 		return nil, fmt.Errorf("webapp branding with UUID '%s' not found", uuid)
 	}
 
-	data.ID = types.StringValue(srv.ResourceURI)
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.UUID = types.StringValue(srv.UUID)
 	data.WebappType = types.StringValue(srv.WebappType)
-	data.IsDefault = types.BoolValue(srv.IsDefault)
 	data.LastUpdated = types.StringValue(srv.LastUpdated.String())
 	data.BrandingFile = types.StringValue(brandingFile)
 
@@ -255,10 +231,40 @@ func (r *InfinityWebappBrandingResource) Read(ctx context.Context, req resource.
 }
 
 func (r *InfinityWebappBrandingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError(
-		"Update not supported",
-		"This resource does not support in-place updates. Terraform should replace it instead.",
-	)
+	var plan, state InfinityWebappBrandingResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateRequest := &config.WebappBrandingUpdateRequest{
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		WebappType:  plan.WebappType.ValueString(),
+	}
+
+	_, err := r.InfinityClient.Config().UpdateWebappBranding(ctx, state.UUID.ValueString(), updateRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating Infinity webapp branding",
+			fmt.Sprintf("Could not update Infinity webapp branding UUID '%s': %s", state.UUID.ValueString(), err),
+		)
+		return
+	}
+
+	// Read the updated resource from the API
+	model, err := r.read(ctx, state.UUID.ValueString(), plan.BrandingFile.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Updated Infinity webapp branding",
+			fmt.Sprintf("Could not read updated Infinity webapp branding UUID '%s': %s", state.UUID.ValueString(), err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *InfinityWebappBrandingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
