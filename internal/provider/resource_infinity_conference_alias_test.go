@@ -44,6 +44,7 @@ func TestInfinityConferenceAlias(t *testing.T) {
 		AllowGuests:                     false,
 		BreakoutRooms:                   false,
 		CallType:                        "video",
+		CryptoMode:                      test.StringPtr(""), // API returns empty string, not nil
 		DenoiseEnabled:                  false,
 		DirectMedia:                     "never",
 		DirectMediaNotificationDuration: 0,
@@ -59,6 +60,7 @@ func TestInfinityConferenceAlias(t *testing.T) {
 		MatchString:                     "",
 		MuteAllGuests:                   false,
 		NonIdpParticipants:              "disallow_all",
+		OnCompletion:                    test.StringPtr(""), // API returns empty string, not nil
 		PostMatchString:                 "",
 		PostReplaceString:               "",
 		PrimaryOwnerEmailAddress:        "",
