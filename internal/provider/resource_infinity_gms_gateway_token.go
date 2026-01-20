@@ -236,9 +236,6 @@ func (r *InfinityGMSGatewayTokenResource) Update(ctx context.Context, req resour
 func (r *InfinityGMSGatewayTokenResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// For singleton resources, delete means resetting to default/minimal values
 	tflog.Info(ctx, "The Infinity SDK does not yet support deleting the GMS gateway token. It will be removed from state.")
-
-	// is this needed?
-	//resp.State.RemoveResource(ctx)
 }
 
 func (r *InfinityGMSGatewayTokenResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
