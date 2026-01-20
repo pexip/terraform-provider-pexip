@@ -81,6 +81,7 @@ func (r *InfinityMediaLibraryPlaylistResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "The name of the media library playlist. Maximum length: 1024 characters.",
 			},
 			"description": schema.StringAttribute{
+				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
@@ -90,11 +91,13 @@ func (r *InfinityMediaLibraryPlaylistResource) Schema(ctx context.Context, req r
 			},
 			"loop": schema.BoolAttribute{
 				Computed:            true,
+				Optional:            true,
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "If enabled, for a given call the whole playlist is repeated until the user disconnects themselves or until the call is terminated programmatically via the management API.",
 			},
 			"shuffle": schema.BoolAttribute{
 				Computed:            true,
+				Optional:            true,
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "If enabled, the playlist is shuffled so that all media items are played in a random order (media items’ specified positions are not used).",
 			},
