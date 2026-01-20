@@ -190,6 +190,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityRecurringConferenceResource{} },
 		func() resource.Resource { return &InfinityGlobalConfigurationResource{} },
 		func() resource.Resource { return &InfinityGMSAccessTokenResource{} },
+		func() resource.Resource { return &InfinityGMSGatewayTokenResource{} },
 		func() resource.Resource { return &InfinityMediaLibraryEntryResource{} },
 		func() resource.Resource { return &InfinityAuthenticationResource{} },
 		func() resource.Resource { return &InfinityUserGroupEntityMappingResource{} },
