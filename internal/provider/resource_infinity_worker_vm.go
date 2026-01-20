@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -121,6 +123,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The IPv4 address of the worker VM.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
@@ -158,6 +163,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(192),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The domain of the worker VM. Maximum length: 250 characters.",
 			},
 			"enable_distributed_database": schema.BoolAttribute{
@@ -180,12 +188,18 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The gateway address for the worker VM.",
 			},
 			"hostname": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(63),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The hostname for this Conferencing Node. Each Conferencing Node must have a unique DNS hostname. Maximum length: 63 characters.",
 			},
@@ -194,12 +208,18 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The IPv6 address of the conferencing node. Maximum length: 250 characters.",
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The IPv6 gateway for the conferencing node. Maximum length: 250 characters.",
 			},
@@ -241,6 +261,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The IPv4 network mask for this Conferencing Node.",
 			},
