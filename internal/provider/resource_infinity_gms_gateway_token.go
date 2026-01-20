@@ -111,10 +111,6 @@ func (r *InfinityGMSGatewayTokenResource) buildUpdateRequest(plan *InfinityGMSGa
 		val := plan.PrivateKey.ValueString()
 		updateRequest.PrivateKey = &val
 	}
-	if !plan.SupportsDirectGuestJoin.IsNull() && !plan.SupportsDirectGuestJoin.IsUnknown() {
-		val := plan.SupportsDirectGuestJoin.ValueBool()
-		updateRequest.SupportsDirectGuestJoin = &val
-	}
 
 	return updateRequest
 }
