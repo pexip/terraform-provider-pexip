@@ -31,7 +31,7 @@ func TestInfinityGMSGatewayToken(t *testing.T) {
 	mockState := &config.GMSGatewayToken{
 		ID:                      1,
 		ResourceURI:             "/api/admin/configuration/v1/gms_gateway_token/1/",
-		Certificate:             "",                                               // API clears this after update
+		Certificate:             "",                                                                                          // API clears this after update
 		IntermediateCertificate: test.StringPtr("-----BEGIN CERTIFICATE-----\nintermediate-cert\n-----END CERTIFICATE-----"), // Extracted from chain
 		LeafCertificate:         test.StringPtr("-----BEGIN CERTIFICATE-----\nserver-cert\n-----END CERTIFICATE-----"),       // Extracted from chain
 		SupportsDirectGuestJoin: &supportsDirectGuestJoin,
@@ -40,9 +40,9 @@ func TestInfinityGMSGatewayToken(t *testing.T) {
 	// Mock the GetGMSGatewayToken API call for Read operations
 	client.On(
 		"GetJSON",
-		mock.Anything,                              // context.Context
-		"configuration/v1/gms_gateway_token/1/",    // string
-		mock.Anything,                              // *url.Values or nil
+		mock.Anything,                           // context.Context
+		"configuration/v1/gms_gateway_token/1/", // string
+		mock.Anything,                           // *url.Values or nil
 		mock.AnythingOfType("*config.GMSGatewayToken"), // pointer to config.GMSGatewayToken
 	).Return(nil).Run(func(args mock.Arguments) {
 		gmsGatewayToken := args.Get(3).(*config.GMSGatewayToken)
