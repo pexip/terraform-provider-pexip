@@ -32,6 +32,7 @@ import (
 
 var (
 	_ resource.ResourceWithImportState = (*InfinityWorkerVMResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*InfinityWorkerVMResource)(nil)
 )
 
 type InfinityWorkerVMResource struct {
@@ -448,6 +449,35 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 		},
 		MarkdownDescription: "Manages a worker VM configuration with the Infinity service.",
+	}
+}
+
+func (r *InfinityWorkerVMResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// If this is a destroy operation, no need to check for warnings
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// If we don't have state (create operation), no need to check for warnings
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan InfinityWorkerVMResourceModel
+	var state InfinityWorkerVMResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Warn if node_type or system_location are changing
+	if !plan.NodeType.Equal(state.NodeType) || !plan.SystemLocation.Equal(state.SystemLocation) {
+		resp.Diagnostics.AddWarning(
+			"Calls will be disconnected",
+			"Updating node_type or system_location will cause all active calls to be disconnected and the node to be restarted.",
+		)
 	}
 }
 
