@@ -161,6 +161,8 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
@@ -252,6 +254,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"guest_view": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
@@ -270,10 +273,10 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				MarkdownDescription: "Select the set of Identity Providers to be offered to Hosts to authenticate with, in order to join the conference. If this is blank, Hosts will not be required to authenticate.",
 			},
+			// default of one_main_seven_pips should not be set here as it depends on the service type
 			"host_view": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("one_main_seven_pips"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(50),
 				},
@@ -344,6 +347,8 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 			},
 			"on_completion": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "JSON format is used to specify what happens when the playlist finishes. If omitted, the last video's final frame remains in …the specified alias, for example, a VMR. Role is optional and can be auto, host, or guest. If omitted, the default is auto.",
 			},
 			"participant_limit": schema.Int32Attribute{

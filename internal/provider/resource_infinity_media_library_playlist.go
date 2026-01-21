@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -74,24 +76,30 @@ func (r *InfinityMediaLibraryPlaylistResource) Schema(ctx context.Context, req r
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "The name of the media library playlist. Maximum length: 250 characters.",
+				MarkdownDescription: "The name of the media library playlist. Maximum length: 1024 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "Description of the media library playlist. Maximum length: 500 characters.",
+				MarkdownDescription: "Description of the media library playlist. Maximum length: 1024 characters.",
 			},
 			"loop": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Whether the playlist should loop when it reaches the end.",
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If enabled, for a given call the whole playlist is repeated until the user disconnects themselves or until the call is terminated programmatically via the management API.",
 			},
 			"shuffle": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Whether the playlist entries should be played in random order.",
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If enabled, the playlist is shuffled so that all media items are played in a random order (media items’ specified positions are not used).",
 			},
 			"playlist_entries": schema.SetAttribute{
 				ElementType:         types.StringType,

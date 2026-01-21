@@ -44,6 +44,7 @@ func TestInfinityConference(t *testing.T) {
 		BreakoutRooms: false,
 		CallType:      "video",
 		//CreationTime:  "2024-01-01T12:00:00Z", --- IGNORE ---
+		CryptoMode:                      test.StringPtr(""), // API returns empty string, not nil
 		DenoiseEnabled:                  false,
 		Description:                     "Test Conference",
 		DirectMedia:                     "never",
@@ -61,6 +62,7 @@ func TestInfinityConference(t *testing.T) {
 		MatchString:                     "",
 		MuteAllGuests:                   false,
 		NonIdpParticipants:              "disallow_all",
+		OnCompletion:                    test.StringPtr(""), // API returns empty string, not nil
 		PostMatchString:                 "",
 		PrimaryOwnerEmailAddress:        "",
 		ReplaceString:                   "",

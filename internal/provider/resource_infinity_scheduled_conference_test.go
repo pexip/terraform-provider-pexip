@@ -69,6 +69,8 @@ func TestInfinityScheduledConference(t *testing.T) {
 		SyncTag:                         "",
 		Tag:                             "",
 		TwoStageDialType:                "regular",
+		CryptoMode:                      test.StringPtr(""), // API returns empty string, not nil
+		OnCompletion:                    test.StringPtr(""), // API returns empty string, not nil
 	}
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
