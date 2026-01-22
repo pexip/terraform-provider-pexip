@@ -141,7 +141,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			// this field is set by Infinity and should not be modified by users
 			"cloud_bursting": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node.",
+				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node. This is set by Infinity.",
 			},
 			"deployment_type": schema.StringAttribute{
 				Optional:            true,
@@ -418,10 +418,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"transcoding": schema.BoolAttribute{
-				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "This determines the Conferencing Node's role. When transcoding is enabled, this node can handle all the media processing, protocol interworking, mixing and so on that is required in hosting Pexip Infinity calls and conferences. When transcoding is disabled, it becomes a Proxying Edge Node that can only handle the media and signaling connections with an endpoint or external device, and it then forwards the device's media on to a node that does have transcoding capabilities.",
+				MarkdownDescription: "This determines the Conferencing Node's role. This is set by Infinity. When transcoding is enabled, this node can handle all the media processing, protocol interworking, mixing and so on that is required in hosting Pexip Infinity calls and conferences. When transcoding is disabled, it becomes a Proxying Edge Node that can only handle the media and signaling connections with an endpoint or external device, and it then forwards the device's media on to a node that does have transcoding capabilities.",
 			},
 			"vm_cpu_count": schema.Int64Attribute{
 				Optional: true,
