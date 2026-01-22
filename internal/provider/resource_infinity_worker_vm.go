@@ -796,7 +796,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
 		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
 	}
-	
+
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()
