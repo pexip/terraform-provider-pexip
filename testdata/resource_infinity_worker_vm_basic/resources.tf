@@ -18,7 +18,6 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   ipv6_gateway                  = "2001:db8::fe"
   node_type                     = "CONFERENCING"
   deployment_type               = "MANUAL-PROVISION-ONLY"
-  transcoding                   = true
   password                      = "password-initial"
   maintenance_mode              = true
   maintenance_mode_reason       = "test-value"
