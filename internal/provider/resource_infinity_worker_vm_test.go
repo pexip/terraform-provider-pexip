@@ -104,7 +104,6 @@ func TestInfinityWorkerVM(t *testing.T) {
 		mockState.SNMPMode = updateReq.SNMPMode
 		mockState.MaintenanceMode = updateReq.MaintenanceMode
 		mockState.MaintenanceModeReason = updateReq.MaintenanceModeReason
-		mockState.Transcoding = updateReq.Transcoding
 		mockState.VMCPUCount = updateReq.VMCPUCount
 		mockState.VMSystemMemory = updateReq.VMSystemMemory
 		mockState.SNMPAuthenticationPassword = updateReq.SNMPAuthenticationPassword
