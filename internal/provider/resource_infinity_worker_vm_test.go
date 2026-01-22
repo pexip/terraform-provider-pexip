@@ -71,10 +71,6 @@ func TestInfinityWorkerVM(t *testing.T) {
 		SNMPUsername:               "snmp-user1",
 		EnableSSH:                  "ON",
 		EnableDistributedDatabase:  false,
-		ServiceManager:             true,
-		ServicePolicy:              true,
-		Signalling:                 true,
-		Managed:                    false,
 	}
 
 	// Mock the GetWorkervm API call for Read operations
@@ -118,11 +114,7 @@ func TestInfinityWorkerVM(t *testing.T) {
 		mockState.SNMPSystemLocation = updateReq.SNMPSystemLocation
 		mockState.SNMPUsername = updateReq.SNMPUsername
 		mockState.SSHAuthorizedKeysUseCloud = updateReq.SSHAuthorizedKeysUseCloud
-		mockState.ServiceManager = updateReq.ServiceManager
-		mockState.ServicePolicy = updateReq.ServicePolicy
-		mockState.Signalling = updateReq.Signalling
 		mockState.CloudBursting = false // Not in update request, has default
-		mockState.Managed = false        // Not in update request, has default
 
 		// Nullable pointer fields - set to nil if not provided
 		mockState.TLSCertificate = updateReq.TLSCertificate

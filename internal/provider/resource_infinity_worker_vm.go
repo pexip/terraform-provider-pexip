@@ -64,13 +64,9 @@ type InfinityWorkerVMResourceModel struct {
 	Description                types.String `tfsdk:"description"`
 	EnableDistributedDatabase  types.Bool   `tfsdk:"enable_distributed_database"`
 	EnableSSH                  types.String `tfsdk:"enable_ssh"`
-	Managed                    types.Bool   `tfsdk:"managed"`
 	MediaPriorityWeight        types.Int64  `tfsdk:"media_priority_weight"`
 	SecondaryAddress           types.String `tfsdk:"secondary_address"`
 	SecondaryNetmask           types.String `tfsdk:"secondary_netmask"`
-	ServiceManager             types.Bool   `tfsdk:"service_manager"`
-	ServicePolicy              types.Bool   `tfsdk:"service_policy"`
-	Signalling                 types.Bool   `tfsdk:"signalling"`
 	SNMPAuthenticationPassword types.String `tfsdk:"snmp_authentication_password"`
 	SNMPCommunity              types.String `tfsdk:"snmp_community"`
 	SNMPMode                   types.String `tfsdk:"snmp_mode"`
@@ -238,12 +234,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The reason for maintenance mode. Maximum length: 250 characters.",
 			},
-			"managed": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether the conferencing node is managed by the Infinity service. Defaults to false.",
-			},
 			"media_priority_weight": schema.Int64Attribute{
 				Optional:            true,
 				Computed:            true,
@@ -298,24 +288,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 					validators.IPAddress(),
 				},
 				MarkdownDescription: "The optional secondary interface IPv4 netmask for this Conferencing Node.",
-			},
-			"service_manager": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle Service Manager.",
-			},
-			"service_policy": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle Service Policy.",
-			},
-			"signalling": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle signalling",
 			},
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
@@ -653,10 +625,6 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 	data.DeploymentType = types.StringValue(deployType)
 	data.Transcoding = types.BoolValue(srv.Transcoding)
 	data.CloudBursting = types.BoolValue(srv.CloudBursting)
-	data.Managed = types.BoolValue(srv.Managed)
-	data.ServiceManager = types.BoolValue(srv.ServiceManager)
-	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
-	data.Signalling = types.BoolValue(srv.Signalling)
 	// value not returned by API
 	data.Password = types.StringValue(password)
 	data.MaintenanceMode = types.BoolValue(srv.MaintenanceMode)
@@ -681,9 +649,6 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
 	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
 	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
-	data.ServiceManager = types.BoolValue(srv.ServiceManager)
-	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
-	data.Signalling = types.BoolValue(srv.Signalling)
 	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 
 	// Handle nullable integer fields
@@ -831,16 +796,7 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
 		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
 	}
-	if !plan.ServiceManager.IsNull() {
-		updateRequest.ServiceManager = plan.ServiceManager.ValueBool()
-	}
-	if !plan.ServicePolicy.IsNull() {
-		updateRequest.ServicePolicy = plan.ServicePolicy.ValueBool()
-	}
-	if !plan.Signalling.IsNull() {
-		updateRequest.Signalling = plan.Signalling.ValueBool()
-	}
-
+	
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {
 		value := plan.IPv6Address.ValueString()

@@ -37,8 +37,4 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   snmp_username                 = "snmp-user1"
   enable_ssh                    = "ON"
   enable_distributed_database   = false
-  service_manager               = true
-  service_policy                = true
-  signalling                    = true
-  managed                       = false
 }
