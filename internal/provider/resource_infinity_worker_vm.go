@@ -138,10 +138,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "An identity for this Conferencing Node, used in signaling SIP TLS Contact addresses",
 			},
+			// this field is set by Infinity and should not be modified by users
 			"cloud_bursting": schema.BoolAttribute{
-				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node.",
 			},
 			"deployment_type": schema.StringAttribute{
