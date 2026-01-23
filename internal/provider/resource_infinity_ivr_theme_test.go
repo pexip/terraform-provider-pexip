@@ -24,6 +24,12 @@ func TestInfinityIvrTheme(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
+	// Register cleanup function to remove test artifacts
+	t.Cleanup(func() {
+		_ = os.Remove("pexip-test-theme.zip")
+		_ = os.Remove("pexip-test-theme-updated.zip")
+	})
+
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
