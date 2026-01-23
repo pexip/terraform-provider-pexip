@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,6 +32,7 @@ import (
 
 var (
 	_ resource.ResourceWithImportState = (*InfinityWorkerVMResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*InfinityWorkerVMResource)(nil)
 )
 
 type InfinityWorkerVMResource struct {
@@ -61,13 +64,9 @@ type InfinityWorkerVMResourceModel struct {
 	Description                types.String `tfsdk:"description"`
 	EnableDistributedDatabase  types.Bool   `tfsdk:"enable_distributed_database"`
 	EnableSSH                  types.String `tfsdk:"enable_ssh"`
-	Managed                    types.Bool   `tfsdk:"managed"`
 	MediaPriorityWeight        types.Int64  `tfsdk:"media_priority_weight"`
 	SecondaryAddress           types.String `tfsdk:"secondary_address"`
 	SecondaryNetmask           types.String `tfsdk:"secondary_netmask"`
-	ServiceManager             types.Bool   `tfsdk:"service_manager"`
-	ServicePolicy              types.Bool   `tfsdk:"service_policy"`
-	Signalling                 types.Bool   `tfsdk:"signalling"`
 	SNMPAuthenticationPassword types.String `tfsdk:"snmp_authentication_password"`
 	SNMPCommunity              types.String `tfsdk:"snmp_community"`
 	SNMPMode                   types.String `tfsdk:"snmp_mode"`
@@ -121,6 +120,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The IPv4 address of the worker VM.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
@@ -132,11 +134,10 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "An identity for this Conferencing Node, used in signaling SIP TLS Contact addresses",
 			},
+			// this field is set by Infinity and should not be modified by users
 			"cloud_bursting": schema.BoolAttribute{
-				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node.",
+				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node. This is set by Infinity.",
 			},
 			"deployment_type": schema.StringAttribute{
 				Optional:            true,
@@ -157,6 +158,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(192),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The domain of the worker VM. Maximum length: 250 characters.",
 			},
@@ -180,12 +184,18 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The gateway address for the worker VM.",
 			},
 			"hostname": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(63),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The hostname for this Conferencing Node. Each Conferencing Node must have a unique DNS hostname. Maximum length: 63 characters.",
 			},
@@ -194,12 +204,18 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "The IPv6 address of the conferencing node. Maximum length: 250 characters.",
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The IPv6 gateway for the conferencing node. Maximum length: 250 characters.",
 			},
@@ -218,12 +234,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				},
 				MarkdownDescription: "The reason for maintenance mode. Maximum length: 250 characters.",
 			},
-			"managed": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether the conferencing node is managed by the Infinity service. Defaults to false.",
-			},
 			"media_priority_weight": schema.Int64Attribute{
 				Optional:            true,
 				Computed:            true,
@@ -241,6 +251,9 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "The IPv4 network mask for this Conferencing Node.",
 			},
@@ -275,24 +288,6 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 					validators.IPAddress(),
 				},
 				MarkdownDescription: "The optional secondary interface IPv4 netmask for this Conferencing Node.",
-			},
-			"service_manager": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle Service Manager.",
-			},
-			"service_policy": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle Service Policy.",
-			},
-			"signalling": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Handle signalling",
 			},
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
@@ -395,10 +390,8 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"transcoding": schema.BoolAttribute{
-				Optional:            true,
 				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "This determines the Conferencing Node's role. When transcoding is enabled, this node can handle all the media processing, protocol interworking, mixing and so on that is required in hosting Pexip Infinity calls and conferences. When transcoding is disabled, it becomes a Proxying Edge Node that can only handle the media and signaling connections with an endpoint or external device, and it then forwards the device's media on to a node that does have transcoding capabilities.",
+				MarkdownDescription: "This determines the Conferencing Node's role. This is set by Infinity. When transcoding is enabled, this node can handle all the media processing, protocol interworking, mixing and so on that is required in hosting Pexip Infinity calls and conferences. When transcoding is disabled, it becomes a Proxying Edge Node that can only handle the media and signaling connections with an endpoint or external device, and it then forwards the device's media on to a node that does have transcoding capabilities.",
 			},
 			"vm_cpu_count": schema.Int64Attribute{
 				Optional: true,
@@ -425,6 +418,35 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 		},
 		MarkdownDescription: "Manages a worker VM configuration with the Infinity service.",
+	}
+}
+
+func (r *InfinityWorkerVMResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// If this is a destroy operation, no need to check for warnings
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// If we don't have state (create operation), no need to check for warnings
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan InfinityWorkerVMResourceModel
+	var state InfinityWorkerVMResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Warn if node_type or system_location are changing
+	if !plan.NodeType.Equal(state.NodeType) || !plan.SystemLocation.Equal(state.SystemLocation) {
+		resp.Diagnostics.AddWarning(
+			"Calls will be disconnected",
+			"Updating node_type or system_location will cause all active calls to be disconnected and the node to be restarted.",
+		)
 	}
 }
 
@@ -603,10 +625,6 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 	data.DeploymentType = types.StringValue(deployType)
 	data.Transcoding = types.BoolValue(srv.Transcoding)
 	data.CloudBursting = types.BoolValue(srv.CloudBursting)
-	data.Managed = types.BoolValue(srv.Managed)
-	data.ServiceManager = types.BoolValue(srv.ServiceManager)
-	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
-	data.Signalling = types.BoolValue(srv.Signalling)
 	// value not returned by API
 	data.Password = types.StringValue(password)
 	data.MaintenanceMode = types.BoolValue(srv.MaintenanceMode)
@@ -631,9 +649,6 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 	data.SecondaryAddress = types.StringPointerValue(srv.SecondaryAddress)
 	data.SecondaryNetmask = types.StringPointerValue(srv.SecondaryNetmask)
 	data.StaticNATAddress = types.StringPointerValue(srv.StaticNATAddress)
-	data.ServiceManager = types.BoolValue(srv.ServiceManager)
-	data.ServicePolicy = types.BoolValue(srv.ServicePolicy)
-	data.Signalling = types.BoolValue(srv.Signalling)
 	data.SSHAuthorizedKeysUseCloud = types.BoolValue(srv.SSHAuthorizedKeysUseCloud)
 
 	// Handle nullable integer fields
@@ -780,15 +795,6 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 	}
 	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
 		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
-	if !plan.ServiceManager.IsNull() {
-		updateRequest.ServiceManager = plan.ServiceManager.ValueBool()
-	}
-	if !plan.ServicePolicy.IsNull() {
-		updateRequest.ServicePolicy = plan.ServicePolicy.ValueBool()
-	}
-	if !plan.Signalling.IsNull() {
-		updateRequest.Signalling = plan.Signalling.ValueBool()
 	}
 
 	// Set optional fields that are nullable

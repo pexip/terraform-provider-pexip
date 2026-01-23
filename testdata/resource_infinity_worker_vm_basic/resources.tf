@@ -18,7 +18,6 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   ipv6_gateway                  = "2001:db8::fe"
   node_type                     = "CONFERENCING"
   deployment_type               = "MANUAL-PROVISION-ONLY"
-  transcoding                   = true
   password                      = "password-initial"
   maintenance_mode              = true
   maintenance_mode_reason       = "test-value"
@@ -38,8 +37,4 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   snmp_username                 = "snmp-user1"
   enable_ssh                    = "ON"
   enable_distributed_database   = false
-  service_manager               = true
-  service_policy                = true
-  signalling                    = true
-  managed                       = false
 }
