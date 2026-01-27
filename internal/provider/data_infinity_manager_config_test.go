@@ -20,6 +20,11 @@ func TestInfinityManagerConfig(t *testing.T) {
 	t.Parallel()
 	os.Setenv("TF_ACC", "1")
 
+	// Register cleanup function to remove test artifacts
+	t.Cleanup(func() {
+		_ = os.Remove("data_infinity_manager_config_basic_rendered.txt")
+	})
+
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 

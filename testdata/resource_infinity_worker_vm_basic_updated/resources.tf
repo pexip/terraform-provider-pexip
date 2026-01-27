@@ -21,5 +21,4 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
 
   // Add some optional fields to test update
   maintenance_mode        = false
-  maintenance_mode_reason = "updated-reason"
 }

@@ -24,6 +24,12 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
+	// Register cleanup function to remove test artifacts
+	t.Cleanup(func() {
+		_ = os.Remove("earth.mp4")
+		_ = os.Remove("rain.mp4")
+	})
+
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
