@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -81,10 +82,12 @@ func (r *InfinityWebappAliasResource) Schema(ctx context.Context, req resource.S
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the webapp alias. Maximum length: 500 characters.",
+				MarkdownDescription: "Description of the webapp alias. Maximum length: 250 characters.",
 			},
 			"webapp_type": schema.StringAttribute{
 				Required: true,
@@ -194,14 +197,16 @@ func (r *InfinityWebappAliasResource) read(ctx context.Context, resourceID int) 
 	data.IsEnabled = types.BoolValue(srv.IsEnabled)
 
 	// Handle optional pointer fields
+	// Convert bundle from SDK to Terraform format
 	if srv.Bundle != nil {
-		data.Bundle = types.StringValue(*srv.Bundle)
+		data.Bundle = types.StringValue(fmt.Sprintf("/api/admin/configuration/v1/software_bundle_revision/%d/", srv.Bundle.ID))
 	} else {
 		data.Bundle = types.StringNull()
 	}
 
+	// Convert branding from SDK to Terraform format
 	if srv.Branding != nil {
-		data.Branding = types.StringValue(*srv.Branding)
+		data.Branding = types.StringValue(fmt.Sprintf("/api/admin/configuration/v1/webapp_branding/%s/", srv.Branding.UUID))
 	} else {
 		data.Branding = types.StringNull()
 	}

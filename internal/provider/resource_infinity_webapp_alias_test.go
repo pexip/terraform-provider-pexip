@@ -68,12 +68,9 @@ func TestInfinityWebappAlias(t *testing.T) {
 		if updateReq.IsEnabled != nil {
 			mockState.IsEnabled = *updateReq.IsEnabled
 		}
-		if updateReq.Bundle != nil {
-			mockState.Bundle = updateReq.Bundle
-		}
-		if updateReq.Branding != nil {
-			mockState.Branding = updateReq.Branding
-		}
+		// Note: Bundle and Branding are sent as string URIs in requests,
+		// but returned as objects in responses. We don't update them in the mock
+		// since the test doesn't use these fields.
 
 		// Return updated state
 		*webapp_alias = *mockState
