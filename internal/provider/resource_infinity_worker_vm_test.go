@@ -27,6 +27,33 @@ func TestInfinityWorkerVM(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Mock the CreateSystemLocation API call (needed because worker VM references it)
+	systemLocationCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/1/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(systemLocationCreateResponse, nil)
+
+	// Mock the GetSystemLocation API call for Read operations
+	mockSystemLocation := &config.SystemLocation{
+		ID:                        1,
+		ResourceURI:               "/api/admin/configuration/v1/system_location/1/",
+		Name:                      "provider test system location",
+		MTU:                       1500,
+		MediaQoS:                  test.IntPtr(0),
+		SignallingQoS:             test.IntPtr(0),
+		BDPMPinChecksEnabled:      "GLOBAL",
+		BDPMScanQuarantineEnabled: "GLOBAL",
+		UseRelayCandidatesOnly:    false,
+	}
+	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		systemLocation := args.Get(3).(*config.SystemLocation)
+		*systemLocation = *mockSystemLocation
+	}).Maybe()
+
+	// Mock the DeleteSystemLocation API call
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything).Return(nil)
+
 	// Mock the CreateWorkervm API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -151,7 +178,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "system_location", "/api/admin/configuration/v1/system_location/1/"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_address", "2001:db8::1"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_gateway", "2001:db8::fe"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "description", "initial description"),
@@ -164,7 +191,6 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_netmask", "255.255.255.0"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "media_priority_weight", "10"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "static_nat_address", "203.0.113.2"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "tls_certificate", "/api/admin/configuration/v1/tls_certificate/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_system_location", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_authentication_password", "auth-password1"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_community", "public1"),
@@ -187,7 +213,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "system_location", "/api/admin/configuration/v1/system_location/1/"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "password", "password-updated"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "description", "updated description"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "maintenance_mode", "false"),

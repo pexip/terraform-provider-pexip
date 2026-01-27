@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+resource "pexip_infinity_system_location" "test" {
+  name = "provider test system location"
+}
+
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
   name            = "worker-vm-test"
   hostname        = "worker-vm-test"
@@ -11,7 +15,7 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   address         = "192.168.1.10"
   netmask         = "255.255.255.0"
   gateway         = "192.168.1.1"
-  system_location = "/api/admin/configuration/v1/system_location/1/"
+  system_location = pexip_infinity_system_location.test.id
   password        = "password-updated"
   description     = "updated description"
 
