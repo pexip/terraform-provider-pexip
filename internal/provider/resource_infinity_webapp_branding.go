@@ -34,6 +34,7 @@ type InfinityWebappBrandingResource struct {
 }
 
 type InfinityWebappBrandingResourceModel struct {
+	ID           types.String `tfsdk:"id"`
 	Name         types.String `tfsdk:"name"`
 	Description  types.String `tfsdk:"description"`
 	UUID         types.String `tfsdk:"uuid"`
@@ -66,6 +67,10 @@ func (r *InfinityWebappBrandingResource) Configure(ctx context.Context, req reso
 func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Resource URI for the webapp branding package in Infinity",
+			},
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
@@ -195,6 +200,7 @@ func (r *InfinityWebappBrandingResource) read(ctx context.Context, uuid string, 
 		return nil, fmt.Errorf("webapp branding with UUID '%s' not found", uuid)
 	}
 
+	data.ID = types.StringValue(srv.ResourceURI)
 	data.Name = types.StringValue(srv.Name)
 	data.Description = types.StringValue(srv.Description)
 	data.UUID = types.StringValue(srv.UUID)
