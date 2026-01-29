@@ -14,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -31,71 +34,110 @@ type InfinityMsExchangeConnectorResource struct {
 }
 
 type InfinityMsExchangeConnectorResourceModel struct {
-	ID                                         types.String `tfsdk:"id"`
-	ResourceID                                 types.Int32  `tfsdk:"resource_id"`
-	Name                                       types.String `tfsdk:"name"`
-	Description                                types.String `tfsdk:"description"`
-	RoomMailboxEmailAddress                    types.String `tfsdk:"room_mailbox_email_address"`
-	RoomMailboxName                            types.String `tfsdk:"room_mailbox_name"`
-	URL                                        types.String `tfsdk:"url"`
-	Username                                   types.String `tfsdk:"username"`
-	Password                                   types.String `tfsdk:"password"`
-	AuthenticationMethod                       types.String `tfsdk:"authentication_method"`
-	AuthProvider                               types.String `tfsdk:"auth_provider"`
-	UUID                                       types.String `tfsdk:"uuid"`
-	ScheduledAliasPrefix                       types.String `tfsdk:"scheduled_alias_prefix"`
-	ScheduledAliasDomain                       types.String `tfsdk:"scheduled_alias_domain"`
-	ScheduledAliasSuffixLength                 types.Int64  `tfsdk:"scheduled_alias_suffix_length"`
-	MeetingBufferBefore                        types.Int64  `tfsdk:"meeting_buffer_before"`
-	MeetingBufferAfter                         types.Int64  `tfsdk:"meeting_buffer_after"`
-	EnableDynamicVmrs                          types.Bool   `tfsdk:"enable_dynamic_vmrs"`
-	EnablePersonalVmrs                         types.Bool   `tfsdk:"enable_personal_vmrs"`
-	AllowNewUsers                              types.Bool   `tfsdk:"allow_new_users"`
-	DisableProxy                               types.Bool   `tfsdk:"disable_proxy"`
-	UseCustomAddInSources                      types.Bool   `tfsdk:"use_custom_add_in_sources"`
-	EnableAddinDebugLogs                       types.Bool   `tfsdk:"enable_addin_debug_logs"`
-	OauthClientID                              types.String `tfsdk:"oauth_client_id"`
-	OauthClientSecret                          types.String `tfsdk:"oauth_client_secret"`
-	OauthAuthEndpoint                          types.String `tfsdk:"oauth_auth_endpoint"`
-	OauthTokenEndpoint                         types.String `tfsdk:"oauth_token_endpoint"`
-	OauthRedirectURI                           types.String `tfsdk:"oauth_redirect_uri"`
-	OauthRefreshToken                          types.String `tfsdk:"oauth_refresh_token"`
-	OauthState                                 types.String `tfsdk:"oauth_state"`
-	KerberosRealm                              types.String `tfsdk:"kerberos_realm"`
-	KerberosKdc                                types.String `tfsdk:"kerberos_kdc"`
-	KerberosKdcHttpsProxy                      types.String `tfsdk:"kerberos_kdc_https_proxy"`
-	KerberosExchangeSpn                        types.String `tfsdk:"kerberos_exchange_spn"`
-	KerberosEnableTls                          types.Bool   `tfsdk:"kerberos_enable_tls"`
-	KerberosAuthEveryRequest                   types.Bool   `tfsdk:"kerberos_auth_every_request"`
-	KerberosVerifyTlsUsingCustomCa             types.Bool   `tfsdk:"kerberos_verify_tls_using_custom_ca"`
-	AddinServerDomain                          types.String `tfsdk:"addin_server_domain"`
-	AddinDisplayName                           types.String `tfsdk:"addin_display_name"`
-	AddinDescription                           types.String `tfsdk:"addin_description"`
-	AddinProviderName                          types.String `tfsdk:"addin_provider_name"`
-	AddinButtonLabel                           types.String `tfsdk:"addin_button_label"`
-	AddinGroupLabel                            types.String `tfsdk:"addin_group_label"`
-	AddinSupertipTitle                         types.String `tfsdk:"addin_supertip_title"`
-	AddinSupertipDescription                   types.String `tfsdk:"addin_supertip_description"`
-	AddinApplicationID                         types.String `tfsdk:"addin_application_id"`
-	AddinAuthorityURL                          types.String `tfsdk:"addin_authority_url"`
-	AddinOidcMetadataURL                       types.String `tfsdk:"addin_oidc_metadata_url"`
-	AddinAuthenticationMethod                  types.String `tfsdk:"addin_authentication_method"`
-	AddinNaaWebApiApplicationID                types.String `tfsdk:"addin_naa_web_api_application_id"`
-	PersonalVmrOauthClientID                   types.String `tfsdk:"personal_vmr_oauth_client_id"`
-	PersonalVmrOauthClientSecret               types.String `tfsdk:"personal_vmr_oauth_client_secret"`
-	PersonalVmrOauthAuthEndpoint               types.String `tfsdk:"personal_vmr_oauth_auth_endpoint"`
-	PersonalVmrOauthTokenEndpoint              types.String `tfsdk:"personal_vmr_oauth_token_endpoint"`
-	PersonalVmrAdfsRelyingPartyTrustIdentifier types.String `tfsdk:"personal_vmr_adfs_relying_party_trust_identifier"`
-	OfficeJsURL                                types.String `tfsdk:"office_js_url"`
-	MicrosoftFabricURL                         types.String `tfsdk:"microsoft_fabric_url"`
-	MicrosoftFabricComponentsURL               types.String `tfsdk:"microsoft_fabric_components_url"`
-	AdditionalAddInScriptSources               types.String `tfsdk:"additional_add_in_script_sources"`
-	Domains                                    types.String `tfsdk:"domains"`
-	HostIdentityProviderGroup                  types.String `tfsdk:"host_identity_provider_group"`
-	IvrTheme                                   types.String `tfsdk:"ivr_theme"`
-	NonIdpParticipants                         types.String `tfsdk:"non_idp_participants"`
-	PrivateKey                                 types.String `tfsdk:"private_key"`
-	PublicKey                                  types.String `tfsdk:"public_key"`
+	ID                                               types.String `tfsdk:"id"`
+	ResourceID                                       types.Int32  `tfsdk:"resource_id"`
+	Name                                             types.String `tfsdk:"name"`
+	Description                                      types.String `tfsdk:"description"`
+	RoomMailboxEmailAddress                          types.String `tfsdk:"room_mailbox_email_address"`
+	RoomMailboxName                                  types.String `tfsdk:"room_mailbox_name"`
+	URL                                              types.String `tfsdk:"url"`
+	Username                                         types.String `tfsdk:"username"`
+	Password                                         types.String `tfsdk:"password"`
+	AuthenticationMethod                             types.String `tfsdk:"authentication_method"`
+	AuthProvider                                     types.String `tfsdk:"auth_provider"`
+	UUID                                             types.String `tfsdk:"uuid"`
+	ScheduledAliasPrefix                             types.String `tfsdk:"scheduled_alias_prefix"`
+	ScheduledAliasDomain                             types.String `tfsdk:"scheduled_alias_domain"`
+	ScheduledAliasSuffixLength                       types.Int64  `tfsdk:"scheduled_alias_suffix_length"`
+	MeetingBufferBefore                              types.Int64  `tfsdk:"meeting_buffer_before"`
+	MeetingBufferAfter                               types.Int64  `tfsdk:"meeting_buffer_after"`
+	EnableDynamicVmrs                                types.Bool   `tfsdk:"enable_dynamic_vmrs"`
+	EnablePersonalVmrs                               types.Bool   `tfsdk:"enable_personal_vmrs"`
+	AllowNewUsers                                    types.Bool   `tfsdk:"allow_new_users"`
+	DisableProxy                                     types.Bool   `tfsdk:"disable_proxy"`
+	UseCustomAddInSources                            types.Bool   `tfsdk:"use_custom_add_in_sources"`
+	EnableAddinDebugLogs                             types.Bool   `tfsdk:"enable_addin_debug_logs"`
+	OauthClientID                                    types.String `tfsdk:"oauth_client_id"`
+	OauthClientSecret                                types.String `tfsdk:"oauth_client_secret"`
+	OauthAuthEndpoint                                types.String `tfsdk:"oauth_auth_endpoint"`
+	OauthTokenEndpoint                               types.String `tfsdk:"oauth_token_endpoint"`
+	OauthRedirectURI                                 types.String `tfsdk:"oauth_redirect_uri"`
+	OauthRefreshToken                                types.String `tfsdk:"oauth_refresh_token"`
+	OauthState                                       types.String `tfsdk:"oauth_state"`
+	KerberosRealm                                    types.String `tfsdk:"kerberos_realm"`
+	KerberosKdc                                      types.String `tfsdk:"kerberos_kdc"`
+	KerberosKdcHttpsProxy                            types.String `tfsdk:"kerberos_kdc_https_proxy"`
+	KerberosExchangeSpn                              types.String `tfsdk:"kerberos_exchange_spn"`
+	KerberosEnableTls                                types.Bool   `tfsdk:"kerberos_enable_tls"`
+	KerberosAuthEveryRequest                         types.Bool   `tfsdk:"kerberos_auth_every_request"`
+	KerberosVerifyTlsUsingCustomCa                   types.Bool   `tfsdk:"kerberos_verify_tls_using_custom_ca"`
+	AddinServerDomain                                types.String `tfsdk:"addin_server_domain"`
+	AddinDisplayName                                 types.String `tfsdk:"addin_display_name"`
+	AddinDescription                                 types.String `tfsdk:"addin_description"`
+	AddinProviderName                                types.String `tfsdk:"addin_provider_name"`
+	AddinButtonLabel                                 types.String `tfsdk:"addin_button_label"`
+	AddinGroupLabel                                  types.String `tfsdk:"addin_group_label"`
+	AddinSupertipTitle                               types.String `tfsdk:"addin_supertip_title"`
+	AddinSupertipDescription                         types.String `tfsdk:"addin_supertip_description"`
+	AddinApplicationID                               types.String `tfsdk:"addin_application_id"`
+	AddinAuthorityURL                                types.String `tfsdk:"addin_authority_url"`
+	AddinOidcMetadataURL                             types.String `tfsdk:"addin_oidc_metadata_url"`
+	AddinAuthenticationMethod                        types.String `tfsdk:"addin_authentication_method"`
+	AddinNaaWebApiApplicationID                      types.String `tfsdk:"addin_naa_web_api_application_id"`
+	PersonalVmrOauthClientID                         types.String `tfsdk:"personal_vmr_oauth_client_id"`
+	PersonalVmrOauthClientSecret                     types.String `tfsdk:"personal_vmr_oauth_client_secret"`
+	PersonalVmrOauthAuthEndpoint                     types.String `tfsdk:"personal_vmr_oauth_auth_endpoint"`
+	PersonalVmrOauthTokenEndpoint                    types.String `tfsdk:"personal_vmr_oauth_token_endpoint"`
+	PersonalVmrAdfsRelyingPartyTrustIdentifier       types.String `tfsdk:"personal_vmr_adfs_relying_party_trust_identifier"`
+	OfficeJsURL                                      types.String `tfsdk:"office_js_url"`
+	MicrosoftFabricURL                               types.String `tfsdk:"microsoft_fabric_url"`
+	MicrosoftFabricComponentsURL                     types.String `tfsdk:"microsoft_fabric_components_url"`
+	AdditionalAddInScriptSources                     types.String `tfsdk:"additional_add_in_script_sources"`
+	Domains                                          types.Set    `tfsdk:"domains"`
+	HostIdentityProviderGroup                        types.String `tfsdk:"host_identity_provider_group"`
+	IvrTheme                                         types.String `tfsdk:"ivr_theme"`
+	NonIdpParticipants                               types.String `tfsdk:"non_idp_participants"`
+	PrivateKey                                       types.String `tfsdk:"private_key"`
+	PublicKey                                        types.String `tfsdk:"public_key"`
+	AcceptEditedOccurrenceTemplate                   types.String `tfsdk:"accept_edited_occurrence_template"`
+	AcceptEditedRecurringSeriesTemplate              types.String `tfsdk:"accept_edited_recurring_series_template"`
+	AcceptEditedSingleMeetingTemplate                types.String `tfsdk:"accept_edited_single_meeting_template"`
+	AcceptNewRecurringSeriesTemplate                 types.String `tfsdk:"accept_new_recurring_series_template"`
+	AcceptNewSingleMeetingTemplate                   types.String `tfsdk:"accept_new_single_meeting_template"`
+	ConferenceDescriptionTemplate                    types.String `tfsdk:"conference_description_template"`
+	ConferenceNameTemplate                           types.String `tfsdk:"conference_name_template"`
+	ConferenceSubjectTemplate                        types.String `tfsdk:"conference_subject_template"`
+	MeetingInstructionsTemplate                      types.String `tfsdk:"meeting_instructions_template"`
+	PersonalVmrDescriptionTemplate                   types.String `tfsdk:"personal_vmr_description_template"`
+	PersonalVmrInstructionsTemplate                  types.String `tfsdk:"personal_vmr_instructions_template"`
+	PersonalVmrLocationTemplate                      types.String `tfsdk:"personal_vmr_location_template"`
+	PersonalVmrNameTemplate                          types.String `tfsdk:"personal_vmr_name_template"`
+	PlaceholderInstructionsTemplate                  types.String `tfsdk:"placeholder_instructions_template"`
+	RejectAliasConflictTemplate                      types.String `tfsdk:"reject_alias_conflict_template"`
+	RejectAliasDeletedTemplate                       types.String `tfsdk:"reject_alias_deleted_template"`
+	RejectGeneralErrorTemplate                       types.String `tfsdk:"reject_general_error_template"`
+	RejectInvalidAliasIDTemplate                     types.String `tfsdk:"reject_invalid_alias_id_template"`
+	RejectRecurringSeriesPastTemplate                types.String `tfsdk:"reject_recurring_series_past_template"`
+	RejectSingleMeetingPast                          types.String `tfsdk:"reject_single_meeting_past"`
+	ScheduledAliasDescriptionTemplate                types.String `tfsdk:"scheduled_alias_description_template"`
+	AddinPaneAlreadyVideoMeetingHeading              types.String `tfsdk:"addin_pane_already_video_meeting_heading"`
+	AddinPaneAlreadyVideoMeetingMessage              types.String `tfsdk:"addin_pane_already_video_meeting_message"`
+	AddinPaneButtonTitle                             types.String `tfsdk:"addin_pane_button_title"`
+	AddinPaneDescription                             types.String `tfsdk:"addin_pane_description"`
+	AddinPaneGeneralErrorHeading                     types.String `tfsdk:"addin_pane_general_error_heading"`
+	AddinPaneGeneralErrorMessage                     types.String `tfsdk:"addin_pane_general_error_message"`
+	AddinPaneManagementNodeDownHeading               types.String `tfsdk:"addin_pane_management_node_down_heading"`
+	AddinPaneManagementNodeDownMessage               types.String `tfsdk:"addin_pane_management_node_down_message"`
+	AddinPanePersonalVmrAddButton                    types.String `tfsdk:"addin_pane_personal_vmr_add_button"`
+	AddinPanePersonalVmrErrorGettingMessage          types.String `tfsdk:"addin_pane_personal_vmr_error_getting_message"`
+	AddinPanePersonalVmrErrorInsertingMeetingMessage types.String `tfsdk:"addin_pane_personal_vmr_error_inserting_meeting_message"`
+	AddinPanePersonalVmrErrorSigningInMessage        types.String `tfsdk:"addin_pane_personal_vmr_error_signing_in_message"`
+	AddinPanePersonalVmrNoneMessage                  types.String `tfsdk:"addin_pane_personal_vmr_none_message"`
+	AddinPanePersonalVmrSelectMessage                types.String `tfsdk:"addin_pane_personal_vmr_select_message"`
+	AddinPanePersonalVmrSignInButton                 types.String `tfsdk:"addin_pane_personal_vmr_sign_in_button"`
+	AddinPaneSuccessHeading                          types.String `tfsdk:"addin_pane_success_heading"`
+	AddinPaneSuccessMessage                          types.String `tfsdk:"addin_pane_success_message"`
+	AddinPaneTitle                                   types.String `tfsdk:"addin_pane_title"`
 }
 
 func (r *InfinityMsExchangeConnectorResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -140,10 +182,12 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the Microsoft Exchange connector. Maximum length: 500 characters.",
+				MarkdownDescription: "An optional description of the Secure Scheduler for Exchange Integration. Maximum length: 250 characters.",
 			},
 			"room_mailbox_email_address": schema.StringAttribute{
 				Optional:            true,
@@ -161,7 +205,9 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Exchange server URL for connectivity.",
 			},
 			"username": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Username for Exchange authentication.",
 			},
 			"password": schema.StringAttribute{
@@ -170,21 +216,25 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Password for Exchange authentication. This field is sensitive.",
 			},
 			"authentication_method": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("BASIC"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("ntlm", "basic", "kerberos", "oauth2"),
+					stringvalidator.OneOf("BASIC", "NTLM", "KERBEROS", "OAUTH", "APP_PERM"),
 				},
-				MarkdownDescription: "Authentication method for Exchange. Valid values: ntlm, basic, kerberos, oauth2.",
+				MarkdownDescription: "The method used to authenticate to Exchange",
 			},
 			"auth_provider": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("ADFS"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("azure", "adfs", "exchange"),
+					stringvalidator.OneOf("ADFS", "AZURE"),
 				},
-				MarkdownDescription: "Authentication provider. Valid values: azure, adfs, exchange.",
+				MarkdownDescription: "The method by which users will sign into the Outlook add-in.",
 			},
 			"uuid": schema.StringAttribute{
-				Required:            true,
+				Computed:            true,
 				MarkdownDescription: "UUID for the Exchange connector.",
 			},
 			"scheduled_alias_prefix": schema.StringAttribute{
@@ -199,40 +249,58 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Domain for scheduled conference aliases.",
 			},
 			"scheduled_alias_suffix_length": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "Length of the suffix for scheduled conference aliases.",
+				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(6),
+				MarkdownDescription: "The length of the random number suffix part of aliases used for scheduled conferences. Range: 5 to 15. Default: 6.",
 			},
 			"meeting_buffer_before": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "Buffer time before meetings in minutes.",
+				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(30),
+				MarkdownDescription: "The number of minutes before the meeting's scheduled start time that participants will be able to join the VMR. Range: 0 to 180. Default: 30.",
 			},
 			"meeting_buffer_after": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "Buffer time after meetings in minutes.",
+				Optional:            true,
+				Computed:            true,
+				Default:             int64default.StaticInt64(60),
+				MarkdownDescription: "The number of minutes after the meeting's scheduled end of a conference participants will be able to join the VMR. Range: 0 to 180. Default: 60.",
 			},
 			"enable_dynamic_vmrs": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to enable dynamic Virtual Meeting Rooms.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "Enable this option to allow Outlook users to schedule meetings in single-use (randomly generated) VMRs.",
 			},
 			"enable_personal_vmrs": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to enable personal Virtual Meeting Rooms.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Enable this option to allow Outlook users to schedule meetings in their personal VMRs.",
 			},
 			"allow_new_users": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to allow new users to be created.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "Disable this option to allow only those users with an existing User record to access the Outlook add-in.",
 			},
 			"disable_proxy": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to disable proxy for connections.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Disable the usage of any web proxy which may have been configured on the Management Node by this Secure Scheduler for Exchange Integration.",
 			},
 			"use_custom_add_in_sources": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to use custom add-in sources.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Enable this to specify custom locations to serve add-in JavaScript and CSS from. This can be used to support offline deployments.",
 			},
 			"enable_addin_debug_logs": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to enable debug logs for add-ins.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Enable this option to view debug logs within the add-in side pane. Note that these logs will appear for all users of this add-in.",
 			},
 			"oauth_client_id": schema.StringAttribute{
 				Optional:            true,
@@ -245,6 +313,8 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"oauth_auth_endpoint": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OAuth authorization endpoint URL.",
 			},
 			"oauth_token_endpoint": schema.StringAttribute{
@@ -253,6 +323,8 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"oauth_redirect_uri": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OAuth redirect URI for authentication flow.",
 			},
 			"oauth_refresh_token": schema.StringAttribute{
@@ -266,63 +338,90 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"kerberos_realm": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Kerberos realm for authentication.",
 			},
 			"kerberos_kdc": schema.StringAttribute{
 				Optional:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Kerberos Key Distribution Center.",
 			},
 			"kerberos_kdc_https_proxy": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "HTTPS proxy for Kerberos KDC connections.",
 			},
 			"kerberos_exchange_spn": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Kerberos Service Principal Name for Exchange.",
 			},
 			"kerberos_enable_tls": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to enable TLS for Kerberos connections.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "If enabled, all communication to the KDC will go through an HTTPS proxy and all traffic to the KDC will be encrypted using TLS.",
 			},
 			"kerberos_auth_every_request": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to authenticate every Kerberos request.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "When Kerberos authentication is enabled, send a Kerberos Authorization header in every request to the Exchange server.",
 			},
 			"kerberos_verify_tls_using_custom_ca": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to verify TLS using custom CA for Kerberos.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If enabled, use the configured Root Trust CA Certificates to verify the KDC HTTPS proxy SSL certificate. If disabled, the HTTPS proxy SSL certificate is verified using the system-wide default set of trusted certificates.",
 			},
 			"addin_server_domain": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Server domain for Exchange add-in.",
+				MarkdownDescription: "The FQDN of the reverse proxy or Conferencing Node that provides the add-in content. The FQDN must have a valid certificate. Maximum length: 192 characters.",
 			},
 			"addin_display_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Display name for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Pexip Scheduling Service"),
+				MarkdownDescription: "The display name of the add-in. Maximum length: 250 characters.",
 			},
 			"addin_description": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Description for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Turns meetings into Pexip meetings"),
+				MarkdownDescription: "The description of the add-in. Maximum length: 250 characters.",
 			},
 			"addin_provider_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Provider name for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Pexip"),
+				MarkdownDescription: "The name of the organization which provides the add-in. Maximum length: 250 characters.",
 			},
 			"addin_button_label": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Button label for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Create a Pexip meeting"),
+				MarkdownDescription: "The label for the add-in button on desktop clients. Maximum length: 250 characters.",
 			},
 			"addin_group_label": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Group label for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Pexip meeting"),
+				MarkdownDescription: "The name of the group in which to place the add-in button on desktop clients. Maximum length: 250 characters.",
 			},
 			"addin_supertip_title": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Supertip title for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Makes this a Pexip meeting"),
+				MarkdownDescription: "The title of the supertip help text for the add-in button on desktop clients. Maximum length: 250 characters.",
 			},
 			"addin_supertip_description": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Supertip description for the Exchange add-in.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Turns this meeting into an audio or video conference hosted in a Pexip VMR. The meeting is not scheduled until you select Send."),
+				MarkdownDescription: "The text of the supertip for the add-in button on desktop clients. Maximum length: 250 characters.",
 			},
 			"addin_application_id": schema.StringAttribute{
 				Optional:            true,
@@ -330,18 +429,24 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"addin_authority_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Authority URL for add-in authentication.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "The Authority URL copied from the App Registration created in Microsoft Entra for add-in authentication. Maximum length: 255 characters.",
 			},
 			"addin_oidc_metadata_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OIDC metadata URL for add-in authentication.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "The OpenID Connect metadata document copied from the App Registration created in Microsoft Entra for add-in authentication. Maximum length: 255 characters.",
 			},
 			"addin_authentication_method": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("EXCHANGE_USER_ID_TOKEN"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("web_api", "naa"),
+					stringvalidator.OneOf("EXCHANGE_USER_ID_TOKEN", "SSO_TOKEN", "NAA_TOKEN"),
 				},
-				MarkdownDescription: "Authentication method for add-in. Valid values: web_api, naa.",
+				MarkdownDescription: "The type of token the Outlook add-in uses to authenticate to Pexip",
 			},
 			"addin_naa_web_api_application_id": schema.StringAttribute{
 				Optional:            true,
@@ -349,44 +454,63 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"personal_vmr_oauth_client_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OAuth client ID for personal VMR integration.",
+				Computed:            true,
+				Default:             stringdefault.StaticString("4189c2b4-92ca-416c-b7ea-bc3cfab3d0f0"),
+				MarkdownDescription: "The client ID of the OAuth application used to authenticate users when signing in to the Outlook add-in.",
 			},
 			"personal_vmr_oauth_client_secret": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				Sensitive:           true,
-				MarkdownDescription: "OAuth client secret for personal VMR integration. This field is sensitive.",
+				MarkdownDescription: "The client secret of the OAuth application created for signing in users in the Outlook add-in.",
 			},
 			"personal_vmr_oauth_auth_endpoint": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OAuth authorization endpoint for personal VMR integration.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "The authorization URI of the OAuth application used to authenticate users when signing in to the Outlook add-in. Maximum length: 255 characters.",
 			},
 			"personal_vmr_oauth_token_endpoint": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OAuth token endpoint for personal VMR integration.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "The token URI of the OAuth application used to authenticate users when signing in to the Outlook add-in. Maximum length: 255 characters.",
 			},
 			"personal_vmr_adfs_relying_party_trust_identifier": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "ADFS relying party trust identifier for personal VMR integration.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "The URL which identifies the OAuth 2.0 resource on AD FS. Maximum length: 255 characters.",
 			},
 			"office_js_url": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Office.js library URL for add-in functionality.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("https://appsforoffice.microsoft.com/lib/1/hosted/office.js"),
+				MarkdownDescription: "The URL used to download the Office.js JavaScript library. Maximum length: 255 characters.",
 			},
 			"microsoft_fabric_url": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Microsoft Fabric URL for add-in styling.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("https://appsforoffice.microsoft.com/fabric/1.0/fabric.min.css"),
+				MarkdownDescription: "The URL used to download the Microsoft Fabric CSS. Maximum length: 255 characters.",
 			},
 			"microsoft_fabric_components_url": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Microsoft Fabric Components URL for add-in styling.",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("https://appsforoffice.microsoft.com/fabric/1.0/fabric.components.min.css"),
+				MarkdownDescription: "The URL used to download the Microsoft Fabric Components CSS. Maximum length: 255 characters.",
 			},
 			"additional_add_in_script_sources": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Additional script sources for add-in functionality.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optionally specify additional URLs to download JavaScript script files. Each URL must be entered on a separate line. Maximum length: 4096 characters.",
 			},
-			"domains": schema.StringAttribute{
+			"domains": schema.SetAttribute{
+				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "URI reference to associated domains resource.",
+				MarkdownDescription: "List of Exchange Metadata Domain URIs associated with this connector.",
 			},
 			"host_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
@@ -397,8 +521,13 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "URI reference to IVR theme resource.",
 			},
 			"non_idp_participants": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Configuration for non-IDP participants.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("disallow_all"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("allow_if_trusted", "disallow_all"),
+				},
+				MarkdownDescription: "Determines whether participants attempting to join from devices other than the Infinity Connect apps (for example, SIP or H.323 endpoints) are permitted to join the conference when authentication is required. Disallow all: these devices may not join the conference. Allow if trusted: these devices may join the conference if they are locally registered.",
 			},
 			"private_key": schema.StringAttribute{
 				Computed:            true,
@@ -408,6 +537,240 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"public_key": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Public key for Exchange connector. This field is computed.",
+			},
+			"accept_edited_occurrence_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited occurrence in a recurring series. Maximum length: 12288 characters.",
+			},
+			"accept_edited_recurring_series_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring meeting series has been successfully rescheduled.<br>\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited recurring meeting. Maximum length: 12288 characters.",
+			},
+			"accept_edited_single_meeting_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited single meeting. Maximum length: 12288 characters.",
+			},
+			"accept_new_recurring_series_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring meeting series has been successfully scheduled.<br>\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules a new recurring meeting. Maximum length: 12288 characters.",
+			},
+			"accept_new_single_meeting_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting has been successfully scheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules a new single meeting. Maximum length: 12288 characters.",
+			},
+			"conference_description_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Scheduled Conference booked by {{organizer_email}}"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the description of scheduled conferences. Maximum length: 12288 characters.",
+			},
+			"conference_name_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{{subject}} ({{organizer_name}})"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the name of scheduled conferences. Please note conference names must be unique so a random number may be appended if the name that is generated is already in use by another service. Maximum length: 12288 characters.",
+			},
+			"conference_subject_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{{subject}}"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the subject field of scheduled conferences. By default this will use the subject line of the meeting invitation but this field can be deleted or amended if you do not want the subject to be visible to administrators. Maximum length: 12288 characters.",
+			},
+			"meeting_instructions_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<br>\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\n<br>\nFrom a VC endpoint or a Skype/Lync client:<br>\n{{alias}}<br>\n<br>\nFrom a web browser:<br>\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\n<br>\nFrom a Pexip Infinity Connect client:<br>\npexip://{{alias}}<br>\n<br>\nFrom a telephone:<br>\n[Your number], then {{numeric_alias}} #<br>\n<br>\n{{alias_uuid}}<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to generate the instructions added by the scheduling service to the body of the meeting request when a single-use VMR is being used. Maximum length: 12288 characters.",
+			},
+			"personal_vmr_description_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{{description}}"),
+				MarkdownDescription: "A Jinja2 template that is used to generate the description of the personal VMR, shown to users when they hover over the button. Maximum length: 12288 characters.",
+			},
+			"personal_vmr_instructions_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{% if domain_aliases %}\n    {% set alias = domain_aliases[0] %}\n{% elif other_aliases %}\n    {% set alias = other_aliases[0] %}\n{% else %}\n    {% set alias = numeric_aliases[0] %}\n{% endif %}\n{% if (not allow_guests) and pin %}\n    {% set meeting_pin = pin %}\n{% elif allow_guests and guest_pin %}\n    {% set meeting_pin = guest_pin %}\n{% else %}\n    {% set meeting_pin = \"\" %}\n{% endif %}\n<br>\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\n<br>\nFrom a VC endpoint or a Skype/Lync client:<br>\n{{alias}}<br>\n<br>\nFrom a web browser:<br>\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\n<br>\nFrom a Pexip Infinity Connect client:<br>\npexip://{{alias}}<br>\n<br>\n{% if numeric_aliases %}\nFrom a telephone:<br>\n[Your number], then {{numeric_aliases[0]}} #<br>\n<br>\n{% endif %}\n{% if meeting_pin %}\nPlease join using the PIN <b>{{meeting_pin}}</b><br>\n<br>\n{% endif %}\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the joining instructions added by the scheduling service to the body of the meeting request when a personal VMR is being used. Maximum length: 12288 characters.",
+			},
+			"personal_vmr_location_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{% if domain_aliases %}\n    {% set alias = domain_aliases[0] %}\n{% elif other_aliases %}\n    {% set alias = other_aliases[0] %}\n{% else %}\n    {% set alias = numeric_aliases[0] %}\n{% endif %}\nhttps://{{addin_server_domain}}/webapp/#/?conference={{alias}}"),
+				MarkdownDescription: "A Jinja2 template that is used to generate the text that will be inserted into the Location field of the meeting request when a personal VMR is being used. Maximum length: 12288 characters.",
+			},
+			"personal_vmr_name_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("{{name}}"),
+				MarkdownDescription: "A Jinja2 template that is used to generate the name of the personal VMR, as it appears on the button offered to users. Maximum length: 12288 characters.",
+			},
+			"placeholder_instructions_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting will be hosted in a Virtual Meeting Room. Joining instructions will be<br>\nsent to you soon in a separate email.<br>\n</div>"),
+				MarkdownDescription: "The text that is added by the scheduling service to email messages when the actual joining instructions cannot be obtained. Maximum length: 12288 characters.",
+			},
+			"reject_alias_conflict_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting because the alias: {{alias}} is already <br>\nin use by another Pexip Virtual Meeting Room. Please try creating a new meeting.<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias conflicts with an existing alias. Maximum length: 12288 characters.",
+			},
+			"reject_alias_deleted_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting because its alias has been deleted.<br>\nPlease try creating a new meeting.<br>\n</div>"),
+				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias for this meeting has been deleted. Maximum length: 12288 characters.",
+			},
+			"reject_general_error_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting. Please try creating a new meeting.<br>\nIf this issue continues, please forward this message to your system administrator, including the following ID:<br>\nCorrelationID=\"{{correlation_id}}\".<br>\n</div>"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers when the scheduling service fails to schedule a meeting because a general error occurred. Maximum length: 12288 characters.",
+			},
+			"reject_invalid_alias_id_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting request does not contain currently valid scheduling data, and therefore cannot be processed.<br>\nPlease use the add-in to create a new meeting request, without editing any of the content that is inserted by the add-in.<br>\nIf this issue continues, please contact your system administrator.<br>\n</div>"),
+				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias ID in the meeting email is invalid. Maximum length: 12288 characters.",
+			},
+			"reject_recurring_series_past_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring series cannot be scheduled because all<br>\noccurrences happen in the past.<br>\n</div>"),
+				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a recurring meeting because all occurrences occur in the past. Maximum length: 12288 characters.",
+			},
+			"reject_single_meeting_past": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting cannot be scheduled because it occurs in the past.<br>\n</div>"),
+				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because it occurs in the past. Maximum length: 12288 characters.",
+			},
+			"scheduled_alias_description_template": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Scheduled Conference booked by {{organizer_email}}"),
+				MarkdownDescription: "A Jinja2 template that is used to produce the description of scheduled conference aliases. Maximum length: 12288 characters.",
+			},
+			"addin_pane_already_video_meeting_heading": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("VMR already assigned"),
+				MarkdownDescription: "The heading that appears on the side pane when the add-in is activated after an alias has already been obtained for the meeting. Maximum length: 250 characters.",
+			},
+			"addin_pane_already_video_meeting_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("It looks like this meeting has already been set up to be hosted in a Virtual Meeting Room. If this is a new meeting, select Send to schedule the conference."),
+				MarkdownDescription: "The message that appears on the side pane when the add-in is activated after an alias has already been obtained for the meeting. Maximum length: 250 characters.",
+			},
+			"addin_pane_button_title": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Add a Single-use VMR"),
+				MarkdownDescription: "The label of the button on the side pane used to add a single-use VMR. Maximum length: 250 characters.",
+			},
+			"addin_pane_description": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("This assigns a Virtual Meeting Room for your meeting"),
+				MarkdownDescription: "The description of the add-in on the side pane. Maximum length: 250 characters.",
+			},
+			"addin_pane_general_error_heading": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Error"),
+				MarkdownDescription: "The heading that appears on the side pane when an error occurs trying to add the joining instructions. Maximum length: 250 characters.",
+			},
+			"addin_pane_general_error_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("There was a problem adding the joining instructions. Please try again."),
+				MarkdownDescription: "The message that appears on the side pane when an error occurs trying to add the joining instructions of the single-use VMR. Maximum length: 250 characters.",
+			},
+			"addin_pane_management_node_down_heading": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Cannot assign a VMR right now"),
+				MarkdownDescription: "The heading that appears on the side pane when the Management Node cannot be contacted to obtain an alias. Maximum length: 250 characters.",
+			},
+			"addin_pane_management_node_down_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Sorry, we are unable to assign a Virtual Meeting Room at this time. Select Send to schedule the meeting, and all attendees will be sent joining instructions later."),
+				MarkdownDescription: "The message that appears on the side pane when the Management Node cannot be contacted to obtain an alias. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_add_button": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Add a Personal VMR"),
+				MarkdownDescription: "The label of the button on the side pane used to add a personal VMR. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_error_getting_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("There was a problem getting your personal VMRs. Please try again."),
+				MarkdownDescription: "The message that appears on the side pane when an error occurs trying to obtain a list of the user's personal VMRs. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_error_inserting_meeting_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("There was a problem adding the joining instructions. Please try again."),
+				MarkdownDescription: "The message that appears on the side pane when an error occurs trying to add the personal VMR details to the meeting. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_error_signing_in_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("There was a problem signing you in. Please try again."),
+				MarkdownDescription: "The message that appears on the side pane when an error occurs trying to sign the user in. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_none_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("You do not have any personal VMRs"),
+				MarkdownDescription: "The message that appears on the side pane when the user has no personal VMRs. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_select_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Select the VMR you want to add to the meeting"),
+				MarkdownDescription: "The message that appears on the side pane requesting users to select a personal VMR to use for the meeting. Maximum length: 250 characters.",
+			},
+			"addin_pane_personal_vmr_sign_in_button": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Sign In"),
+				MarkdownDescription: "The label of the button on the side pane requesting users to sign in to obtain a list of their personal VMRs. Maximum length: 250 characters.",
+			},
+			"addin_pane_success_heading": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Success"),
+				MarkdownDescription: "The heading that appears on the side pane when when an alias has been obtained successfully from the Management Node. Maximum length: 250 characters.",
+			},
+			"addin_pane_success_message": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("This meeting is now set up to be hosted as an audio or video conference in a Virtual Meeting Room. Please note this conference is not scheduled until you select Send."),
+				MarkdownDescription: "The message that appears on the side pane when when an alias has been obtained successfully from the Management Node. Maximum length: 250 characters.",
+			},
+			"addin_pane_title": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("Add a VMR"),
+				MarkdownDescription: "The title of the add-in on the side pane. Maximum length: 250 characters.",
 			},
 		},
 		MarkdownDescription: "Manages a Microsoft Exchange connector with the Infinity service. Exchange connectors enable integration with Microsoft Exchange/Office 365 for calendar and meeting management.",
@@ -421,6 +784,10 @@ func (r *InfinityMsExchangeConnectorResource) Create(ctx context.Context, req re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Convert List attributes to []string
+	exchangeDomains, diags := getStringList(ctx, plan.Domains)
+	resp.Diagnostics.Append(diags...)
 
 	createRequest := &config.MsExchangeConnectorCreateRequest{
 		Name:                           plan.Name.ValueString(),
@@ -508,7 +875,7 @@ func (r *InfinityMsExchangeConnectorResource) Create(ctx context.Context, req re
 	}
 
 	if !plan.Domains.IsNull() && !plan.Domains.IsUnknown() {
-		domains := plan.Domains.ValueString()
+		domains := exchangeDomains
 		createRequest.Domains = &domains
 	}
 
@@ -665,9 +1032,18 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	}
 
 	if srv.Domains != nil {
-		data.Domains = types.StringValue(*srv.Domains)
+		// Convert DNS servers from SDK to Terraform format
+		var exchangeDomains []string
+		for _, domain := range *srv.Domains {
+			exchangeDomains = append(exchangeDomains, fmt.Sprintf("/api/admin/configuration/v1/exchange_domain/%d/", domain.ID))
+		}
+		domainSetValue, diags := types.SetValueFrom(ctx, types.StringType, exchangeDomains)
+		if diags.HasError() {
+			return nil, fmt.Errorf("error converting DNS servers: %v", diags)
+		}
+		data.Domains = domainSetValue
 	} else {
-		data.Domains = types.StringNull()
+		data.Domains = types.SetNull(types.StringType)
 	}
 
 	if srv.HostIdentityProviderGroup != nil {
@@ -687,6 +1063,47 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	} else {
 		data.PrivateKey = types.StringNull()
 	}
+
+	// Template fields - these have default values from the API
+	data.AcceptEditedOccurrenceTemplate = types.StringValue(srv.AcceptEditedOccurrenceTemplate)
+	data.AcceptEditedRecurringSeriesTemplate = types.StringValue(srv.AcceptEditedRecurringSeriesTemplate)
+	data.AcceptEditedSingleMeetingTemplate = types.StringValue(srv.AcceptEditedSingleMeetingTemplate)
+	data.AcceptNewRecurringSeriesTemplate = types.StringValue(srv.AcceptNewRecurringSeriesTemplate)
+	data.AcceptNewSingleMeetingTemplate = types.StringValue(srv.AcceptNewSingleMeetingTemplate)
+	data.ConferenceDescriptionTemplate = types.StringValue(srv.ConferenceDescriptionTemplate)
+	data.ConferenceNameTemplate = types.StringValue(srv.ConferenceNameTemplate)
+	data.ConferenceSubjectTemplate = types.StringValue(srv.ConferenceSubjectTemplate)
+	data.MeetingInstructionsTemplate = types.StringValue(srv.MeetingInstructionsTemplate)
+	data.PersonalVmrDescriptionTemplate = types.StringValue(srv.PersonalVmrDescriptionTemplate)
+	data.PersonalVmrInstructionsTemplate = types.StringValue(srv.PersonalVmrInstructionsTemplate)
+	data.PersonalVmrLocationTemplate = types.StringValue(srv.PersonalVmrLocationTemplate)
+	data.PersonalVmrNameTemplate = types.StringValue(srv.PersonalVmrNameTemplate)
+	data.PlaceholderInstructionsTemplate = types.StringValue(srv.PlaceholderInstructionsTemplate)
+	data.RejectAliasConflictTemplate = types.StringValue(srv.RejectAliasConflictTemplate)
+	data.RejectAliasDeletedTemplate = types.StringValue(srv.RejectAliasDeletedTemplate)
+	data.RejectGeneralErrorTemplate = types.StringValue(srv.RejectGeneralErrorTemplate)
+	data.RejectInvalidAliasIDTemplate = types.StringValue(srv.RejectInvalidAliasIDTemplate)
+	data.RejectRecurringSeriesPastTemplate = types.StringValue(srv.RejectRecurringSeriesPastTemplate)
+	data.RejectSingleMeetingPast = types.StringValue(srv.RejectSingleMeetingPast)
+	data.ScheduledAliasDescriptionTemplate = types.StringValue(srv.ScheduledAliasDescriptionTemplate)
+	data.AddinPaneAlreadyVideoMeetingHeading = types.StringValue(srv.AddinPaneAlreadyVideoMeetingHeading)
+	data.AddinPaneAlreadyVideoMeetingMessage = types.StringValue(srv.AddinPaneAlreadyVideoMeetingMessage)
+	data.AddinPaneButtonTitle = types.StringValue(srv.AddinPaneButtonTitle)
+	data.AddinPaneDescription = types.StringValue(srv.AddinPaneDescription)
+	data.AddinPaneGeneralErrorHeading = types.StringValue(srv.AddinPaneGeneralErrorHeading)
+	data.AddinPaneGeneralErrorMessage = types.StringValue(srv.AddinPaneGeneralErrorMessage)
+	data.AddinPaneManagementNodeDownHeading = types.StringValue(srv.AddinPaneManagementNodeDownHeading)
+	data.AddinPaneManagementNodeDownMessage = types.StringValue(srv.AddinPaneManagementNodeDownMessage)
+	data.AddinPanePersonalVmrAddButton = types.StringValue(srv.AddinPanePersonalVmrAddButton)
+	data.AddinPanePersonalVmrErrorGettingMessage = types.StringValue(srv.AddinPanePersonalVmrErrorGettingMessage)
+	data.AddinPanePersonalVmrErrorInsertingMeetingMessage = types.StringValue(srv.AddinPanePersonalVmrErrorInsertingMeetingMessage)
+	data.AddinPanePersonalVmrErrorSigningInMessage = types.StringValue(srv.AddinPanePersonalVmrErrorSigningInMessage)
+	data.AddinPanePersonalVmrNoneMessage = types.StringValue(srv.AddinPanePersonalVmrNoneMessage)
+	data.AddinPanePersonalVmrSelectMessage = types.StringValue(srv.AddinPanePersonalVmrSelectMessage)
+	data.AddinPanePersonalVmrSignInButton = types.StringValue(srv.AddinPanePersonalVmrSignInButton)
+	data.AddinPaneSuccessHeading = types.StringValue(srv.AddinPaneSuccessHeading)
+	data.AddinPaneSuccessMessage = types.StringValue(srv.AddinPaneSuccessMessage)
+	data.AddinPaneTitle = types.StringValue(srv.AddinPaneTitle)
 
 	return &data, nil
 }
@@ -862,8 +1279,10 @@ func (r *InfinityMsExchangeConnectorResource) Update(ctx context.Context, req re
 	}
 
 	if !plan.Domains.IsNull() && !plan.Domains.IsUnknown() {
-		domains := plan.Domains.ValueString()
-		updateRequest.Domains = &domains
+		// Convert List attributes to []string
+		exchangeDomains, diags := getStringList(ctx, plan.Domains)
+		resp.Diagnostics.Append(diags...)
+		updateRequest.Domains = &exchangeDomains
 	}
 
 	if !plan.HostIdentityProviderGroup.IsNull() && !plan.HostIdentityProviderGroup.IsUnknown() {

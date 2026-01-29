@@ -96,10 +96,17 @@ func TestInfinityScheduledAlias(t *testing.T) {
 		MicrosoftFabricURL:           "https://example.com",
 		MicrosoftFabricComponentsURL: "https://example.com",
 		AdditionalAddInScriptSources: "test-sources",
-		Domains:                      stringPtr("test-domain"),
-		HostIdentityProviderGroup:    nil,
-		IvrTheme:                     nil,
-		NonIdpParticipants:           "test-participants",
+		Domains: &[]config.ExchangeDomain{
+			{
+				ID:                1,
+				Domain:            "test-domain",
+				ExchangeConnector: "/api/admin/configuration/v1/ms_exchange_connector/1/",
+				ResourceURI:       "/api/admin/configuration/v1/exchange_domain/1/",
+			},
+		},
+		HostIdentityProviderGroup: nil,
+		IvrTheme:                  nil,
+		NonIdpParticipants:        "test-participants",
 	}
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/ms_exchange_connector/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
