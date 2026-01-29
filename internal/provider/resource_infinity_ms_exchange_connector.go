@@ -328,7 +328,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "OAuth redirect URI for authentication flow.",
 			},
 			"oauth_refresh_token": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				Sensitive:           true,
 				MarkdownDescription: "OAuth refresh token. This field is sensitive.",
 			},
@@ -344,6 +344,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"kerberos_kdc": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Kerberos Key Distribution Center.",
 			},
@@ -541,31 +542,31 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"accept_edited_occurrence_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited occurrence in a recurring series. Maximum length: 12288 characters.",
 			},
 			"accept_edited_recurring_series_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring meeting series has been successfully rescheduled.<br>\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring meeting series has been successfully rescheduled.<br>\r\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited recurring meeting. Maximum length: 12288 characters.",
 			},
 			"accept_edited_single_meeting_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited single meeting. Maximum length: 12288 characters.",
 			},
 			"accept_new_recurring_series_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring meeting series has been successfully scheduled.<br>\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring meeting series has been successfully scheduled.<br>\r\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules a new recurring meeting. Maximum length: 12288 characters.",
 			},
 			"accept_new_single_meeting_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting has been successfully scheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting has been successfully scheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules a new single meeting. Maximum length: 12288 characters.",
 			},
 			"conference_description_template": schema.StringAttribute{
@@ -589,7 +590,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"meeting_instructions_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<br>\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\n<br>\nFrom a VC endpoint or a Skype/Lync client:<br>\n{{alias}}<br>\n<br>\nFrom a web browser:<br>\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\n<br>\nFrom a Pexip Infinity Connect client:<br>\npexip://{{alias}}<br>\n<br>\nFrom a telephone:<br>\n[Your number], then {{numeric_alias}} #<br>\n<br>\n{{alias_uuid}}<br>\n</div>"),
+				Default:             stringdefault.StaticString("<br>\r\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\r\n<br>\r\nFrom a VC endpoint or a Skype/Lync client:<br>\r\n{{alias}}<br>\r\n<br>\r\nFrom a web browser:<br>\r\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\r\n<br>\r\nFrom a Pexip Infinity Connect client:<br>\r\npexip://{{alias}}<br>\r\n<br>\r\nFrom a telephone:<br>\r\n[Your number], then {{numeric_alias}} #<br>\r\n<br>\r\n{{alias_uuid}}<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to generate the instructions added by the scheduling service to the body of the meeting request when a single-use VMR is being used. Maximum length: 12288 characters.",
 			},
 			"personal_vmr_description_template": schema.StringAttribute{
@@ -601,13 +602,13 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"personal_vmr_instructions_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("{% if domain_aliases %}\n    {% set alias = domain_aliases[0] %}\n{% elif other_aliases %}\n    {% set alias = other_aliases[0] %}\n{% else %}\n    {% set alias = numeric_aliases[0] %}\n{% endif %}\n{% if (not allow_guests) and pin %}\n    {% set meeting_pin = pin %}\n{% elif allow_guests and guest_pin %}\n    {% set meeting_pin = guest_pin %}\n{% else %}\n    {% set meeting_pin = \"\" %}\n{% endif %}\n<br>\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\n<br>\nFrom a VC endpoint or a Skype/Lync client:<br>\n{{alias}}<br>\n<br>\nFrom a web browser:<br>\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\n<br>\nFrom a Pexip Infinity Connect client:<br>\npexip://{{alias}}<br>\n<br>\n{% if numeric_aliases %}\nFrom a telephone:<br>\n[Your number], then {{numeric_aliases[0]}} #<br>\n<br>\n{% endif %}\n{% if meeting_pin %}\nPlease join using the PIN <b>{{meeting_pin}}</b><br>\n<br>\n{% endif %}\n</div>"),
+				Default:             stringdefault.StaticString("{% if domain_aliases %}\r\n    {% set alias = domain_aliases[0] %}\r\n{% elif other_aliases %}\r\n    {% set alias = other_aliases[0] %}\r\n{% else %}\r\n    {% set alias = numeric_aliases[0] %}\r\n{% endif %}\r\n{% if (not allow_guests) and pin %}\r\n    {% set meeting_pin = pin %}\r\n{% elif allow_guests and guest_pin %}\r\n    {% set meeting_pin = guest_pin %}\r\n{% else %}\r\n    {% set meeting_pin = \"\" %}\r\n{% endif %}\r\n<br>\r\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\r\n<br>\r\nFrom a VC endpoint or a Skype/Lync client:<br>\r\n{{alias}}<br>\r\n<br>\r\nFrom a web browser:<br>\r\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\r\n<br>\r\nFrom a Pexip Infinity Connect client:<br>\r\npexip://{{alias}}<br>\r\n<br>\r\n{% if numeric_aliases %}\r\nFrom a telephone:<br>\r\n[Your number], then {{numeric_aliases[0]}} #<br>\r\n<br>\r\n{% endif %}\r\n{% if meeting_pin %}\r\nPlease join using the PIN <b>{{meeting_pin}}</b><br>\r\n<br>\r\n{% endif %}\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the joining instructions added by the scheduling service to the body of the meeting request when a personal VMR is being used. Maximum length: 12288 characters.",
 			},
 			"personal_vmr_location_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("{% if domain_aliases %}\n    {% set alias = domain_aliases[0] %}\n{% elif other_aliases %}\n    {% set alias = other_aliases[0] %}\n{% else %}\n    {% set alias = numeric_aliases[0] %}\n{% endif %}\nhttps://{{addin_server_domain}}/webapp/#/?conference={{alias}}"),
+				Default:             stringdefault.StaticString("{% if domain_aliases %}\r\n    {% set alias = domain_aliases[0] %}\r\n{% elif other_aliases %}\r\n    {% set alias = other_aliases[0] %}\r\n{% else %}\r\n    {% set alias = numeric_aliases[0] %}\r\n{% endif %}\r\nhttps://{{addin_server_domain}}/webapp/#/?conference={{alias}}"),
 				MarkdownDescription: "A Jinja2 template that is used to generate the text that will be inserted into the Location field of the meeting request when a personal VMR is being used. Maximum length: 12288 characters.",
 			},
 			"personal_vmr_name_template": schema.StringAttribute{
@@ -619,43 +620,43 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"placeholder_instructions_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting will be hosted in a Virtual Meeting Room. Joining instructions will be<br>\nsent to you soon in a separate email.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting will be hosted in a Virtual Meeting Room. Joining instructions will be<br>\r\nsent to you soon in a separate email.<br>\r\n</div>"),
 				MarkdownDescription: "The text that is added by the scheduling service to email messages when the actual joining instructions cannot be obtained. Maximum length: 12288 characters.",
 			},
 			"reject_alias_conflict_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting because the alias: {{alias}} is already <br>\nin use by another Pexip Virtual Meeting Room. Please try creating a new meeting.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting because the alias: {{alias}} is already <br>\r\nin use by another Pexip Virtual Meeting Room. Please try creating a new meeting.<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias conflicts with an existing alias. Maximum length: 12288 characters.",
 			},
 			"reject_alias_deleted_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting because its alias has been deleted.<br>\nPlease try creating a new meeting.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting because its alias has been deleted.<br>\r\nPlease try creating a new meeting.<br>\r\n</div>"),
 				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias for this meeting has been deleted. Maximum length: 12288 characters.",
 			},
 			"reject_general_error_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nWe are unable to schedule this meeting. Please try creating a new meeting.<br>\nIf this issue continues, please forward this message to your system administrator, including the following ID:<br>\nCorrelationID=\"{{correlation_id}}\".<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting. Please try creating a new meeting.<br>\r\nIf this issue continues, please forward this message to your system administrator, including the following ID:<br>\r\nCorrelationID=\"{{correlation_id}}\".<br>\r\n</div>"),
 				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers when the scheduling service fails to schedule a meeting because a general error occurred. Maximum length: 12288 characters.",
 			},
 			"reject_invalid_alias_id_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting request does not contain currently valid scheduling data, and therefore cannot be processed.<br>\nPlease use the add-in to create a new meeting request, without editing any of the content that is inserted by the add-in.<br>\nIf this issue continues, please contact your system administrator.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting request does not contain currently valid scheduling data, and therefore cannot be processed.<br>\r\nPlease use the add-in to create a new meeting request, without editing any of the content that is inserted by the add-in.<br>\r\nIf this issue continues, please contact your system administrator.<br>\r\n</div>"),
 				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because the alias ID in the meeting email is invalid. Maximum length: 12288 characters.",
 			},
 			"reject_recurring_series_past_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis recurring series cannot be scheduled because all<br>\noccurrences happen in the past.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring series cannot be scheduled because all<br>\r\noccurrences happen in the past.<br>\r\n</div>"),
 				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a recurring meeting because all occurrences occur in the past. Maximum length: 12288 characters.",
 			},
 			"reject_single_meeting_past": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\nThis meeting cannot be scheduled because it occurs in the past.<br>\n</div>"),
+				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting cannot be scheduled because it occurs in the past.<br>\r\n</div>"),
 				MarkdownDescription: "The text that is sent to meeting organizers when the scheduling service fails to schedule a meeting because it occurs in the past. Maximum length: 12288 characters.",
 			},
 			"scheduled_alias_description_template": schema.StringAttribute{
@@ -813,7 +814,6 @@ func (r *InfinityMsExchangeConnectorResource) Create(ctx context.Context, req re
 		OauthAuthEndpoint:              plan.OauthAuthEndpoint.ValueString(),
 		OauthTokenEndpoint:             plan.OauthTokenEndpoint.ValueString(),
 		OauthRedirectURI:               plan.OauthRedirectURI.ValueString(),
-		OauthRefreshToken:              plan.OauthRefreshToken.ValueString(),
 		KerberosRealm:                  plan.KerberosRealm.ValueString(),
 		KerberosKdc:                    plan.KerberosKdc.ValueString(),
 		KerberosKdcHttpsProxy:          plan.KerberosKdcHttpsProxy.ValueString(),
@@ -916,6 +916,12 @@ func (r *InfinityMsExchangeConnectorResource) Create(ctx context.Context, req re
 		)
 		return
 	}
+
+	// Preserve write-only sensitive fields from plan
+	model.Password = plan.Password
+	model.OauthClientSecret = plan.OauthClientSecret
+	model.PersonalVmrOauthClientSecret = plan.PersonalVmrOauthClientSecret
+
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity Microsoft Exchange connector with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -940,7 +946,7 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	data.RoomMailboxName = types.StringValue(srv.RoomMailboxName)
 	data.URL = types.StringValue(srv.URL)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	// Password is write-only and not returned by the API, will be preserved from state/plan
 	data.AuthenticationMethod = types.StringValue(srv.AuthenticationMethod)
 	data.AuthProvider = types.StringValue(srv.AuthProvider)
 	data.UUID = types.StringValue(srv.UUID)
@@ -954,7 +960,7 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	data.DisableProxy = types.BoolValue(srv.DisableProxy)
 	data.UseCustomAddInSources = types.BoolValue(srv.UseCustomAddInSources)
 	data.EnableAddinDebugLogs = types.BoolValue(srv.EnableAddinDebugLogs)
-	data.OauthClientSecret = types.StringValue(srv.OauthClientSecret)
+	// OauthClientSecret is write-only and not returned by the API, will be preserved from state/plan
 	data.OauthAuthEndpoint = types.StringValue(srv.OauthAuthEndpoint)
 	data.OauthTokenEndpoint = types.StringValue(srv.OauthTokenEndpoint)
 	data.OauthRedirectURI = types.StringValue(srv.OauthRedirectURI)
@@ -977,7 +983,7 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	data.AddinAuthorityURL = types.StringValue(srv.AddinAuthorityURL)
 	data.AddinOidcMetadataURL = types.StringValue(srv.AddinOidcMetadataURL)
 	data.AddinAuthenticationMethod = types.StringValue(srv.AddinAuthenticationMethod)
-	data.PersonalVmrOauthClientSecret = types.StringValue(srv.PersonalVmrOauthClientSecret)
+	// PersonalVmrOauthClientSecret is write-only and not returned by the API, will be preserved from state/plan
 	data.PersonalVmrOauthAuthEndpoint = types.StringValue(srv.PersonalVmrOauthAuthEndpoint)
 	data.PersonalVmrOauthTokenEndpoint = types.StringValue(srv.PersonalVmrOauthTokenEndpoint)
 	data.PersonalVmrAdfsRelyingPartyTrustIdentifier = types.StringValue(srv.PersonalVmrAdfsRelyingPartyTrustIdentifier)
@@ -1116,6 +1122,11 @@ func (r *InfinityMsExchangeConnectorResource) Read(ctx context.Context, req reso
 		return
 	}
 
+	// Preserve write-only sensitive fields from prior state
+	priorPassword := state.Password
+	priorOauthClientSecret := state.OauthClientSecret
+	priorPersonalVmrOauthClientSecret := state.PersonalVmrOauthClientSecret
+
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
 	if err != nil {
@@ -1130,6 +1141,11 @@ func (r *InfinityMsExchangeConnectorResource) Read(ctx context.Context, req reso
 		)
 		return
 	}
+
+	// Restore write-only sensitive fields from prior state
+	state.Password = priorPassword
+	state.OauthClientSecret = priorOauthClientSecret
+	state.PersonalVmrOauthClientSecret = priorPersonalVmrOauthClientSecret
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -1159,7 +1175,6 @@ func (r *InfinityMsExchangeConnectorResource) Update(ctx context.Context, req re
 		OauthAuthEndpoint:             plan.OauthAuthEndpoint.ValueString(),
 		OauthTokenEndpoint:            plan.OauthTokenEndpoint.ValueString(),
 		OauthRedirectURI:              plan.OauthRedirectURI.ValueString(),
-		OauthRefreshToken:             plan.OauthRefreshToken.ValueString(),
 		KerberosRealm:                 plan.KerberosRealm.ValueString(),
 		KerberosKdc:                   plan.KerberosKdc.ValueString(),
 		KerberosKdcHttpsProxy:         plan.KerberosKdcHttpsProxy.ValueString(),
@@ -1314,6 +1329,11 @@ func (r *InfinityMsExchangeConnectorResource) Update(ctx context.Context, req re
 		)
 		return
 	}
+
+	// Preserve write-only sensitive fields from plan
+	model.Password = plan.Password
+	model.OauthClientSecret = plan.OauthClientSecret
+	model.PersonalVmrOauthClientSecret = plan.PersonalVmrOauthClientSecret
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }

@@ -30,7 +30,6 @@ resource "pexip_infinity_ms_exchange_connector" "ms_exchange_connector-test" {
   oauth_auth_endpoint                              = "updated-value" // Updated value
   oauth_token_endpoint                             = "updated-value" // Updated value
   oauth_redirect_uri                               = "updated-value" // Updated value
-  oauth_refresh_token                              = "updated-value" // Updated value
   oauth_state                                      = "updated-value" // Updated value
   kerberos_realm                                   = "updated-value" // Updated value
   kerberos_kdc                                     = "updated-value" // Updated value
