@@ -195,10 +195,14 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"room_mailbox_name": schema.StringAttribute{
 				Optional:            true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				MarkdownDescription: "Room mailbox name for Exchange integration.",
 			},
 			"url": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default: stringdefault.StaticString(""),
 				Validators: []validator.String{
 					validators.URL(false),
 				},
@@ -243,6 +247,8 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"scheduled_alias_domain": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					validators.Domain(),
 				},
@@ -319,6 +325,8 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"oauth_token_endpoint": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "OAuth token endpoint URL.",
 			},
 			"oauth_redirect_uri": schema.StringAttribute{
@@ -799,7 +807,6 @@ func (r *InfinityMsExchangeConnectorResource) Create(ctx context.Context, req re
 		Password:                       plan.Password.ValueString(),
 		AuthenticationMethod:           plan.AuthenticationMethod.ValueString(),
 		AuthProvider:                   plan.AuthProvider.ValueString(),
-		UUID:                           plan.UUID.ValueString(),
 		ScheduledAliasDomain:           plan.ScheduledAliasDomain.ValueString(),
 		ScheduledAliasSuffixLength:     int(plan.ScheduledAliasSuffixLength.ValueInt64()),
 		MeetingBufferBefore:            int(plan.MeetingBufferBefore.ValueInt64()),
@@ -1209,7 +1216,6 @@ func (r *InfinityMsExchangeConnectorResource) Update(ctx context.Context, req re
 		Password:                                           plan.Password.ValueString(),
 		AuthenticationMethod:                               plan.AuthenticationMethod.ValueString(),
 		AuthProvider:                                       plan.AuthProvider.ValueString(),
-		UUID:                                               plan.UUID.ValueString(),
 		ScheduledAliasDomain:                               plan.ScheduledAliasDomain.ValueString(),
 		OauthClientSecret:                                  plan.OauthClientSecret.ValueString(),
 		OauthAuthEndpoint:                                  plan.OauthAuthEndpoint.ValueString(),
