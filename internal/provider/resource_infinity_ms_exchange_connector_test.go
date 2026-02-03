@@ -100,8 +100,8 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 		AdditionalAddInScriptSources: "test-value",
 		Domains:                      nil, // Not specified in test config, so should be nil
 		HostIdentityProviderGroup:    stringPtr("test-server.example.com"),
-		IvrTheme:                  stringPtr("test-value"),
-		NonIdpParticipants:        "disallow_all",
+		IvrTheme:                     stringPtr("test-value"),
+		NonIdpParticipants:           "disallow_all",
 		// Template fields with defaults
 		AcceptEditedOccurrenceTemplate:      "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
 		AcceptEditedRecurringSeriesTemplate: "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring meeting series has been successfully rescheduled.<br>\r\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
