@@ -15,9 +15,8 @@ resource "pexip_infinity_ms_exchange_connector" "ms_exchange_connector-test" {
   url                                              = "https://updated.example.com" // Updated URL
   username                                         = "ms_exchange_connector-test"
   password                                         = "updated-value" // Updated value
-  authentication_method                            = "basic"         // Updated value
-  auth_provider                                    = "exchange"      // Updated value
-  uuid                                             = "updated-value" // Updated value
+  authentication_method                            = "BASIC"         // Updated value
+  auth_provider                                    = "ADFS"      // Updated value
   scheduled_alias_prefix                           = "updated-value" // Updated value
   scheduled_alias_domain                           = "updated.com"   // Updated value
   enable_dynamic_vmrs                              = false           // Updated to false
@@ -31,7 +30,6 @@ resource "pexip_infinity_ms_exchange_connector" "ms_exchange_connector-test" {
   oauth_auth_endpoint                              = "updated-value" // Updated value
   oauth_token_endpoint                             = "updated-value" // Updated value
   oauth_redirect_uri                               = "updated-value" // Updated value
-  oauth_refresh_token                              = "updated-value" // Updated value
   oauth_state                                      = "updated-value" // Updated value
   kerberos_realm                                   = "updated-value" // Updated value
   kerberos_kdc                                     = "updated-value" // Updated value
@@ -51,7 +49,7 @@ resource "pexip_infinity_ms_exchange_connector" "ms_exchange_connector-test" {
   addin_application_id                             = "updated-value"                    // Updated value
   addin_authority_url                              = "https://updated.example.com"      // Updated URL
   addin_oidc_metadata_url                          = "https://updated.example.com"      // Updated URL
-  addin_authentication_method                      = "naa"                              // Updated value
+  addin_authentication_method                      = "NAA_TOKEN"                              // Updated value
   addin_naa_web_api_application_id                 = "updated-value"                    // Updated value
   personal_vmr_oauth_client_id                     = "updated-value"                    // Updated value
   personal_vmr_oauth_client_secret                 = "updated-value"                    // Updated value
@@ -62,8 +60,7 @@ resource "pexip_infinity_ms_exchange_connector" "ms_exchange_connector-test" {
   microsoft_fabric_url                             = "https://updated.example.com"      // Updated URL
   microsoft_fabric_components_url                  = "https://updated.example.com"      // Updated URL
   additional_add_in_script_sources                 = "updated-value"                    // Updated value
-  domains                                          = "updated-value"                    // Updated value
   host_identity_provider_group                     = "updated-server.example.com"       // Updated address
   ivr_theme                                        = "updated-value"                    // Updated value
-  non_idp_participants                             = "updated-value"                    // Updated value
+  non_idp_participants                             = "allow_if_trusted"                    // Updated value
 }

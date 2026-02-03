@@ -51,8 +51,8 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 		URL:                            "https://example.com",
 		Username:                       "ms_exchange_connector-test",
 		Password:                       "test-value",
-		AuthenticationMethod:           "oauth2",
-		AuthProvider:                   "azure",
+		AuthenticationMethod:           "OAUTH",
+		AuthProvider:                   "AZURE",
 		UUID:                           "test-value",
 		ScheduledAliasPrefix:           stringPtr("test-value"),
 		ScheduledAliasDomain:           "example.com",
@@ -87,7 +87,7 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 		AddinApplicationID:             stringPtr("test-value"),
 		AddinAuthorityURL:              "https://example.com",
 		AddinOidcMetadataURL:           "https://example.com",
-		AddinAuthenticationMethod:      "web_api",
+		AddinAuthenticationMethod:      "EXCHANGE_USER_ID_TOKEN",
 		AddinNaaWebApiApplicationID:    stringPtr("test-value"),
 		PersonalVmrOauthClientID:       stringPtr("test-value"),
 		PersonalVmrOauthClientSecret:   "test-value",
@@ -98,10 +98,51 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 		MicrosoftFabricURL:           "https://example.com",
 		MicrosoftFabricComponentsURL: "https://example.com",
 		AdditionalAddInScriptSources: "test-value",
-		Domains:                      stringPtr("test-value"),
+		Domains:                      nil, // Not specified in test config, so should be nil
 		HostIdentityProviderGroup:    stringPtr("test-server.example.com"),
 		IvrTheme:                     stringPtr("test-value"),
-		NonIdpParticipants:           "test-value",
+		NonIdpParticipants:           "disallow_all",
+		// Template fields with defaults
+		AcceptEditedOccurrenceTemplate:      "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
+		AcceptEditedRecurringSeriesTemplate: "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring meeting series has been successfully rescheduled.<br>\r\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
+		AcceptEditedSingleMeetingTemplate:   "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
+		AcceptNewRecurringSeriesTemplate:    "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring meeting series has been successfully scheduled.<br>\r\nAll meetings in this series will use the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
+		AcceptNewSingleMeetingTemplate:      "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting has been successfully scheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>",
+		ConferenceDescriptionTemplate:       "Scheduled Conference booked by {{organizer_email}}",
+		ConferenceNameTemplate:              "{{subject}} ({{organizer_name}})",
+		ConferenceSubjectTemplate:           "{{subject}}",
+		MeetingInstructionsTemplate:         "<br>\r\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\r\n<br>\r\nFrom a VC endpoint or a Skype/Lync client:<br>\r\n{{alias}}<br>\r\n<br>\r\nFrom a web browser:<br>\r\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\r\n<br>\r\nFrom a Pexip Infinity Connect client:<br>\r\npexip://{{alias}}<br>\r\n<br>\r\nFrom a telephone:<br>\r\n[Your number], then {{numeric_alias}} #<br>\r\n<br>\r\n{{alias_uuid}}<br>\r\n</div>",
+		PersonalVmrDescriptionTemplate:      "{{description}}",
+		PersonalVmrInstructionsTemplate:     "{% if domain_aliases %}\r\n    {% set alias = domain_aliases[0] %}\r\n{% elif other_aliases %}\r\n    {% set alias = other_aliases[0] %}\r\n{% else %}\r\n    {% set alias = numeric_aliases[0] %}\r\n{% endif %}\r\n{% if (not allow_guests) and pin %}\r\n    {% set meeting_pin = pin %}\r\n{% elif allow_guests and guest_pin %}\r\n    {% set meeting_pin = guest_pin %}\r\n{% else %}\r\n    {% set meeting_pin = \"\" %}\r\n{% endif %}\r\n<br>\r\n<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\n<b>Please join my Pexip Virtual Meeting Room in one of the following ways:</b><br>\r\n<br>\r\nFrom a VC endpoint or a Skype/Lync client:<br>\r\n{{alias}}<br>\r\n<br>\r\nFrom a web browser:<br>\r\n<a href=\"https://{{addin_server_domain}}/webapp/#/?conference={{alias}}\">https://{{addin_server_domain}}/webapp/#/?conference={{alias}}</a><br>\r\n<br>\r\nFrom a Pexip Infinity Connect client:<br>\r\npexip://{{alias}}<br>\r\n<br>\r\n{% if numeric_aliases %}\r\nFrom a telephone:<br>\r\n[Your number], then {{numeric_aliases[0]}} #<br>\r\n<br>\r\n{% endif %}\r\n{% if meeting_pin %}\r\nPlease join using the PIN <b>{{meeting_pin}}</b><br>\r\n<br>\r\n{% endif %}\r\n</div>",
+		PersonalVmrLocationTemplate:         "{% if domain_aliases %}\r\n    {% set alias = domain_aliases[0] %}\r\n{% elif other_aliases %}\r\n    {% set alias = other_aliases[0] %}\r\n{% else %}\r\n    {% set alias = numeric_aliases[0] %}\r\n{% endif %}\r\nhttps://{{addin_server_domain}}/webapp/#/?conference={{alias}}",
+		PersonalVmrNameTemplate:             "{{name}}",
+		PlaceholderInstructionsTemplate:     "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting will be hosted in a Virtual Meeting Room. Joining instructions will be<br>\r\nsent to you soon in a separate email.<br>\r\n</div>",
+		RejectAliasConflictTemplate:         "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting because the alias: {{alias}} is already <br>\r\nin use by another Pexip Virtual Meeting Room. Please try creating a new meeting.<br>\r\n</div>",
+		RejectAliasDeletedTemplate:          "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting because its alias has been deleted.<br>\r\nPlease try creating a new meeting.<br>\r\n</div>",
+		RejectGeneralErrorTemplate:          "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nWe are unable to schedule this meeting. Please try creating a new meeting.<br>\r\nIf this issue continues, please forward this message to your system administrator, including the following ID:<br>\r\nCorrelationID=\"{{correlation_id}}\".<br>\r\n</div>",
+		RejectInvalidAliasIDTemplate:        "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting request does not contain currently valid scheduling data, and therefore cannot be processed.<br>\r\nPlease use the add-in to create a new meeting request, without editing any of the content that is inserted by the add-in.<br>\r\nIf this issue continues, please contact your system administrator.<br>\r\n</div>",
+		RejectRecurringSeriesPastTemplate:   "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis recurring series cannot be scheduled because all<br>\r\noccurrences happen in the past.<br>\r\n</div>",
+		RejectSingleMeetingPast:             "<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting cannot be scheduled because it occurs in the past.<br>\r\n</div>",
+		ScheduledAliasDescriptionTemplate:   "Scheduled Conference booked by {{organizer_email}}",
+		// Add-in pane fields with defaults
+		AddinPaneTitle:                                   "Add a VMR",
+		AddinPaneDescription:                             "This assigns a Virtual Meeting Room for your meeting",
+		AddinPaneButtonTitle:                             "Add a Single-use VMR",
+		AddinPaneSuccessHeading:                          "Success",
+		AddinPaneSuccessMessage:                          "This meeting is now set up to be hosted as an audio or video conference in a Virtual Meeting Room. Please note this conference is not scheduled until you select Send.",
+		AddinPaneAlreadyVideoMeetingHeading:              "VMR already assigned",
+		AddinPaneAlreadyVideoMeetingMessage:              "It looks like this meeting has already been set up to be hosted in a Virtual Meeting Room. If this is a new meeting, select Send to schedule the conference.",
+		AddinPaneGeneralErrorHeading:                     "Error",
+		AddinPaneGeneralErrorMessage:                     "There was a problem adding the joining instructions. Please try again.",
+		AddinPaneManagementNodeDownHeading:               "Cannot assign a VMR right now",
+		AddinPaneManagementNodeDownMessage:               "Sorry, we are unable to assign a Virtual Meeting Room at this time. Select Send to schedule the meeting, and all attendees will be sent joining instructions later.",
+		AddinPanePersonalVmrAddButton:                    "Add a Personal VMR",
+		AddinPanePersonalVmrSignInButton:                 "Sign In",
+		AddinPanePersonalVmrSelectMessage:                "Select the VMR you want to add to the meeting",
+		AddinPanePersonalVmrNoneMessage:                  "You do not have any personal VMRs",
+		AddinPanePersonalVmrErrorGettingMessage:          "There was a problem getting your personal VMRs. Please try again.",
+		AddinPanePersonalVmrErrorSigningInMessage:        "There was a problem signing you in. Please try again.",
+		AddinPanePersonalVmrErrorInsertingMeetingMessage: "There was a problem adding the joining instructions. Please try again.",
 	}
 
 	// Mock the GetMsexchangeconnector API call for Read operations
@@ -208,9 +249,8 @@ func TestInfinityMsExchangeConnector(t *testing.T) {
 			mockState.PersonalVmrOauthClientID = updateRequest.PersonalVmrOauthClientID
 		}
 		// Update additional fields
-		if updateRequest.Domains != nil {
-			mockState.Domains = updateRequest.Domains
-		}
+		// Note: Domains field in update request is *[]string (URIs), but in response it's *[]ExchangeDomain (objects)
+		// The test doesn't verify this field, so we skip updating it in the mock
 		if updateRequest.HostIdentityProviderGroup != nil {
 			mockState.HostIdentityProviderGroup = updateRequest.HostIdentityProviderGroup
 		}
@@ -279,8 +319,8 @@ func testInfinityMsExchangeConnector(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "scheduled_alias_suffix_length", "8"),
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "room_mailbox_email_address", "updated@example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "url", "https://updated.example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "authentication_method", "basic"),
-					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "auth_provider", "exchange"),
+					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "authentication_method", "BASIC"),
+					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "auth_provider", "ADFS"),
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "enable_dynamic_vmrs", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "enable_personal_vmrs", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_ms_exchange_connector.ms_exchange_connector-test", "allow_new_users", "false"),
