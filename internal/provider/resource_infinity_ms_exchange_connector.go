@@ -1085,7 +1085,7 @@ func (r *InfinityMsExchangeConnectorResource) read(ctx context.Context, resource
 	}
 
 	if srv.Domains != nil {
-		// Convert DNS servers from SDK to Terraform format
+		// Convert Exchange Domains from SDK to Terraform format
 		var exchangeDomains []string
 		for _, domain := range *srv.Domains {
 			exchangeDomains = append(exchangeDomains, fmt.Sprintf("/api/admin/configuration/v1/exchange_domain/%d/", domain.ID))
