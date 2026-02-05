@@ -229,7 +229,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			},
 			"oidc_metadata": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The OpenID Connect configuration metadata.  This will be loaded from the Metadata URL if provided.",
+				MarkdownDescription: "The OpenID Connect configuration metadata. This will be loaded from the Metadata URL if provided.",
 			},
 			"oidc_client_id": schema.StringAttribute{
 				Optional:            true,
