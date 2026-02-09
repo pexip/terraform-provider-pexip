@@ -166,6 +166,7 @@ func TestInfinityWorkerVM(t *testing.T) {
 func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Destroy:                  os.Getenv("TF_ACC_SKIP_DESTROY") != "1", // Set TF_ACC_SKIP_DESTROY=1 to keep resources
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_basic"),
@@ -178,7 +179,11 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
+					//resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
+					resource.TestCheckResourceAttrPair(
+						"pexip_infinity_worker_vm.worker-vm-test", "system_location",
+						"pexip_infinity_system_location.test", "id",
+					),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_address", "2001:db8::1"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_gateway", "2001:db8::fe"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "description", "initial description"),
