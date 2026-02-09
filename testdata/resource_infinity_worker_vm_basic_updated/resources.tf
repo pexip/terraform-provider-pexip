@@ -9,6 +9,7 @@ resource "pexip_infinity_system_location" "test" {
 }
 
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
+  # Required fields only - all optional fields cleared
   name            = "worker-vm-test"
   hostname        = "worker-vm-test"
   domain          = "test-value" // Keep same - has RequiresReplace
@@ -16,13 +17,11 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   netmask         = "255.255.255.0"
   gateway         = "192.168.1.1"
   system_location = pexip_infinity_system_location.test.id
-  password        = "password-updated"
-  description     = "updated description"
+  password        = "password-initial"
 
   // Keep RequiresReplace fields to avoid resource replacement
   ipv6_address = "2001:db8::1"
   ipv6_gateway = "2001:db8::fe"
 
-  // Add some optional fields to test update
-  maintenance_mode        = false
+  // All other optional fields are removed to test clearing behavior
 }

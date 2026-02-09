@@ -11,6 +11,7 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   name                          = "worker-vm-test"
   hostname                      = "worker-vm-test"
   domain                        = "test-value"
+  alternative_fqdn              = "alt.example.com"
   address                       = "192.168.1.10"
   netmask                       = "255.255.255.0"
   gateway                       = "192.168.1.1"
