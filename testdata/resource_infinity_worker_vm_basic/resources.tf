@@ -4,9 +4,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-resource "pexip_infinity_system_location" "test" {
-  name                          = "provider test system location"
+# RSA key of size 4096 bits
+resource "tls_private_key" "rsa-4096-example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
+
+resource "tls_self_signed_cert" "example" {
+  private_key_pem = tls_private_key.rsa-4096-example.private_key_pem
+
+  subject {
+    common_name  = "tf-test"
+    organization = "pexip"
+  }
+
+  validity_period_hours = 12
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "pexip_infinity_tls_certificate" "test" {
+  private_key = tls_private_key.rsa-4096-example.private_key_pem
+  certificate = tls_self_signed_cert.example.cert_pem
+}
+
+resource "pexip_infinity_system_location" "test" {
+  name = "provider test system location"
+}
+
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
   name                          = "worker-vm-test"
   hostname                      = "worker-vm-test"
@@ -16,7 +45,6 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   netmask                       = "255.255.255.0"
   gateway                       = "192.168.1.1"
   system_location               = pexip_infinity_system_location.test.id
-  //tls_certificate               = "/api/admin/configuration/v1/tls_certificate/2/"
   description                   = "initial description"
   ipv6_address                  = "2001:db8::1"
   ipv6_gateway                  = "2001:db8::fe"
@@ -39,6 +67,7 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   snmp_system_contact           = "snmpcontact1@domain.com"
   snmp_system_location          = "test-value"
   snmp_username                 = "snmp-user1"
+  tls_certificate               = pexip_infinity_tls_certificate.test.id
   enable_ssh                    = "ON"
   enable_distributed_database   = false
 }

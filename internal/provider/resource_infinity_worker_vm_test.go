@@ -54,6 +54,52 @@ func TestInfinityWorkerVM(t *testing.T) {
 	// Mock the DeleteSystemLocation API call
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything).Return(nil)
 
+	// Mock the CreateTLSCertificate API call (needed because worker VM references it)
+	// Note: We need to store/return certificate data for Terraform state consistency,
+	// but we don't validate it - that's tested in the dedicated TLS certificate tests
+	tlsCertificateCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/tls_certificate/2/",
+	}
+	var mockTLSCertState *config.TLSCertificate
+
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/tls_certificate/", mock.Anything, mock.Anything).Return(tlsCertificateCreateResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.TLSCertificateCreateRequest)
+		mockTLSCertState = &config.TLSCertificate{
+			ID:          2,
+			ResourceURI: "/api/admin/configuration/v1/tls_certificate/2/",
+			Certificate: createReq.Certificate,
+			PrivateKey:  createReq.PrivateKey,
+			Nodes:       []string{},
+		}
+	})
+
+	client.On("GetJSON", mock.Anything, "configuration/v1/tls_certificate/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		tlsCert := args.Get(3).(*config.TLSCertificate)
+		if mockTLSCertState != nil {
+			*tlsCert = *mockTLSCertState
+		}
+	}).Maybe()
+
+	client.On("PatchJSON", mock.Anything, "configuration/v1/tls_certificate/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		updateReq := args.Get(2).(*config.TLSCertificateUpdateRequest)
+		tlsCert := args.Get(3).(*config.TLSCertificate)
+		if mockTLSCertState != nil {
+			if updateReq.Certificate != "" {
+				mockTLSCertState.Certificate = updateReq.Certificate
+			}
+			if updateReq.PrivateKey != "" {
+				mockTLSCertState.PrivateKey = updateReq.PrivateKey
+			}
+			if updateReq.Nodes != nil {
+				mockTLSCertState.Nodes = updateReq.Nodes
+			}
+			*tlsCert = *mockTLSCertState
+		}
+	}).Maybe()
+
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/tls_certificate/2/", mock.Anything).Return(nil)
+
 	// Mock the CreateWorkervm API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
@@ -174,6 +220,11 @@ func TestInfinityWorkerVM(t *testing.T) {
 func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source: "hashicorp/tls",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_basic"),
@@ -186,10 +237,13 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
-					//resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
 					resource.TestCheckResourceAttrPair(
 						"pexip_infinity_worker_vm.worker-vm-test", "system_location",
 						"pexip_infinity_system_location.test", "id",
+					),
+					resource.TestCheckResourceAttrPair(
+						"pexip_infinity_worker_vm.worker-vm-test", "tls_certificate",
+						"pexip_infinity_tls_certificate.test", "id",
 					),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "alternative_fqdn", "alt.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_address", "2001:db8::1"),
