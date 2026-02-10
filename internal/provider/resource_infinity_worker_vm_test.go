@@ -100,52 +100,62 @@ func TestInfinityWorkerVM(t *testing.T) {
 
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/tls_certificate/2/", mock.Anything).Return(nil)
 
+	// Shared mock state - will be initialized on first create
+	mockState := &config.WorkerVM{}
+
 	// Mock the CreateWorkervm API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/worker_vm/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/worker_vm/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared mock state
-	mockState := &config.WorkerVM{
-		ID:                         123,
-		ResourceURI:                "/api/admin/configuration/v1/worker_vm/123/",
-		Name:                       "worker-vm-test",
-		Hostname:                   "worker-vm-test",
-		Domain:                     "test-value",
-		AlternativeFQDN:            "alt.example.com",
-		Address:                    "192.168.1.10",
-		Netmask:                    "255.255.255.0",
-		Gateway:                    "192.168.1.1",
-		SystemLocation:             "/api/admin/configuration/v1/system_location/1/",
-		TLSCertificate:             test.StringPtr("/api/admin/configuration/v1/tls_certificate/2/"),
-		Description:                "initial description",
-		IPv6Address:                test.StringPtr("2001:db8::1"),
-		IPv6Gateway:                test.StringPtr("2001:db8::fe"),
-		NodeType:                   "CONFERENCING",
-		DeploymentType:             "MANUAL-PROVISION-ONLY",
-		Transcoding:                true,
-		Password:                   "password-initial",
-		MaintenanceMode:            true,
-		MaintenanceModeReason:      "test-value",
-		VMCPUCount:                 4,
-		VMSystemMemory:             4096,
-		SecondaryAddress:           test.StringPtr("172.16.0.10"),
-		SecondaryNetmask:           test.StringPtr("255.255.255.0"),
-		MediaPriorityWeight:        test.IntPtr(10),
-		SSHAuthorizedKeysUseCloud:  true,
-		StaticNATAddress:           test.StringPtr("203.0.113.2"),
-		SNMPAuthenticationPassword: "auth-password1",
-		SNMPCommunity:              "public1",
-		SNMPMode:                   "STANDARD",
-		SNMPPrivacyPassword:        "privacy-password1",
-		SNMPSystemContact:          "snmpcontact1@domain.com",
-		SNMPSystemLocation:         "test-value",
-		SNMPUsername:               "snmp-user1",
-		EnableSSH:                  "ON",
-		EnableDistributedDatabase:  false,
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/worker_vm/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.WorkerVMCreateRequest)
+		// Reinitialize mockState from create request (important for destroy/recreate cycles)
+		*mockState = config.WorkerVM{
+			ID:                        123,
+			ResourceURI:               "/api/admin/configuration/v1/worker_vm/123/",
+			Name:                      createReq.Name,
+			Hostname:                  createReq.Hostname,
+			Domain:                    createReq.Domain,
+			AlternativeFQDN:           createReq.AlternativeFQDN,
+			Address:                   createReq.Address,
+			Netmask:                   createReq.Netmask,
+			Gateway:                   createReq.Gateway,
+			SystemLocation:            createReq.SystemLocation,
+			TLSCertificate:            createReq.TLSCertificate,
+			Description:               createReq.Description,
+			IPv6Address:               createReq.IPv6Address,
+			IPv6Gateway:               createReq.IPv6Gateway,
+			NodeType:                  createReq.NodeType,
+			DeploymentType:            createReq.DeploymentType,
+			Password:                  createReq.Password,
+			MaintenanceMode:           createReq.MaintenanceMode,
+			MaintenanceModeReason:     createReq.MaintenanceModeReason,
+			VMCPUCount:                createReq.VMCPUCount,
+			VMSystemMemory:            createReq.VMSystemMemory,
+			SecondaryAddress:          createReq.SecondaryAddress,
+			SecondaryNetmask:          createReq.SecondaryNetmask,
+			MediaPriorityWeight:       createReq.MediaPriorityWeight,
+			SSHAuthorizedKeysUseCloud: createReq.SSHAuthorizedKeysUseCloud,
+			StaticNATAddress:          createReq.StaticNATAddress,
+			SNMPAuthenticationPassword: createReq.SNMPAuthenticationPassword,
+			SNMPCommunity:             createReq.SNMPCommunity,
+			SNMPMode:                  createReq.SNMPMode,
+			SNMPPrivacyPassword:       createReq.SNMPPrivacyPassword,
+			SNMPSystemContact:         createReq.SNMPSystemContact,
+			SNMPSystemLocation:        createReq.SNMPSystemLocation,
+			SNMPUsername:              createReq.SNMPUsername,
+			EnableSSH:                 createReq.EnableSSH,
+			EnableDistributedDatabase: createReq.EnableDistributedDatabase,
+			CloudBursting:             false, // Always false per API behavior
+		}
+		// Compute transcoding based on node_type (API behavior - this field is computed)
+		if createReq.NodeType == "CONFERENCING" || createReq.NodeType == "TRANSCODING" {
+			mockState.Transcoding = true
+		} else {
+			mockState.Transcoding = false
+		}
+	})
 
 	// Mock the GetWorkervm API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/worker_vm/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -186,8 +196,14 @@ func TestInfinityWorkerVM(t *testing.T) {
 
 		// Boolean fields
 		mockState.MaintenanceMode = updateReq.MaintenanceMode
-		mockState.Transcoding = updateReq.Transcoding
 		mockState.SSHAuthorizedKeysUseCloud = updateReq.SSHAuthorizedKeysUseCloud
+
+		// Compute transcoding based on node_type (API behavior)
+		if updateReq.NodeType == "CONFERENCING" || updateReq.NodeType == "TRANSCODING" {
+			mockState.Transcoding = true
+		} else {
+			mockState.Transcoding = false
+		}
 
 		// Integer fields
 		mockState.VMCPUCount = updateReq.VMCPUCount
@@ -227,7 +243,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
@@ -270,7 +286,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_min"),
 				Check: resource.ComposeTestCheckFunc(
 					// IDs and required fields
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
@@ -312,11 +328,112 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					// Fields with defaults that should be reset to default when cleared
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "media_priority_weight", "0"),
 
-					// Nullable fields cleared - verify they're not set
+					// Nullable fields cleared via UPDATE - API should return null
 					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "tls_certificate"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_address"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_netmask"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "static_nat_address"),
+				),
+			},
+			{
+				// Step 3: Destroy and recreate with minimal config
+				Config:  test.LoadTestFolder(t, "resource_infinity_worker_vm_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Recreate with minimal config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_min"),
+				Check: resource.ComposeTestCheckFunc(
+					// IDs and required fields
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "system_location"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "password", "password-initial"),
+
+					// RequiresReplace fields kept
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_address", "2001:db8::1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_gateway", "2001:db8::fe"),
+
+					// Optional fields cleared - verify defaults
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "alternative_fqdn", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "maintenance_mode", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "maintenance_mode_reason", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "node_type", "CONFERENCING"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "deployment_type", "MANUAL-PROVISION-ONLY"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "transcoding"), // Computed only, just verify it exists
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "enable_ssh", "GLOBAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_mode", "DISABLED"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_system_contact", "admin@domain.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_system_location", "Virtual machine"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_community", "public"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_authentication_password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_privacy_password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "vm_cpu_count", "4"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "vm_system_memory", "4096"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "enable_distributed_database", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ssh_authorized_keys_use_cloud", "true"),
+
+					// Fields with defaults that should be reset to default when cleared
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "media_priority_weight", "0"),
+
+					// Nullable fields not specified in CREATE - not all asserted
+					// Note: API may assign defaults on CREATE (e.g., tls_certificate)
+					// We only assert null for fields cleared via UPDATE (see Step 2)
+					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_address"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_netmask"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "static_nat_address"),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_worker_vm_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "netmask", "255.255.255.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "gateway", "192.168.1.1"),
+					resource.TestCheckResourceAttrPair(
+						"pexip_infinity_worker_vm.worker-vm-test", "system_location",
+						"pexip_infinity_system_location.test", "id",
+					),
+					resource.TestCheckResourceAttrPair(
+						"pexip_infinity_worker_vm.worker-vm-test", "tls_certificate",
+						"pexip_infinity_tls_certificate.test", "id",
+					),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "alternative_fqdn", "alt.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_address", "2001:db8::1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "ipv6_gateway", "2001:db8::fe"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "description", "initial description"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "transcoding", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "maintenance_mode", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "maintenance_mode_reason", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "vm_cpu_count", "4"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "vm_system_memory", "4096"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_address", "172.16.0.10"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "secondary_netmask", "255.255.255.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "media_priority_weight", "10"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "static_nat_address", "203.0.113.2"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_system_location", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_authentication_password", "auth-password1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_community", "public1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_mode", "STANDARD"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_privacy_password", "privacy-password1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_system_contact", "snmpcontact1@domain.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_username", "snmp-user1"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "enable_ssh", "ON"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "password", "password-initial"),
 				),
 			},
 		},

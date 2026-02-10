@@ -527,6 +527,9 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	if !plan.Transcoding.IsNull() {
 		createRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		createRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
 	if !plan.VMCPUCount.IsNull() {
 		createRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
 	}
