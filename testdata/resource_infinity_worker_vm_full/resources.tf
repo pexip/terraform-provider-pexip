@@ -33,11 +33,24 @@ resource "pexip_infinity_tls_certificate" "test" {
 }
 
 resource "pexip_infinity_system_location" "test" {
-  name = "provider test system location"
+  name = "tf-test provider system location"
+}
+
+resource "pexip_infinity_ssh_authorized_key" "test" {
+  keytype = "ssh-rsa"
+  key     = "AAAAB3NzaC1yc2EAAAADAQABAAABgQC7"
+  comment = "tf-test SSH key for worker VM"
+}
+
+resource "pexip_infinity_static_route" "test" {
+  name    = "tf-test static route"
+  address = "10.0.0.0"
+  prefix  = 24
+  gateway = "192.168.1.254"
 }
 
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
-  name                          = "worker-vm-test"
+  name                          = "tf-test-full_worker-vm"
   hostname                      = "worker-vm-test"
   domain                        = "test-value"
   alternative_fqdn              = "alt.example.com"
@@ -68,6 +81,8 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   snmp_system_location          = "test-value"
   snmp_username                 = "snmp-user1"
   tls_certificate               = pexip_infinity_tls_certificate.test.id
+  ssh_authorized_keys           = [pexip_infinity_ssh_authorized_key.test.id]
+  static_routes                 = [pexip_infinity_static_route.test.id]
   enable_ssh                    = "ON"
   enable_distributed_database   = false
 }

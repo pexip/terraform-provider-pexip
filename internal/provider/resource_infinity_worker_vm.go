@@ -670,12 +670,14 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 
 	// Convert static routes from SDK to Terraform format
 	var staticRoutes []string
-	staticRoutes = append(staticRoutes, srv.StaticRoutes...)
-	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	for _, staticRoute := range srv.StaticRoutes {
+		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%d/", staticRoute.ID))
+	}
+	staticRoutesSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting static routes: %v", diags)
 	}
-	data.StaticRoutes = routeSetValue
+	data.StaticRoutes = staticRoutesSetValue
 
 	return &data, nil
 }

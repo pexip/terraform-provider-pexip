@@ -10,7 +10,7 @@ resource "pexip_infinity_system_location" "test" {
 
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
   # Required fields only - all optional fields cleared
-  name            = "worker-vm-test"
+  name            = "tf-test-min_worker-vm"
   hostname        = "worker-vm-test"
   domain          = "test-value" // Keep same - has RequiresReplace
   address         = "192.168.1.10"

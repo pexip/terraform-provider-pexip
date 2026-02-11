@@ -54,6 +54,53 @@ func TestInfinityWorkerVM(t *testing.T) {
 	// Mock the DeleteSystemLocation API call
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything).Return(nil)
 
+	// Mock the CreateSSHAuthorizedKey API call (needed because worker VM references it)
+	sshKeyCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/3/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ssh_authorized_key/", mock.Anything, mock.Anything).Return(sshKeyCreateResponse, nil)
+
+	// Mock the GetSSHAuthorizedKey API call for Read operations
+	mockSSHKey := &config.SSHAuthorizedKey{
+		ID:          3,
+		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/3/",
+		Keytype:     "ssh-rsa",
+		Key:         "AAAAB3NzaC1yc2EAAAADAQABAAABgQC7",
+		Comment:     "Test SSH key for worker VM",
+	}
+	client.On("GetJSON", mock.Anything, "configuration/v1/ssh_authorized_key/3/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		sshKey := args.Get(3).(*config.SSHAuthorizedKey)
+		*sshKey = *mockSSHKey
+	}).Maybe()
+
+	// Mock the DeleteSSHAuthorizedKey API call
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/ssh_authorized_key/3/", mock.Anything).Return(nil)
+
+	// Mock the CreateStaticRoute API call (needed because worker VM references it)
+	staticRouteCreateResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/static_route/4/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/static_route/", mock.Anything, mock.Anything).Return(staticRouteCreateResponse, nil)
+
+	// Mock the GetStaticRoute API call for Read operations
+	mockStaticRoute := &config.StaticRoute{
+		ID:          4,
+		ResourceURI: "/api/admin/configuration/v1/static_route/4/",
+		Name:        "test-static-route",
+		Address:     "10.0.0.0",
+		Prefix:      24,
+		Gateway:     "192.168.1.254",
+	}
+	client.On("GetJSON", mock.Anything, "configuration/v1/static_route/4/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		staticRoute := args.Get(3).(*config.StaticRoute)
+		*staticRoute = *mockStaticRoute
+	}).Maybe()
+
+	// Mock the DeleteStaticRoute API call
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/static_route/4/", mock.Anything).Return(nil)
+
 	// Mock the CreateTLSCertificate API call (needed because worker VM references it)
 	// Note: We need to store/return certificate data for Terraform state consistency,
 	// but we don't validate it - that's tested in the dedicated TLS certificate tests
@@ -147,7 +194,23 @@ func TestInfinityWorkerVM(t *testing.T) {
 			SNMPUsername:              createReq.SNMPUsername,
 			EnableSSH:                 createReq.EnableSSH,
 			EnableDistributedDatabase: createReq.EnableDistributedDatabase,
+			SSHAuthorizedKeys:         createReq.SSHAuthorizedKeys,
 			CloudBursting:             false, // Always false per API behavior
+		}
+		// Convert StaticRoutes URIs to objects (API returns objects, not strings)
+		if len(createReq.StaticRoutes) > 0 {
+			mockState.StaticRoutes = []config.StaticRoute{
+				{
+					ID:          mockStaticRoute.ID,
+					ResourceURI: mockStaticRoute.ResourceURI,
+					Name:        mockStaticRoute.Name,
+					Address:     mockStaticRoute.Address,
+					Prefix:      mockStaticRoute.Prefix,
+					Gateway:     mockStaticRoute.Gateway,
+				},
+			}
+		} else {
+			mockState.StaticRoutes = []config.StaticRoute{}
 		}
 		// Compute transcoding based on node_type (API behavior - this field is computed)
 		if createReq.NodeType == "CONFERENCING" || createReq.NodeType == "TRANSCODING" {
@@ -221,6 +284,24 @@ func TestInfinityWorkerVM(t *testing.T) {
 		mockState.MediaPriorityWeight = updateReq.MediaPriorityWeight
 		mockState.StaticNATAddress = updateReq.StaticNATAddress
 
+		// List fields
+		mockState.SSHAuthorizedKeys = updateReq.SSHAuthorizedKeys
+		// Convert StaticRoutes URIs to objects (API returns objects, not strings)
+		if len(updateReq.StaticRoutes) > 0 {
+			mockState.StaticRoutes = []config.StaticRoute{
+				{
+					ID:          mockStaticRoute.ID,
+					ResourceURI: mockStaticRoute.ResourceURI,
+					Name:        mockStaticRoute.Name,
+					Address:     mockStaticRoute.Address,
+					Prefix:      mockStaticRoute.Prefix,
+					Gateway:     mockStaticRoute.Gateway,
+				},
+			}
+		} else {
+			mockState.StaticRoutes = []config.StaticRoute{}
+		}
+
 		// Return updated state
 		*workerVM = *mockState
 	}).Maybe()
@@ -247,7 +328,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "tf-test-full_worker-vm"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
@@ -283,6 +364,8 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_username", "snmp-user1"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "enable_ssh", "ON"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "password", "password-initial"),
+					resource.TestCheckTypeSetElemAttrPair("pexip_infinity_worker_vm.worker-vm-test", "ssh_authorized_keys.*", "pexip_infinity_ssh_authorized_key.test", "id"),
+					resource.TestCheckTypeSetElemAttrPair("pexip_infinity_worker_vm.worker-vm-test", "static_routes.*", "pexip_infinity_static_route.test", "id"),
 				),
 			},
 			{
@@ -291,7 +374,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					// IDs and required fields
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "tf-test-min_worker-vm"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
@@ -347,7 +430,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					// IDs and required fields
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "tf-test-min_worker-vm"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
@@ -398,7 +481,7 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_worker_vm.worker-vm-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "worker-vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "name", "tf-test-full_worker-vm"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "hostname", "worker-vm-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "domain", "test-value"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "address", "192.168.1.10"),
@@ -434,6 +517,8 @@ func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "snmp_username", "snmp-user1"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "enable_ssh", "ON"),
 					resource.TestCheckResourceAttr("pexip_infinity_worker_vm.worker-vm-test", "password", "password-initial"),
+					resource.TestCheckTypeSetElemAttrPair("pexip_infinity_worker_vm.worker-vm-test", "ssh_authorized_keys.*", "pexip_infinity_ssh_authorized_key.test", "id"),
+					resource.TestCheckTypeSetElemAttrPair("pexip_infinity_worker_vm.worker-vm-test", "static_routes.*", "pexip_infinity_static_route.test", "id"),
 				),
 			},
 		},
