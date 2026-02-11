@@ -5,7 +5,22 @@
  */
 
 resource "pexip_infinity_system_location" "test" {
-  name = "provider test system location"
+  name = "tf-test provider system location"
+}
+
+# Keep SSH key and static route resources to avoid deletion order issues
+# They exist but are not referenced by worker_vm in minimal config
+resource "pexip_infinity_ssh_authorized_key" "test" {
+  keytype = "ssh-rsa"
+  key     = "AAAAB3NzaC1yc2EAAAADAQABAAABgQC7"
+  comment = "tf-test SSH key for worker VM"
+}
+
+resource "pexip_infinity_static_route" "test" {
+  name    = "tf-test static route"
+  address = "10.0.0.0"
+  prefix  = 24
+  gateway = "192.168.1.254"
 }
 
 resource "pexip_infinity_worker_vm" "worker-vm-test" {

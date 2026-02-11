@@ -32,20 +32,23 @@ func TestInfinityWorkerVM(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/system_location/1/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(systemLocationCreateResponse, nil)
+	mockSystemLocation := &config.SystemLocation{}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(systemLocationCreateResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.SystemLocationCreateRequest)
+		*mockSystemLocation = config.SystemLocation{
+			ID:                        1,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/1/",
+			Name:                      createReq.Name,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
+			UseRelayCandidatesOnly:    false,
+		}
+	})
 
 	// Mock the GetSystemLocation API call for Read operations
-	mockSystemLocation := &config.SystemLocation{
-		ID:                        1,
-		ResourceURI:               "/api/admin/configuration/v1/system_location/1/",
-		Name:                      "provider test system location",
-		MTU:                       1500,
-		MediaQoS:                  test.IntPtr(0),
-		SignallingQoS:             test.IntPtr(0),
-		BDPMPinChecksEnabled:      "GLOBAL",
-		BDPMScanQuarantineEnabled: "GLOBAL",
-		UseRelayCandidatesOnly:    false,
-	}
 	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		systemLocation := args.Get(3).(*config.SystemLocation)
 		*systemLocation = *mockSystemLocation
@@ -59,16 +62,19 @@ func TestInfinityWorkerVM(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/3/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/ssh_authorized_key/", mock.Anything, mock.Anything).Return(sshKeyCreateResponse, nil)
+	mockSSHKey := &config.SSHAuthorizedKey{}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ssh_authorized_key/", mock.Anything, mock.Anything).Return(sshKeyCreateResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.SSHAuthorizedKeyCreateRequest)
+		*mockSSHKey = config.SSHAuthorizedKey{
+			ID:          3,
+			ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/3/",
+			Keytype:     createReq.Keytype,
+			Key:         createReq.Key,
+			Comment:     createReq.Comment,
+		}
+	})
 
 	// Mock the GetSSHAuthorizedKey API call for Read operations
-	mockSSHKey := &config.SSHAuthorizedKey{
-		ID:          3,
-		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/3/",
-		Keytype:     "ssh-rsa",
-		Key:         "AAAAB3NzaC1yc2EAAAADAQABAAABgQC7",
-		Comment:     "Test SSH key for worker VM",
-	}
 	client.On("GetJSON", mock.Anything, "configuration/v1/ssh_authorized_key/3/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		sshKey := args.Get(3).(*config.SSHAuthorizedKey)
 		*sshKey = *mockSSHKey
@@ -82,17 +88,20 @@ func TestInfinityWorkerVM(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/static_route/4/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/static_route/", mock.Anything, mock.Anything).Return(staticRouteCreateResponse, nil)
+	mockStaticRoute := &config.StaticRoute{}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/static_route/", mock.Anything, mock.Anything).Return(staticRouteCreateResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.StaticRouteCreateRequest)
+		*mockStaticRoute = config.StaticRoute{
+			ID:          4,
+			ResourceURI: "/api/admin/configuration/v1/static_route/4/",
+			Name:        createReq.Name,
+			Address:     createReq.Address,
+			Prefix:      createReq.Prefix,
+			Gateway:     createReq.Gateway,
+		}
+	})
 
 	// Mock the GetStaticRoute API call for Read operations
-	mockStaticRoute := &config.StaticRoute{
-		ID:          4,
-		ResourceURI: "/api/admin/configuration/v1/static_route/4/",
-		Name:        "test-static-route",
-		Address:     "10.0.0.0",
-		Prefix:      24,
-		Gateway:     "192.168.1.254",
-	}
 	client.On("GetJSON", mock.Anything, "configuration/v1/static_route/4/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		staticRoute := args.Get(3).(*config.StaticRoute)
 		*staticRoute = *mockStaticRoute
