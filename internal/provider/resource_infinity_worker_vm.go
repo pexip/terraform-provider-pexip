@@ -527,6 +527,9 @@ func (r *InfinityWorkerVMResource) Create(ctx context.Context, req resource.Crea
 	if !plan.Transcoding.IsNull() {
 		createRequest.Transcoding = plan.Transcoding.ValueBool()
 	}
+	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
+		createRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
+	}
 	if !plan.VMCPUCount.IsNull() {
 		createRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
 	}
@@ -667,12 +670,14 @@ func (r *InfinityWorkerVMResource) read(ctx context.Context, resourceID int, vmC
 
 	// Convert static routes from SDK to Terraform format
 	var staticRoutes []string
-	staticRoutes = append(staticRoutes, srv.StaticRoutes...)
-	routeSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	for _, staticRoute := range srv.StaticRoutes {
+		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%d/", staticRoute.ID))
+	}
+	staticRoutesSetValue, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
 	if diags.HasError() {
 		return nil, fmt.Errorf("error converting static routes: %v", diags)
 	}
-	data.StaticRoutes = routeSetValue
+	data.StaticRoutes = staticRoutesSetValue
 
 	return &data, nil
 }
@@ -738,64 +743,26 @@ func (r *InfinityWorkerVMResource) Update(ctx context.Context, req resource.Upda
 		EnableDistributedDatabase: plan.EnableDistributedDatabase.ValueBool(),
 	}
 
-	// Set optional fields that have default values
-	if !plan.AlternativeFQDN.IsNull() {
-		updateRequest.AlternativeFQDN = plan.AlternativeFQDN.ValueString()
-	}
-	if !plan.DeploymentType.IsNull() {
-		updateRequest.DeploymentType = plan.DeploymentType.ValueString()
-	}
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.EnableSSH.IsNull() {
-		updateRequest.EnableSSH = plan.EnableSSH.ValueString()
-	}
-	if !plan.MaintenanceMode.IsNull() {
-		updateRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
-	}
-	if !plan.MaintenanceModeReason.IsNull() {
-		updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
-	}
-	if !plan.NodeType.IsNull() {
-		updateRequest.NodeType = plan.NodeType.ValueString()
-	}
-	if !plan.Password.IsNull() {
-		updateRequest.Password = plan.Password.ValueString()
-	}
-	if !plan.SNMPCommunity.IsNull() {
-		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
-	}
-	if !plan.SNMPMode.IsNull() {
-		updateRequest.SNMPMode = plan.SNMPMode.ValueString()
-	}
-	if !plan.SNMPSystemContact.IsNull() {
-		updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
-	}
-	if !plan.SNMPSystemLocation.IsNull() {
-		updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
-	}
-	if !plan.SNMPUsername.IsNull() {
-		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
-	}
-	if !plan.Transcoding.IsNull() {
-		updateRequest.Transcoding = plan.Transcoding.ValueBool()
-	}
-	if !plan.VMCPUCount.IsNull() {
-		updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
-	}
-	if !plan.VMSystemMemory.IsNull() {
-		updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
-	}
-	if !plan.SNMPAuthenticationPassword.IsNull() {
-		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
-	}
-	if !plan.SNMPPrivacyPassword.IsNull() {
-		updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
-	}
-	if !plan.SSHAuthorizedKeysUseCloud.IsNull() {
-		updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
-	}
+	// Set optional fields that have default values - always set these to ensure API clears them when removed from config
+	updateRequest.AlternativeFQDN = plan.AlternativeFQDN.ValueString()
+	updateRequest.DeploymentType = plan.DeploymentType.ValueString()
+	updateRequest.Description = plan.Description.ValueString()
+	updateRequest.EnableSSH = plan.EnableSSH.ValueString()
+	updateRequest.MaintenanceMode = plan.MaintenanceMode.ValueBool()
+	updateRequest.MaintenanceModeReason = plan.MaintenanceModeReason.ValueString()
+	updateRequest.NodeType = plan.NodeType.ValueString()
+	updateRequest.Password = plan.Password.ValueString()
+	updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
+	updateRequest.SNMPMode = plan.SNMPMode.ValueString()
+	updateRequest.SNMPSystemContact = plan.SNMPSystemContact.ValueString()
+	updateRequest.SNMPSystemLocation = plan.SNMPSystemLocation.ValueString()
+	updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
+	updateRequest.Transcoding = plan.Transcoding.ValueBool()
+	updateRequest.VMCPUCount = int(plan.VMCPUCount.ValueInt64())
+	updateRequest.VMSystemMemory = int(plan.VMSystemMemory.ValueInt64())
+	updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
+	updateRequest.SNMPPrivacyPassword = plan.SNMPPrivacyPassword.ValueString()
+	updateRequest.SSHAuthorizedKeysUseCloud = plan.SSHAuthorizedKeysUseCloud.ValueBool()
 
 	// Set optional fields that are nullable
 	if !plan.IPv6Address.IsNull() && !plan.IPv6Address.IsUnknown() {

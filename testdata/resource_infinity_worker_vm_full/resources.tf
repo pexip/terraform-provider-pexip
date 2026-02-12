@@ -4,15 +4,60 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+# RSA key of size 4096 bits
+resource "tls_private_key" "rsa-4096-example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "tls_self_signed_cert" "example" {
+  private_key_pem = tls_private_key.rsa-4096-example.private_key_pem
+
+  subject {
+    common_name  = "tf-test"
+    organization = "pexip"
+  }
+
+  validity_period_hours = 12
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "pexip_infinity_tls_certificate" "test" {
+  private_key = tls_private_key.rsa-4096-example.private_key_pem
+  certificate = tls_self_signed_cert.example.cert_pem
+}
+
+resource "pexip_infinity_system_location" "test" {
+  name = "tf-test provider system location"
+}
+
+resource "pexip_infinity_ssh_authorized_key" "test" {
+  keytype = "ssh-rsa"
+  key     = "AAAAB3NzaC1yc2EAAAADAQABAAABgQC7"
+  comment = "tf-test SSH key for worker VM"
+}
+
+resource "pexip_infinity_static_route" "test" {
+  name    = "tf-test static route"
+  address = "10.0.0.0"
+  prefix  = 24
+  gateway = "192.168.1.254"
+}
+
 resource "pexip_infinity_worker_vm" "worker-vm-test" {
-  name                          = "worker-vm-test"
+  name                          = "tf-test-full_worker-vm"
   hostname                      = "worker-vm-test"
   domain                        = "test-value"
+  alternative_fqdn              = "alt.example.com"
   address                       = "192.168.1.10"
   netmask                       = "255.255.255.0"
   gateway                       = "192.168.1.1"
-  system_location               = "/api/admin/configuration/v1/system_location/1/"
-  tls_certificate               = "/api/admin/configuration/v1/tls_certificate/2/"
+  system_location               = pexip_infinity_system_location.test.id
   description                   = "initial description"
   ipv6_address                  = "2001:db8::1"
   ipv6_gateway                  = "2001:db8::fe"
@@ -35,6 +80,9 @@ resource "pexip_infinity_worker_vm" "worker-vm-test" {
   snmp_system_contact           = "snmpcontact1@domain.com"
   snmp_system_location          = "test-value"
   snmp_username                 = "snmp-user1"
+  tls_certificate               = pexip_infinity_tls_certificate.test.id
+  ssh_authorized_keys           = [pexip_infinity_ssh_authorized_key.test.id]
+  static_routes                 = [pexip_infinity_static_route.test.id]
   enable_ssh                    = "ON"
   enable_distributed_database   = false
 }
