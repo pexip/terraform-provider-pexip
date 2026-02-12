@@ -184,6 +184,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityCertificateSigningRequestResource{} },
 		func() resource.Resource { return &InfinityWorkerVMResource{} },
 		func() resource.Resource { return &InfinityTLSCertificateResource{} },
+		func() resource.Resource { return &InfinityDeleteDefaultTLSCertificateActionResource{} },
 		func() resource.Resource { return &InfinityLicenceResource{} },
 		func() resource.Resource { return &InfinityStaticRouteResource{} },
 		func() resource.Resource { return &InfinityRegistrationResource{} },
