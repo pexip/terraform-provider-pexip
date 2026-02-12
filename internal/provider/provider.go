@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	_ provider.Provider             = (*PexipProvider)(nil)
-	_ provider.ProviderWithActions  = (*PexipProvider)(nil)
+	_ provider.Provider            = (*PexipProvider)(nil)
+	_ provider.ProviderWithActions = (*PexipProvider)(nil)
 )
 
 type PexipProviderModel struct {
