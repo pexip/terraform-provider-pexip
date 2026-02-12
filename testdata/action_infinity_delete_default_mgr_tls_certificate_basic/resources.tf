@@ -4,5 +4,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-resource "pexip_infinity_delete_default_tls_certificate_action" "delete-test" {
+action "pexip_delete_default_mgr_tls_certificate" "delete-test" {
 }

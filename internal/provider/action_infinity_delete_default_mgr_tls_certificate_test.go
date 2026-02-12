@@ -18,7 +18,7 @@ import (
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
-func TestInfinityDeleteDefaultTLSCertificateAction(t *testing.T) {
+func TestInfinityDeleteDefaultMgrTLSCertificateAction(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
@@ -28,21 +28,17 @@ func TestInfinityDeleteDefaultTLSCertificateAction(t *testing.T) {
 	// Mock the DeleteTLSCertificate API call (certificate ID 1 is the default)
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/tls_certificate/1/", mock.Anything).Return(nil)
 
-	// Note: Delete default TLS certificate is an action resource that doesn't have persistent state to read
-
-	testInfinityDeleteDefaultTLSCertificateAction(t, client)
+	testInfinityDeleteDefaultMgrTLSCertificateAction(t, client)
 }
 
-func testInfinityDeleteDefaultTLSCertificateAction(t *testing.T, client InfinityClient) {
+func testInfinityDeleteDefaultMgrTLSCertificateAction(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_delete_default_tls_certificate_action_basic"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_delete_default_tls_certificate_action.delete-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_delete_default_tls_certificate_action.delete-test", "timestamp"),
-				),
+				Config: test.LoadTestFolder(t, "action_infinity_delete_default_mgr_tls_certificate_basic"),
+				// Actions don't have persistent state, so we just verify the configuration is valid
+				// The mock client will verify that DeleteTLSCertificate was called
 			},
 		},
 	})

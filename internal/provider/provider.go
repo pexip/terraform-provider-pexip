@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -33,7 +34,8 @@ import (
 )
 
 var (
-	_ provider.Provider = (*PexipProvider)(nil)
+	_ provider.Provider             = (*PexipProvider)(nil)
+	_ provider.ProviderWithActions  = (*PexipProvider)(nil)
 )
 
 type PexipProviderModel struct {
@@ -184,7 +186,6 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityCertificateSigningRequestResource{} },
 		func() resource.Resource { return &InfinityWorkerVMResource{} },
 		func() resource.Resource { return &InfinityTLSCertificateResource{} },
-		func() resource.Resource { return &InfinityDeleteDefaultTLSCertificateActionResource{} },
 		func() resource.Resource { return &InfinityLicenceResource{} },
 		func() resource.Resource { return &InfinityStaticRouteResource{} },
 		func() resource.Resource { return &InfinityRegistrationResource{} },
@@ -237,5 +238,11 @@ func (p *PexipProvider) DataSources(ctx context.Context) []func() datasource.Dat
 		func() datasource.DataSource {
 			return &InfinityPermissionDataSource{}
 		},
+	}
+}
+
+func (p *PexipProvider) Actions(ctx context.Context) []func() action.Action {
+	return []func() action.Action{
+		func() action.Action { return &InfinityDeleteDefaultMgrTLSCertificateAction{} },
 	}
 }
