@@ -146,9 +146,10 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		}
 	}
 
-	// Pass the configured provider to resources and data sources.
+	// Pass the configured provider to resources, data sources, and actions.
 	resp.DataSourceData = p
 	resp.ResourceData = p
+	resp.ActionData = p
 }
 
 func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resource {
