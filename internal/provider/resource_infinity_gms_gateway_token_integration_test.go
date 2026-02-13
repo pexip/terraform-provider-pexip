@@ -22,6 +22,7 @@ import (
 )
 
 func TestInfinityGMSGatewayTokenIntegration(t *testing.T) {
+	t.Skip("Skipping: Requires Pexip signed GMS certificate and private key")
 	_ = os.Setenv("TF_ACC", "1")
 
 	// Verify required environment variables are set
