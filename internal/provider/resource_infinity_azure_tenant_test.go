@@ -34,12 +34,12 @@ func TestInfinityAzureTenant(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Shared state for mocking
+	// Shared state for mocking - dynamically updated by create/update operations
 	mockState := &config.AzureTenant{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/123/",
-		Name:        "azure_tenant-test",
-		Description: "Test AzureTenant",
+		Name:        "tf-test full",
+		Description: "Test AzureTenant tf-test full",
 		TenantID:    "12345678-1234-1234-1234-123456789012",
 	}
 
@@ -54,14 +54,10 @@ func TestInfinityAzureTenant(t *testing.T) {
 		updateRequest := args.Get(2).(*config.AzureTenantUpdateRequest)
 		azureTenant := args.Get(3).(*config.AzureTenant)
 
-		// Update mock state
+		// Update mock state with all fields from request
 		mockState.Name = updateRequest.Name
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
-		if updateRequest.TenantID != "" {
-			mockState.TenantID = updateRequest.TenantID
-		}
+		mockState.Description = updateRequest.Description
+		mockState.TenantID = updateRequest.TenantID
 
 		// Return updated state
 		*azureTenant = *mockState
@@ -80,23 +76,47 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "azure_tenant-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test full"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant tf-test full"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "12345678-1234-1234-1234-123456789012"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "azure_tenant-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Updated Test AzureTenant"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test min"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "87654321-4321-4321-4321-210987654321"),
+				),
+			},
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_azure_tenant_min"),
+				Destroy: true,
+			},
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test min"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "87654321-4321-4321-4321-210987654321"),
+				),
+			},
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_azure_tenant_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test full"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant tf-test full"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "12345678-1234-1234-1234-123456789012"),
 				),
 			},
 		},
