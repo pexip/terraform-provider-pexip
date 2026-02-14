@@ -71,7 +71,7 @@ type InfinitySystemLocationResourceModel struct {
 
 func getStringList(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
 	if set.IsNull() || set.IsUnknown() {
-		return nil, nil
+		return []string{}, nil
 	}
 	var items []string
 	diags := set.ElementsAs(ctx, &items, false)
