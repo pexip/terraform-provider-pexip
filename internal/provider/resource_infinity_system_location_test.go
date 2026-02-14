@@ -76,13 +76,14 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	client := infinity.NewClientMock()
 
-	// Mock DNS Servers (created twice: step 1 and step 5)
-	// Register in order: dns1, dns2, dns1, dns2
+	// Mock DNS Servers (created twice: step 1 and step 4)
 	mockDNS1 := &config.DNSServer{}
 	mockDNS2 := &config.DNSServer{}
 
-	// First creation cycle (step 1)
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	// Step 1: Create DNS1 (68.94.156.1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.MatchedBy(func(req *config.DNSServerCreateRequest) bool {
+		return req.Address == "68.94.156.1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/dns_server/1/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -93,8 +94,12 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Address:     req.Address,
 			Description: req.Description,
 		}
-	}).Twice()
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	}).Once()
+
+	// Step 1: Create DNS2 (68.94.157.1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.MatchedBy(func(req *config.DNSServerCreateRequest) bool {
+		return req.Address == "68.94.157.1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/dns_server/2/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -105,9 +110,12 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Address:     req.Address,
 			Description: req.Description,
 		}
-	}).Twice()
-	// Second creation cycle (step 5)
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	}).Once()
+
+	// Step 4: Recreate DNS1 (68.94.156.1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.MatchedBy(func(req *config.DNSServerCreateRequest) bool {
+		return req.Address == "68.94.156.1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/dns_server/1/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -118,8 +126,12 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Address:     req.Address,
 			Description: req.Description,
 		}
-	}).Twice()
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	}).Once()
+
+	// Step 4: Recreate DNS2 (68.94.157.1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.MatchedBy(func(req *config.DNSServerCreateRequest) bool {
+		return req.Address == "68.94.157.1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/dns_server/2/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -130,7 +142,7 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Address:     req.Address,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
 	client.On("GetJSON", mock.Anything, "configuration/v1/dns_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		dns := args.Get(3).(*config.DNSServer)
 		*dns = *mockDNS1
@@ -154,7 +166,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock NTP Server
 	mockNTP := &config.NTPServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create NTP (time.google.com)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.MatchedBy(func(req *config.NTPServerCreateRequest) bool {
+		return req.Address == "time.google.com"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/ntp_server/3/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -167,7 +183,25 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Key:         req.Key,
 			KeyID:       req.KeyID,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate NTP (time.google.com)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.MatchedBy(func(req *config.NTPServerCreateRequest) bool {
+		return req.Address == "time.google.com"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/ntp_server/3/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.NTPServerCreateRequest)
+		*mockNTP = config.NTPServer{
+			ID:          3,
+			ResourceURI: "/api/admin/configuration/v1/ntp_server/3/",
+			Address:     req.Address,
+			Description: req.Description,
+			Key:         req.Key,
+			KeyID:       req.KeyID,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/ntp_server/3/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		ntp := args.Get(3).(*config.NTPServer)
@@ -178,7 +212,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock STUN Server 1
 	mockSTUN1 := &config.STUNServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create STUN1 (tf-test-stun1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.MatchedBy(func(req *config.STUNServerCreateRequest) bool {
+		return req.Name == "tf-test-stun1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/stun_server/4/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -191,7 +229,25 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Port:        req.Port,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate STUN1 (tf-test-stun1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.MatchedBy(func(req *config.STUNServerCreateRequest) bool {
+		return req.Name == "tf-test-stun1"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/stun_server/4/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.STUNServerCreateRequest)
+		*mockSTUN1 = config.STUNServer{
+			ID:          4,
+			ResourceURI: "/api/admin/configuration/v1/stun_server/4/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Description: req.Description,
+		}
+	}).Once()
 	client.On("GetJSON", mock.Anything, "configuration/v1/stun_server/4/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		stun := args.Get(3).(*config.STUNServer)
 		*stun = *mockSTUN1
@@ -201,7 +257,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock STUN Server 2
 	mockSTUN2 := &config.STUNServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create STUN2 (tf-test-stun2)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.MatchedBy(func(req *config.STUNServerCreateRequest) bool {
+		return req.Name == "tf-test-stun2"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/stun_server/5/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -214,7 +274,25 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Port:        req.Port,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate STUN2 (tf-test-stun2)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.MatchedBy(func(req *config.STUNServerCreateRequest) bool {
+		return req.Name == "tf-test-stun2"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/stun_server/5/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.STUNServerCreateRequest)
+		*mockSTUN2 = config.STUNServer{
+			ID:          5,
+			ResourceURI: "/api/admin/configuration/v1/stun_server/5/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Description: req.Description,
+		}
+	}).Once()
 	client.On("GetJSON", mock.Anything, "configuration/v1/stun_server/5/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		stun := args.Get(3).(*config.STUNServer)
 		*stun = *mockSTUN2
@@ -224,7 +302,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock TURN Server 1
 	mockTURN1 := &config.TURNServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create TURN1 (tf-test-turn1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.MatchedBy(func(req *config.TURNServerCreateRequest) bool {
+		return req.Name == "tf-test-turn1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/turn_server/6/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -241,7 +323,29 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Username:      req.Username,
 			Password:      req.Password,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate TURN1 (tf-test-turn1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.MatchedBy(func(req *config.TURNServerCreateRequest) bool {
+		return req.Name == "tf-test-turn1"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/turn_server/6/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.TURNServerCreateRequest)
+		*mockTURN1 = config.TURNServer{
+			ID:            6,
+			ResourceURI:   "/api/admin/configuration/v1/turn_server/6/",
+			Name:          req.Name,
+			Address:       req.Address,
+			Port:          req.Port,
+			ServerType:    req.ServerType,
+			TransportType: req.TransportType,
+			Description:   req.Description,
+			Username:      req.Username,
+			Password:      req.Password,
+		}
+	}).Once()
 	client.On("GetJSON", mock.Anything, "configuration/v1/turn_server/6/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		turn := args.Get(3).(*config.TURNServer)
 		*turn = *mockTURN1
@@ -251,7 +355,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock TURN Server 2
 	mockTURN2 := &config.TURNServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create TURN2 (tf-test-turn2)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.MatchedBy(func(req *config.TURNServerCreateRequest) bool {
+		return req.Name == "tf-test-turn2"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/turn_server/7/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -268,7 +376,29 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Username:      req.Username,
 			Password:      req.Password,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate TURN2 (tf-test-turn2)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.MatchedBy(func(req *config.TURNServerCreateRequest) bool {
+		return req.Name == "tf-test-turn2"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/turn_server/7/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.TURNServerCreateRequest)
+		*mockTURN2 = config.TURNServer{
+			ID:            7,
+			ResourceURI:   "/api/admin/configuration/v1/turn_server/7/",
+			Name:          req.Name,
+			Address:       req.Address,
+			Port:          req.Port,
+			ServerType:    req.ServerType,
+			TransportType: req.TransportType,
+			Description:   req.Description,
+			Username:      req.Username,
+			Password:      req.Password,
+		}
+	}).Once()
 	client.On("GetJSON", mock.Anything, "configuration/v1/turn_server/7/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		turn := args.Get(3).(*config.TURNServer)
 		*turn = *mockTURN2
@@ -278,7 +408,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock Event Sink
 	mockEventSink := &config.EventSink{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create Event Sink (tf-test-event-sink)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.MatchedBy(func(req *config.EventSinkCreateRequest) bool {
+		return req.Name == "tf-test-event-sink"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/event_sink/8/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -293,7 +427,27 @@ func TestInfinitySystemLocation(t *testing.T) {
 			VerifyTLSCertificate: req.VerifyTLSCertificate,
 			Version:              req.Version,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate Event Sink (tf-test-event-sink)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.MatchedBy(func(req *config.EventSinkCreateRequest) bool {
+		return req.Name == "tf-test-event-sink"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/event_sink/8/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EventSinkCreateRequest)
+		*mockEventSink = config.EventSink{
+			ID:                   8,
+			ResourceURI:          "/api/admin/configuration/v1/event_sink/8/",
+			Name:                 req.Name,
+			URL:                  req.URL,
+			Description:          req.Description,
+			BulkSupport:          req.BulkSupport,
+			VerifyTLSCertificate: req.VerifyTLSCertificate,
+			Version:              req.Version,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/event_sink/8/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		event := args.Get(3).(*config.EventSink)
@@ -304,7 +458,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock H323 Gatekeeper
 	mockH323 := &config.H323Gatekeeper{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create H323 Gatekeeper (tf-test-h323-gk)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.MatchedBy(func(req *config.H323GatekeeperCreateRequest) bool {
+		return req.Name == "tf-test-h323-gk"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/9/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -317,7 +475,25 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Port:        req.Port,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate H323 Gatekeeper (tf-test-h323-gk)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.MatchedBy(func(req *config.H323GatekeeperCreateRequest) bool {
+		return req.Name == "tf-test-h323-gk"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/9/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.H323GatekeeperCreateRequest)
+		*mockH323 = config.H323Gatekeeper{
+			ID:          9,
+			ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/9/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Description: req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/h323_gatekeeper/9/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		h323 := args.Get(3).(*config.H323Gatekeeper)
@@ -328,7 +504,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock HTTP Proxy
 	mockHTTP := &config.HTTPProxy{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/http_proxy/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create HTTP Proxy (tf-test-http-proxy)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/http_proxy/", mock.MatchedBy(func(req *config.HTTPProxyCreateRequest) bool {
+		return req.Name == "tf-test-http-proxy"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/http_proxy/10/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -343,7 +523,27 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Username:    req.Username,
 			Password:    req.Password,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate HTTP Proxy (tf-test-http-proxy)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/http_proxy/", mock.MatchedBy(func(req *config.HTTPProxyCreateRequest) bool {
+		return req.Name == "tf-test-http-proxy"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/http_proxy/10/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.HTTPProxyCreateRequest)
+		*mockHTTP = config.HTTPProxy{
+			ID:          10,
+			ResourceURI: "/api/admin/configuration/v1/http_proxy/10/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Protocol:    req.Protocol,
+			Username:    req.Username,
+			Password:    req.Password,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/http_proxy/10/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		http := args.Get(3).(*config.HTTPProxy)
@@ -354,7 +554,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock MSSIP Proxy
 	mockMSSIP := &config.MSSIPProxy{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/mssip_proxy/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create MSSIP Proxy (tf-test-mssip)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/mssip_proxy/", mock.MatchedBy(func(req *config.MSSIPProxyCreateRequest) bool {
+		return req.Name == "tf-test-mssip"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/mssip_proxy/11/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -368,7 +572,26 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Transport:   req.Transport,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate MSSIP Proxy (tf-test-mssip)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/mssip_proxy/", mock.MatchedBy(func(req *config.MSSIPProxyCreateRequest) bool {
+		return req.Name == "tf-test-mssip"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/mssip_proxy/11/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.MSSIPProxyCreateRequest)
+		*mockMSSIP = config.MSSIPProxy{
+			ID:          11,
+			ResourceURI: "/api/admin/configuration/v1/mssip_proxy/11/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Transport:   req.Transport,
+			Description: req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/mssip_proxy/11/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		mssip := args.Get(3).(*config.MSSIPProxy)
@@ -379,7 +602,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock Policy Server
 	mockPolicy := &config.PolicyServer{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create Policy Server (tf-test-policy)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.MatchedBy(func(req *config.PolicyServerCreateRequest) bool {
+		return req.Name == "tf-test-policy"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/policy_server/12/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -396,7 +623,29 @@ func TestInfinitySystemLocation(t *testing.T) {
 			EnableInternalServicePolicy:        req.EnableInternalServicePolicy,
 			Description:                        req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate Policy Server (tf-test-policy)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.MatchedBy(func(req *config.PolicyServerCreateRequest) bool {
+		return req.Name == "tf-test-policy"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/policy_server/12/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.PolicyServerCreateRequest)
+		*mockPolicy = config.PolicyServer{
+			ID:                                 12,
+			ResourceURI:                        "/api/admin/configuration/v1/policy_server/12/",
+			Name:                               req.Name,
+			URL:                                req.URL,
+			EnableAvatarLookup:                 req.EnableAvatarLookup,
+			EnableDirectoryLookup:              req.EnableDirectoryLookup,
+			EnableInternalMediaLocationPolicy:  req.EnableInternalMediaLocationPolicy,
+			EnableInternalParticipantPolicy:    req.EnableInternalParticipantPolicy,
+			EnableInternalServicePolicy:        req.EnableInternalServicePolicy,
+			Description:                        req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/policy_server/12/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		policy := args.Get(3).(*config.PolicyServer)
@@ -407,7 +656,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock SIP Proxy
 	mockSIP := &config.SIPProxy{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/sip_proxy/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create SIP Proxy (tf-test-sip)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/sip_proxy/", mock.MatchedBy(func(req *config.SIPProxyCreateRequest) bool {
+		return req.Name == "tf-test-sip"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/sip_proxy/13/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -421,7 +674,26 @@ func TestInfinitySystemLocation(t *testing.T) {
 			Transport:   req.Transport,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate SIP Proxy (tf-test-sip)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/sip_proxy/", mock.MatchedBy(func(req *config.SIPProxyCreateRequest) bool {
+		return req.Name == "tf-test-sip"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/sip_proxy/13/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SIPProxyCreateRequest)
+		*mockSIP = config.SIPProxy{
+			ID:          13,
+			ResourceURI: "/api/admin/configuration/v1/sip_proxy/13/",
+			Name:        req.Name,
+			Address:     req.Address,
+			Port:        req.Port,
+			Transport:   req.Transport,
+			Description: req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/sip_proxy/13/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		sip := args.Get(3).(*config.SIPProxy)
@@ -432,7 +704,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock SNMP Network Management System
 	mockSNMP := &config.SnmpNetworkManagementSystem{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/snmp_network_management_system/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create SNMP NMS (tf-test-snmp)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/snmp_network_management_system/", mock.MatchedBy(func(req *config.SnmpNetworkManagementSystemCreateRequest) bool {
+		return req.Name == "tf-test-snmp"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/snmp_network_management_system/14/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -446,7 +722,26 @@ func TestInfinitySystemLocation(t *testing.T) {
 			SnmpTrapCommunity: req.SnmpTrapCommunity,
 			Description:       req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate SNMP NMS (tf-test-snmp)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/snmp_network_management_system/", mock.MatchedBy(func(req *config.SnmpNetworkManagementSystemCreateRequest) bool {
+		return req.Name == "tf-test-snmp"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/snmp_network_management_system/14/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SnmpNetworkManagementSystemCreateRequest)
+		*mockSNMP = config.SnmpNetworkManagementSystem{
+			ID:                14,
+			ResourceURI:       "/api/admin/configuration/v1/snmp_network_management_system/14/",
+			Name:              req.Name,
+			Address:           req.Address,
+			Port:              req.Port,
+			SnmpTrapCommunity: req.SnmpTrapCommunity,
+			Description:       req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/snmp_network_management_system/14/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		snmp := args.Get(3).(*config.SnmpNetworkManagementSystem)
@@ -457,7 +752,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock Azure Tenant
 	mockAzure := &config.AzureTenant{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create Azure Tenant (tf-test-azure-tenant-for-location)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.MatchedBy(func(req *config.AzureTenantCreateRequest) bool {
+		return req.Name == "tf-test-azure-tenant-for-location"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -469,7 +768,24 @@ func TestInfinitySystemLocation(t *testing.T) {
 			TenantID:    req.TenantID,
 			Description: req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate Azure Tenant (tf-test-azure-tenant-for-location)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.MatchedBy(func(req *config.AzureTenantCreateRequest) bool {
+		return req.Name == "tf-test-azure-tenant-for-location"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.AzureTenantCreateRequest)
+		*mockAzure = config.AzureTenant{
+			ID:          15,
+			ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
+			Name:        req.Name,
+			TenantID:    req.TenantID,
+			Description: req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/azure_tenant/15/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		azure := args.Get(3).(*config.AzureTenant)
@@ -480,7 +796,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	// Mock Teams Proxy
 	mockTeams := &config.TeamsProxy{}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/teams_proxy/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+
+	// Step 1: Create Teams Proxy (tf-test-teams-proxy-for-location)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/teams_proxy/", mock.MatchedBy(func(req *config.TeamsProxyCreateRequest) bool {
+		return req.Name == "tf-test-teams-proxy-for-location"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/teams_proxy/16/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -497,7 +817,29 @@ func TestInfinitySystemLocation(t *testing.T) {
 			NotificationsQueue:    req.NotificationsQueue,
 			Description:           req.Description,
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate Teams Proxy (tf-test-teams-proxy-for-location)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/teams_proxy/", mock.MatchedBy(func(req *config.TeamsProxyCreateRequest) bool {
+		return req.Name == "tf-test-teams-proxy-for-location"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/teams_proxy/16/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.TeamsProxyCreateRequest)
+		*mockTeams = config.TeamsProxy{
+			ID:                    16,
+			ResourceURI:           "/api/admin/configuration/v1/teams_proxy/16/",
+			Name:                  req.Name,
+			Address:               req.Address,
+			Port:                  req.Port,
+			AzureTenant:           req.AzureTenant,
+			MinNumberOfInstances:  req.MinNumberOfInstances,
+			NotificationsEnabled:  req.NotificationsEnabled,
+			NotificationsQueue:    req.NotificationsQueue,
+			Description:           req.Description,
+		}
+	}).Once()
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/teams_proxy/16/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		teams := args.Get(3).(*config.TeamsProxy)
@@ -516,8 +858,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 	mockSysLoc3 := &config.SystemLocation{}
 	mockState := &config.SystemLocation{}
 
-	// System Location 1: tf-test 1
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	// Step 1: Create test1, test2, test3
+	// System Location 1: tf-test 1 (step 1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 1"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/system_location/17/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -533,9 +878,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 			BDPMPinChecksEnabled:       "GLOBAL",
 			BDPMScanQuarantineEnabled:  "GLOBAL",
 		}
-	}).Twice()
-	// System Location 2: tf-test 2
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	}).Once()
+	// System Location 2: tf-test 2 (step 1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 2"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/system_location/18/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -551,9 +898,11 @@ func TestInfinitySystemLocation(t *testing.T) {
 			BDPMPinChecksEnabled:       "GLOBAL",
 			BDPMScanQuarantineEnabled:  "GLOBAL",
 		}
-	}).Twice()
-	// System Location 3: tf-test 3
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	}).Once()
+	// System Location 3: tf-test 3 (step 1)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 3"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/system_location/19/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -569,7 +918,69 @@ func TestInfinitySystemLocation(t *testing.T) {
 			BDPMPinChecksEnabled:       "GLOBAL",
 			BDPMScanQuarantineEnabled:  "GLOBAL",
 		}
-	}).Twice()
+	}).Once()
+
+	// Step 4: Recreate test1, test2, test3 after destroy
+	// System Location 1: tf-test 1 (step 4)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 1"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/17/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SystemLocationCreateRequest)
+		*mockSysLoc1 = config.SystemLocation{
+			ID:                         17,
+			ResourceURI:                "/api/admin/configuration/v1/system_location/17/",
+			Name:                       req.Name,
+			Description:                req.Description,
+			MTU:                        1500,
+			MediaQoS:                   test.IntPtr(0),
+			SignallingQoS:              test.IntPtr(0),
+			BDPMPinChecksEnabled:       "GLOBAL",
+			BDPMScanQuarantineEnabled:  "GLOBAL",
+		}
+	}).Once()
+	// System Location 2: tf-test 2 (step 4)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 2"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/18/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SystemLocationCreateRequest)
+		*mockSysLoc2 = config.SystemLocation{
+			ID:                         18,
+			ResourceURI:                "/api/admin/configuration/v1/system_location/18/",
+			Name:                       req.Name,
+			Description:                req.Description,
+			MTU:                        1500,
+			MediaQoS:                   test.IntPtr(0),
+			SignallingQoS:              test.IntPtr(0),
+			BDPMPinChecksEnabled:       "GLOBAL",
+			BDPMScanQuarantineEnabled:  "GLOBAL",
+		}
+	}).Once()
+	// System Location 3: tf-test 3 (step 4)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test 3"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/19/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SystemLocationCreateRequest)
+		*mockSysLoc3 = config.SystemLocation{
+			ID:                         19,
+			ResourceURI:                "/api/admin/configuration/v1/system_location/19/",
+			Name:                       req.Name,
+			Description:                req.Description,
+			MTU:                        1500,
+			MediaQoS:                   test.IntPtr(0),
+			SignallingQoS:              test.IntPtr(0),
+			BDPMPinChecksEnabled:       "GLOBAL",
+			BDPMScanQuarantineEnabled:  "GLOBAL",
+		}
+	}).Once()
 
 	// Add GetJSON and DeleteJSON mocks for test1, test2, test3
 	client.On("GetJSON", mock.Anything, "configuration/v1/system_location/17/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -590,8 +1001,10 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}).Maybe()
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/system_location/19/", mock.Anything).Return(nil).Maybe()
 
-	// Main system location (created twice: once in step 1 and once in step 4)
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	// Main system location - Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test-system-location-full"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/system_location/123/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -630,7 +1043,51 @@ func TestInfinitySystemLocation(t *testing.T) {
 		mockState.NTPServers = convertURIsToResources[config.NTPServer](req.NTPServers)
 		mockState.SyslogServers = convertURIsToResources[config.SyslogServer](req.SyslogServers)
 		mockState.EventSinks = convertURIsToResources[config.EventSink](req.EventSinks)
-	}).Twice()
+	}).Once()
+
+	// Main system location - Step 4: Create with min config (after destroy)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/system_location/", mock.MatchedBy(func(req *config.SystemLocationCreateRequest) bool {
+		return req.Name == "tf-test-system-location-min"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/system_location/123/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.SystemLocationCreateRequest)
+		*mockState = config.SystemLocation{
+			ID:                          123,
+			ResourceURI:                 "/api/admin/configuration/v1/system_location/123/",
+			Name:                        req.Name,
+			Description:                 req.Description,
+			MTU:                         req.MTU,
+			MediaQoS:                    req.MediaQoS,
+			SignallingQoS:               req.SignallingQoS,
+			LocalMSSIPDomain:            req.LocalMSSIPDomain,
+			BDPMPinChecksEnabled:        req.BDPMPinChecksEnabled,
+			BDPMScanQuarantineEnabled:   req.BDPMScanQuarantineEnabled,
+			UseRelayCandidatesOnly:      req.UseRelayCandidatesOnly,
+			H323Gatekeeper:              req.H323Gatekeeper,
+			HTTPProxy:                   req.HTTPProxy,
+			MSSIPProxy:                  req.MSSIPProxy,
+			PolicyServer:                req.PolicyServer,
+			SIPProxy:                    req.SIPProxy,
+			SNMPNetworkManagementSystem: req.SNMPNetworkManagementSystem,
+			STUNServer:                  req.STUNServer,
+			TeamsProxy:                  req.TeamsProxy,
+			TURNServer:                  req.TURNServer,
+			OverflowLocation1:           req.OverflowLocation1,
+			OverflowLocation2:           req.OverflowLocation2,
+			TranscodingLocation:         req.TranscodingLocation,
+			LiveCaptionsDialOut1:        req.LiveCaptionsDialOut1,
+			LiveCaptionsDialOut2:        req.LiveCaptionsDialOut2,
+			LiveCaptionsDialOut3:        req.LiveCaptionsDialOut3,
+			ClientSTUNServers:           req.ClientSTUNServers,
+			ClientTURNServers:           req.ClientTURNServers,
+		}
+		mockState.DNSServers = convertURIsToResources[config.DNSServer](req.DNSServers)
+		mockState.NTPServers = convertURIsToResources[config.NTPServer](req.NTPServers)
+		mockState.SyslogServers = convertURIsToResources[config.SyslogServer](req.SyslogServers)
+		mockState.EventSinks = convertURIsToResources[config.EventSink](req.EventSinks)
+	}).Once()
 
 	// Mock the system_location update for step 2 (update to min config) and step 5 (update to full config)
 	client.On("PutJSON", mock.Anything, "configuration/v1/system_location/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {

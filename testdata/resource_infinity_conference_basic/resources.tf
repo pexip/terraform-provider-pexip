@@ -8,6 +8,6 @@ resource "pexip_infinity_conference" "conference-test" {
   name         = "conference-test"
   description  = "Test Conference"
   service_type = "conference"
-  pin          = "1234"
+  pin          = "123456"
   tag          = "test-tag"
 }

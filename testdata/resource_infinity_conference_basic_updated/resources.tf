@@ -8,8 +8,8 @@ resource "pexip_infinity_conference" "conference-test" {
   name         = "conference-test"
   description  = "Updated Test Conference" // Updated description
   service_type = "conference"              // Keep same service type (not updatable)
-  pin          = "9876"                    // Updated PIN
-  guest_pin    = "4321"                    // Updated guest PIN
+  pin          = "987654"                  // Updated PIN
+  guest_pin    = "432109"                  // Updated guest PIN
   allow_guests = true                      // Updated to true
   tag          = "updated-tag"             // Updated tag
 }
