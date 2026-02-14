@@ -5,9 +5,9 @@
  */
 
 resource "pexip_infinity_sip_proxy" "sip-proxy-test" {
-  name        = "test-sip-proxy"
-  description = "Test SIP Proxy"
-  address     = "test-sip-proxy.dev.pexip.network"
-  port        = 8081
+  name        = "tf-test-sip-proxy-full"
+  description = "Full configuration test SIP proxy"
+  address     = "sip.pexvclab.com"
+  port        = 5061
   transport   = "tls"
 }

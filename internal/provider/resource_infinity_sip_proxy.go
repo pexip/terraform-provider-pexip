@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -104,7 +105,9 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The port number for the SIP proxy. Range: 1 to 65535.",
 			},
 			"transport": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("tls"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "udp", "tls"),
 				},
@@ -237,14 +240,12 @@ func (r *InfinitySIPProxyResource) Update(ctx context.Context, req resource.Upda
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.SIPProxyUpdateRequest{
-		Name:      plan.Name.ValueString(),
-		Address:   plan.Address.ValueString(),
-		Transport: plan.Transport.ValueString(),
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		Address:     plan.Address.ValueString(),
+		Transport:   plan.Transport.ValueString(),
 	}
 
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
 	if !plan.Port.IsNull() {
 		port := int(plan.Port.ValueInt32())
 		updateRequest.Port = &port
