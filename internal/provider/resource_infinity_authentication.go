@@ -100,7 +100,9 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Resource URI for the authentication configuration in Infinity",
 			},
 			"source": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default: stringdefault.StaticString("LOCAL"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("LOCAL", "LDAP", "LDAP+LOCAL", "OIDC", "OIDC+LOCAL", "LDAP+OIDC+LOCAL"),
 				},
@@ -255,7 +257,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("client_secret_basic", "client_secret_post", "private_key_jwt"),
+					stringvalidator.OneOf("client_secret", "private_key"),
 				},
 				Default:             stringdefault.StaticString("client_secret"),
 				MarkdownDescription: "OpenID Connect authentication method. Valid values: client_secret_basic, client_secret_post, private_key_jwt.",
