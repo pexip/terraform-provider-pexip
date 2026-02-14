@@ -8,4 +8,5 @@ dist/
 .terraform/
 .terraform.lock.hcl
 **/terraform.tfvars
-terraform.tfstate**CLAUDE.md
+terraform.tfstate**
+CLAUDE.md
