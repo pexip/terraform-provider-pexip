@@ -102,7 +102,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"source": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				Default: stringdefault.StaticString("LOCAL"),
+				Default:  stringdefault.StaticString("LOCAL"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("LOCAL", "LDAP", "LDAP+LOCAL", "OIDC", "OIDC+LOCAL", "LDAP+OIDC+LOCAL"),
 				},

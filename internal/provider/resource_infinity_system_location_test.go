@@ -612,16 +612,16 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.PolicyServerCreateRequest)
 		*mockPolicy = config.PolicyServer{
-			ID:                                 12,
-			ResourceURI:                        "/api/admin/configuration/v1/policy_server/12/",
-			Name:                               req.Name,
-			URL:                                req.URL,
-			EnableAvatarLookup:                 req.EnableAvatarLookup,
-			EnableDirectoryLookup:              req.EnableDirectoryLookup,
-			EnableInternalMediaLocationPolicy:  req.EnableInternalMediaLocationPolicy,
-			EnableInternalParticipantPolicy:    req.EnableInternalParticipantPolicy,
-			EnableInternalServicePolicy:        req.EnableInternalServicePolicy,
-			Description:                        req.Description,
+			ID:                                12,
+			ResourceURI:                       "/api/admin/configuration/v1/policy_server/12/",
+			Name:                              req.Name,
+			URL:                               req.URL,
+			EnableAvatarLookup:                req.EnableAvatarLookup,
+			EnableDirectoryLookup:             req.EnableDirectoryLookup,
+			EnableInternalMediaLocationPolicy: req.EnableInternalMediaLocationPolicy,
+			EnableInternalParticipantPolicy:   req.EnableInternalParticipantPolicy,
+			EnableInternalServicePolicy:       req.EnableInternalServicePolicy,
+			Description:                       req.Description,
 		}
 	}).Once()
 
@@ -634,16 +634,16 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.PolicyServerCreateRequest)
 		*mockPolicy = config.PolicyServer{
-			ID:                                 12,
-			ResourceURI:                        "/api/admin/configuration/v1/policy_server/12/",
-			Name:                               req.Name,
-			URL:                                req.URL,
-			EnableAvatarLookup:                 req.EnableAvatarLookup,
-			EnableDirectoryLookup:              req.EnableDirectoryLookup,
-			EnableInternalMediaLocationPolicy:  req.EnableInternalMediaLocationPolicy,
-			EnableInternalParticipantPolicy:    req.EnableInternalParticipantPolicy,
-			EnableInternalServicePolicy:        req.EnableInternalServicePolicy,
-			Description:                        req.Description,
+			ID:                                12,
+			ResourceURI:                       "/api/admin/configuration/v1/policy_server/12/",
+			Name:                              req.Name,
+			URL:                               req.URL,
+			EnableAvatarLookup:                req.EnableAvatarLookup,
+			EnableDirectoryLookup:             req.EnableDirectoryLookup,
+			EnableInternalMediaLocationPolicy: req.EnableInternalMediaLocationPolicy,
+			EnableInternalParticipantPolicy:   req.EnableInternalParticipantPolicy,
+			EnableInternalServicePolicy:       req.EnableInternalServicePolicy,
+			Description:                       req.Description,
 		}
 	}).Once()
 
@@ -806,16 +806,16 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.TeamsProxyCreateRequest)
 		*mockTeams = config.TeamsProxy{
-			ID:                    16,
-			ResourceURI:           "/api/admin/configuration/v1/teams_proxy/16/",
-			Name:                  req.Name,
-			Address:               req.Address,
-			Port:                  req.Port,
-			AzureTenant:           req.AzureTenant,
-			MinNumberOfInstances:  req.MinNumberOfInstances,
-			NotificationsEnabled:  req.NotificationsEnabled,
-			NotificationsQueue:    req.NotificationsQueue,
-			Description:           req.Description,
+			ID:                   16,
+			ResourceURI:          "/api/admin/configuration/v1/teams_proxy/16/",
+			Name:                 req.Name,
+			Address:              req.Address,
+			Port:                 req.Port,
+			AzureTenant:          req.AzureTenant,
+			MinNumberOfInstances: req.MinNumberOfInstances,
+			NotificationsEnabled: req.NotificationsEnabled,
+			NotificationsQueue:   req.NotificationsQueue,
+			Description:          req.Description,
 		}
 	}).Once()
 
@@ -828,16 +828,16 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.TeamsProxyCreateRequest)
 		*mockTeams = config.TeamsProxy{
-			ID:                    16,
-			ResourceURI:           "/api/admin/configuration/v1/teams_proxy/16/",
-			Name:                  req.Name,
-			Address:               req.Address,
-			Port:                  req.Port,
-			AzureTenant:           req.AzureTenant,
-			MinNumberOfInstances:  req.MinNumberOfInstances,
-			NotificationsEnabled:  req.NotificationsEnabled,
-			NotificationsQueue:    req.NotificationsQueue,
-			Description:           req.Description,
+			ID:                   16,
+			ResourceURI:          "/api/admin/configuration/v1/teams_proxy/16/",
+			Name:                 req.Name,
+			Address:              req.Address,
+			Port:                 req.Port,
+			AzureTenant:          req.AzureTenant,
+			MinNumberOfInstances: req.MinNumberOfInstances,
+			NotificationsEnabled: req.NotificationsEnabled,
+			NotificationsQueue:   req.NotificationsQueue,
+			Description:          req.Description,
 		}
 	}).Once()
 
@@ -847,8 +847,6 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}).Maybe()
 
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/teams_proxy/16/", mock.Anything).Return(nil).Maybe()
-
-
 
 	// Mock System Locations
 	// Mock System Locations (for circular references and main location)
@@ -868,15 +866,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc1 = config.SystemLocation{
-			ID:                         17,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/17/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        17,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/17/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 	// System Location 2: tf-test 2 (step 1)
@@ -888,15 +886,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc2 = config.SystemLocation{
-			ID:                         18,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/18/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        18,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/18/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 	// System Location 3: tf-test 3 (step 1)
@@ -908,15 +906,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc3 = config.SystemLocation{
-			ID:                         19,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/19/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        19,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/19/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 
@@ -930,15 +928,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc1 = config.SystemLocation{
-			ID:                         17,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/17/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        17,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/17/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 	// System Location 2: tf-test 2 (step 4)
@@ -950,15 +948,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc2 = config.SystemLocation{
-			ID:                         18,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/18/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        18,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/18/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 	// System Location 3: tf-test 3 (step 4)
@@ -970,15 +968,15 @@ func TestInfinitySystemLocation(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.SystemLocationCreateRequest)
 		*mockSysLoc3 = config.SystemLocation{
-			ID:                         19,
-			ResourceURI:                "/api/admin/configuration/v1/system_location/19/",
-			Name:                       req.Name,
-			Description:                req.Description,
-			MTU:                        1500,
-			MediaQoS:                   test.IntPtr(0),
-			SignallingQoS:              test.IntPtr(0),
-			BDPMPinChecksEnabled:       "GLOBAL",
-			BDPMScanQuarantineEnabled:  "GLOBAL",
+			ID:                        19,
+			ResourceURI:               "/api/admin/configuration/v1/system_location/19/",
+			Name:                      req.Name,
+			Description:               req.Description,
+			MTU:                       1500,
+			MediaQoS:                  test.IntPtr(0),
+			SignallingQoS:             test.IntPtr(0),
+			BDPMPinChecksEnabled:      "GLOBAL",
+			BDPMScanQuarantineEnabled: "GLOBAL",
 		}
 	}).Once()
 

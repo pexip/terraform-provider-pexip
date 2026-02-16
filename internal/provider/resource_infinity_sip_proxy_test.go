@@ -105,7 +105,7 @@ func testInfinitySIPProxy(t *testing.T, client InfinityClient) {
 			},
 			{
 				// Step 3: Destroy (implicit)
-				Config: test.LoadTestFolder(t, "resource_infinity_sip_proxy_min"),
+				Config:  test.LoadTestFolder(t, "resource_infinity_sip_proxy_min"),
 				Destroy: true,
 			},
 			{
