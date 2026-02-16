@@ -38,7 +38,7 @@ func TestInfinityAzureTenant(t *testing.T) {
 	mockState := &config.AzureTenant{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/123/",
-		Name:        "tf-test full",
+		Name:        "tf-test-azure-tenant-full",
 		Description: "Test AzureTenant tf-test full",
 		TenantID:    "12345678-1234-1234-1234-123456789012",
 	}
@@ -80,7 +80,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test full"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test-azure-tenant-full"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant tf-test full"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "12345678-1234-1234-1234-123456789012"),
 				),
@@ -90,7 +90,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test min"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test-azure-tenant-min"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "87654321-4321-4321-4321-210987654321"),
 				),
@@ -104,7 +104,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test min"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test-azure-tenant-min"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "87654321-4321-4321-4321-210987654321"),
 				),
@@ -114,7 +114,7 @@ func testInfinityAzureTenant(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_azure_tenant.azure_tenant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test full"),
+					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "name", "tf-test-azure-tenant-full"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "description", "Test AzureTenant tf-test full"),
 					resource.TestCheckResourceAttr("pexip_infinity_azure_tenant.azure_tenant-test", "tenant_id", "12345678-1234-1234-1234-123456789012"),
 				),

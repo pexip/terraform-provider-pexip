@@ -37,7 +37,7 @@ func TestInfinityTeamsProxy(t *testing.T) {
 	azureTenantMockState := &config.AzureTenant{
 		ID:          456,
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/456/",
-		Name:        "tf-test-azure-tenant",
+		Name:        "tf-test-azure-tenant-teams-proxy-full",
 		Description: "Test Azure Tenant for Teams Proxy",
 		TenantID:    "12345678-1234-1234-1234-123456789012",
 	}

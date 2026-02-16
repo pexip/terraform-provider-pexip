@@ -753,9 +753,9 @@ func TestInfinitySystemLocation(t *testing.T) {
 	// Mock Azure Tenant
 	mockAzure := &config.AzureTenant{}
 
-	// Step 1: Create Azure Tenant (tf-test-azure-tenant-for-location)
+	// Step 1: Create Azure Tenant (tf-test-azure-tenant-system-location-full)
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.MatchedBy(func(req *config.AzureTenantCreateRequest) bool {
-		return req.Name == "tf-test-azure-tenant-for-location"
+		return req.Name == "tf-test-azure-tenant-system-location-full"
 	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
@@ -770,9 +770,9 @@ func TestInfinitySystemLocation(t *testing.T) {
 		}
 	}).Once()
 
-	// Step 4: Recreate Azure Tenant (tf-test-azure-tenant-for-location)
+	// Step 4: Recreate Azure Tenant (tf-test-azure-tenant-system-location-min)
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/azure_tenant/", mock.MatchedBy(func(req *config.AzureTenantCreateRequest) bool {
-		return req.Name == "tf-test-azure-tenant-for-location"
+		return req.Name == "tf-test-azure-tenant-system-location-min"
 	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
@@ -789,6 +789,19 @@ func TestInfinitySystemLocation(t *testing.T) {
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/azure_tenant/15/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		azure := args.Get(3).(*config.AzureTenant)
+		*azure = *mockAzure
+	}).Maybe()
+
+	client.On("PutJSON", mock.Anything, "configuration/v1/azure_tenant/15/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.AzureTenantUpdateRequest)
+		azure := args.Get(3).(*config.AzureTenant)
+		*mockAzure = config.AzureTenant{
+			ID:          15,
+			ResourceURI: "/api/admin/configuration/v1/azure_tenant/15/",
+			Name:        req.Name,
+			TenantID:    req.TenantID,
+			Description: req.Description,
+		}
 		*azure = *mockAzure
 	}).Maybe()
 

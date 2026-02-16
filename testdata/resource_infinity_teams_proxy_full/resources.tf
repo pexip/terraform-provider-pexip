@@ -5,7 +5,7 @@
  */
 
 resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
-  name        = "tf-test-azure-tenant"
+  name        = "tf-test-azure-tenant-teams-proxy-full"
   description = "Test Azure Tenant for Teams Proxy"
   tenant_id   = "12345678-1234-1234-1234-123456789012"
 }
