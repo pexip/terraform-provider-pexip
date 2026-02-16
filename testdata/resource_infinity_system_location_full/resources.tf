@@ -118,7 +118,7 @@ resource "pexip_infinity_snmp_network_management_system" "snmp" {
 # Azure Tenant for Teams Proxy
 resource "pexip_infinity_azure_tenant" "azure" {
   name      = "tf-test-azure-tenant-system-location-full"
-  tenant_id = "12345678-1234-1234-1234-123456789012"
+  tenant_id = "11111111-1111-1111-1111-111111111111"
 }
 
 # Teams Proxy

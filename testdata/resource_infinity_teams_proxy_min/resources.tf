@@ -7,7 +7,7 @@
 resource "pexip_infinity_azure_tenant" "azure-tenant-test" {
   name        = "tf-test-azure-tenant-teams-proxy-min"
   description = "Test Azure Tenant for Teams Proxy"
-  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  tenant_id   = "44444444-4444-4444-4444-444444444444"
 }
 
 resource "pexip_infinity_teams_proxy" "teams-proxy-test" {
