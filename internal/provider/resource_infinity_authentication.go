@@ -351,7 +351,7 @@ func (r *InfinityAuthenticationResource) Create(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString(), plan.OidcPrivateKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity authentication configuration",
@@ -425,7 +425,7 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 	return updateRequest
 }
 
-func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass, oidcPass string) (*InfinityAuthenticationResourceModel, error) {
+func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass, oidcPass, oidcKey string) (*InfinityAuthenticationResourceModel, error) {
 	var data InfinityAuthenticationResourceModel
 
 	srv, err := r.InfinityClient.Config().GetAuthentication(ctx)
@@ -460,7 +460,7 @@ func (r *InfinityAuthenticationResource) read(ctx context.Context, ldapPass, oid
 	data.OidcMetadata = types.StringValue(srv.OidcMetadata)
 	data.OidcClientID = types.StringValue(srv.OidcClientID)
 	data.OidcClientSecret = types.StringValue(oidcPass)
-	data.OidcPrivateKey = types.StringValue(srv.OidcPrivateKey)
+	data.OidcPrivateKey = types.StringValue(oidcKey)
 	data.OidcAuthMethod = types.StringValue(srv.OidcAuthMethod)
 	data.OidcScope = types.StringValue(srv.OidcScope)
 	data.OidcAuthorizeURL = types.StringValue(srv.OidcAuthorizeURL)
@@ -483,7 +483,7 @@ func (r *InfinityAuthenticationResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	state, err := r.read(ctx, state.LdapBindPassword.ValueString(), state.OidcClientSecret.ValueString())
+	state, err := r.read(ctx, state.LdapBindPassword.ValueString(), state.OidcClientSecret.ValueString(), state.OidcPrivateKey.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found) - unlikely for singleton resources
 		if isNotFoundError(err) {
@@ -520,7 +520,7 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString())
+	updatedModel, err := r.read(ctx, plan.LdapBindPassword.ValueString(), plan.OidcClientSecret.ValueString(), plan.OidcPrivateKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity authentication configuration",
@@ -542,7 +542,7 @@ func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req re
 	tflog.Trace(ctx, "Importing Infinity authentication configuration")
 
 	// Read the resource from the API
-	model, err := r.read(ctx, "", "")
+	model, err := r.read(ctx, "", "", "")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Importing Infinity Authentication Configuration",
