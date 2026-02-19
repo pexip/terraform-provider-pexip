@@ -46,6 +46,15 @@ type InfinityIdentityProviderResourceModel struct {
 	DisplayNameAttributeName            types.String `tfsdk:"display_name_attribute_name"`
 	RegistrationAliasAttributeName      types.String `tfsdk:"registration_alias_attribute_name"`
 	AssertionConsumerServiceURL         types.String `tfsdk:"assertion_consumer_service_url"`
+	AssertionConsumerServiceURL2        types.String `tfsdk:"assertion_consumer_service_url2"`
+	AssertionConsumerServiceURL3        types.String `tfsdk:"assertion_consumer_service_url3"`
+	AssertionConsumerServiceURL4        types.String `tfsdk:"assertion_consumer_service_url4"`
+	AssertionConsumerServiceURL5        types.String `tfsdk:"assertion_consumer_service_url5"`
+	AssertionConsumerServiceURL6        types.String `tfsdk:"assertion_consumer_service_url6"`
+	AssertionConsumerServiceURL7        types.String `tfsdk:"assertion_consumer_service_url7"`
+	AssertionConsumerServiceURL8        types.String `tfsdk:"assertion_consumer_service_url8"`
+	AssertionConsumerServiceURL9        types.String `tfsdk:"assertion_consumer_service_url9"`
+	AssertionConsumerServiceURL10       types.String `tfsdk:"assertion_consumer_service_url10"`
 	WorkerFQDNACSURLs                   types.Bool   `tfsdk:"worker_fqdn_acs_urls"`
 	DisablePopupFlow                    types.Bool   `tfsdk:"disable_popup_flow"`
 	OidcFlow                            types.String `tfsdk:"oidc_flow"`
@@ -111,11 +120,12 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "A description of the identity provider. Maximum length: 250 characters.",
 			},
 			"idp_type": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("saml", "oidc"),
 				},
-				MarkdownDescription: "The identity provider type. Valid choices: saml, oidc.",
+				MarkdownDescription: "The identity provider type. Valid choices: saml, oidc. Defaults to saml.",
 			},
 			"uuid": schema.StringAttribute{
 				Required:            true,
@@ -125,9 +135,9 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The SSO URL for SAML identity providers. Maximum length: 250 characters.",
+				MarkdownDescription: "The SSO URL for SAML identity providers. Maximum length: 255 characters.",
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Optional: true,
@@ -162,18 +172,20 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The service private key for SAML.",
 			},
 			"signature_algorithm": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"),
 				},
-				MarkdownDescription: "The signature algorithm. Valid choices: http://www.w3.org/2000/09/xmldsig#rsa-sha1, http://www.w3.org/2001/04/xmldsig-more#rsa-sha256, http://www.w3.org/2001/04/xmldsig-more#rsa-sha384, http://www.w3.org/2001/04/xmldsig-more#rsa-sha512.",
+				MarkdownDescription: "The signature algorithm. Valid choices: http://www.w3.org/2000/09/xmldsig#rsa-sha1, http://www.w3.org/2001/04/xmldsig-more#rsa-sha256, http://www.w3.org/2001/04/xmldsig-more#rsa-sha384, http://www.w3.org/2001/04/xmldsig-more#rsa-sha512. Defaults to http://www.w3.org/2001/04/xmldsig-more#rsa-sha256.",
 			},
 			"digest_algorithm": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("http://www.w3.org/2001/04/xmlenc#sha1", "http://www.w3.org/2001/04/xmlenc#sha256", "http://www.w3.org/2001/04/xmldsig-more#sha384", "http://www.w3.org/2001/04/xmlenc#sha512"),
+					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#sha1", "http://www.w3.org/2001/04/xmlenc#sha256", "http://www.w3.org/2001/04/xmldsig-more#sha384", "http://www.w3.org/2001/04/xmlenc#sha512"),
 				},
-				MarkdownDescription: "The digest algorithm. Valid choices: http://www.w3.org/2001/04/xmlenc#sha1, http://www.w3.org/2001/04/xmlenc#sha256, http://www.w3.org/2001/04/xmldsig-more#sha384, http://www.w3.org/2001/04/xmlenc#sha512.",
+				MarkdownDescription: "The digest algorithm. Valid choices: http://www.w3.org/2000/09/xmldsig#sha1, http://www.w3.org/2001/04/xmlenc#sha256, http://www.w3.org/2001/04/xmldsig-more#sha384, http://www.w3.org/2001/04/xmlenc#sha512. Defaults to http://www.w3.org/2001/04/xmlenc#sha256.",
 			},
 			"display_name_attribute_name": schema.StringAttribute{
 				Optional: true,
@@ -194,9 +206,81 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"assertion_consumer_service_url": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The assertion consumer service URL. If not provided, will be auto-generated by the API. Must end with the UUID of the Identity Provider and include 'samlconsumer'. Maximum length: 250 characters.",
+				MarkdownDescription: "The assertion consumer service URL. Must end with the UUID of the Identity Provider and include 'samlconsumer' for SAML or 'oidcconsumer' for OIDC. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url2": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url3": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url4": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url5": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url6": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url7": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url8": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url9": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+			},
+			"assertion_consumer_service_url10": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"worker_fqdn_acs_urls": schema.BoolAttribute{
 				Optional:            true,
@@ -229,47 +313,49 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Computed:  true,
 				Sensitive: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The OIDC client secret. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC client secret. Maximum length: 100 characters.",
 			},
 			"oidc_token_url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC token URL. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC token URL. Maximum length: 255 characters.",
 			},
 			"oidc_user_info_url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC user info URL. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC user info URL. Maximum length: 255 characters.",
 			},
 			"oidc_jwks_url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC JWKS URL. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC JWKS URL. Maximum length: 255 characters.",
 			},
 			"oidc_token_endpoint_auth_scheme": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("client_secret_basic", "client_secret_post"),
 				},
-				MarkdownDescription: "The OIDC token endpoint auth scheme. Valid choices: client_secret_basic, client_secret_post.",
+				MarkdownDescription: "The OIDC token endpoint auth scheme. Valid choices: client_secret_basic, client_secret_post. Defaults to client_secret_post.",
 			},
 			"oidc_token_signature_scheme": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("rs256", "hs256"),
 				},
-				MarkdownDescription: "The OIDC token signature scheme. Valid choices: rs256, hs256.",
+				MarkdownDescription: "The OIDC token signature scheme. Valid choices: rs256, hs256. Defaults to rs256.",
 			},
 			"oidc_display_name_claim_name": schema.StringAttribute{
 				Optional: true,
@@ -322,23 +408,39 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 	}
 
 	createRequest := &config.IdentityProviderCreateRequest{
-		Name:                                plan.Name.ValueString(),
-		IdpType:                             plan.IdpType.ValueString(),
-		SignatureAlgorithm:                  plan.SignatureAlgorithm.ValueString(),
-		DigestAlgorithm:                     plan.DigestAlgorithm.ValueString(),
-		WorkerFQDNACSURLs:                   plan.WorkerFQDNACSURLs.ValueBool(),
-		DisablePopupFlow:                    plan.DisablePopupFlow.ValueBool(),
-		OidcTokenEndpointAuthScheme:         plan.OidcTokenEndpointAuthScheme.ValueString(),
-		OidcTokenSignatureScheme:            plan.OidcTokenSignatureScheme.ValueString(),
-		OidcFranceConnectRequiredEidasLevel: plan.OidcFranceConnectRequiredEidasLevel.ValueString(),
+		Name: plan.Name.ValueString(),
 	}
 
 	// Set optional fields
 	if !plan.Description.IsNull() {
 		createRequest.Description = plan.Description.ValueString()
 	}
+	if !plan.IdpType.IsNull() {
+		createRequest.IdpType = plan.IdpType.ValueString()
+	}
 	if !plan.UUID.IsNull() {
 		createRequest.UUID = plan.UUID.ValueString()
+	}
+	if !plan.SignatureAlgorithm.IsNull() {
+		createRequest.SignatureAlgorithm = plan.SignatureAlgorithm.ValueString()
+	}
+	if !plan.DigestAlgorithm.IsNull() {
+		createRequest.DigestAlgorithm = plan.DigestAlgorithm.ValueString()
+	}
+	if !plan.WorkerFQDNACSURLs.IsNull() {
+		createRequest.WorkerFQDNACSURLs = plan.WorkerFQDNACSURLs.ValueBool()
+	}
+	if !plan.DisablePopupFlow.IsNull() {
+		createRequest.DisablePopupFlow = plan.DisablePopupFlow.ValueBool()
+	}
+	if !plan.OidcTokenEndpointAuthScheme.IsNull() {
+		createRequest.OidcTokenEndpointAuthScheme = plan.OidcTokenEndpointAuthScheme.ValueString()
+	}
+	if !plan.OidcTokenSignatureScheme.IsNull() {
+		createRequest.OidcTokenSignatureScheme = plan.OidcTokenSignatureScheme.ValueString()
+	}
+	if !plan.OidcFranceConnectRequiredEidasLevel.IsNull() {
+		createRequest.OidcFranceConnectRequiredEidasLevel = plan.OidcFranceConnectRequiredEidasLevel.ValueString()
 	}
 	if !plan.SSOUrl.IsNull() {
 		createRequest.SSOUrl = plan.SSOUrl.ValueString()
@@ -369,6 +471,33 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 	} else {
 		// Set a placeholder URL with zero UUID - API will update it with the actual UUID after creation
 		createRequest.AssertionConsumerServiceURL = "https://localhost/samlconsumer/00000000-0000-0000-0000-000000000000"
+	}
+	if !plan.AssertionConsumerServiceURL2.IsNull() {
+		createRequest.AssertionConsumerServiceURL2 = plan.AssertionConsumerServiceURL2.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL3.IsNull() {
+		createRequest.AssertionConsumerServiceURL3 = plan.AssertionConsumerServiceURL3.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL4.IsNull() {
+		createRequest.AssertionConsumerServiceURL4 = plan.AssertionConsumerServiceURL4.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL5.IsNull() {
+		createRequest.AssertionConsumerServiceURL5 = plan.AssertionConsumerServiceURL5.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL6.IsNull() {
+		createRequest.AssertionConsumerServiceURL6 = plan.AssertionConsumerServiceURL6.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL7.IsNull() {
+		createRequest.AssertionConsumerServiceURL7 = plan.AssertionConsumerServiceURL7.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL8.IsNull() {
+		createRequest.AssertionConsumerServiceURL8 = plan.AssertionConsumerServiceURL8.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL9.IsNull() {
+		createRequest.AssertionConsumerServiceURL9 = plan.AssertionConsumerServiceURL9.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL10.IsNull() {
+		createRequest.AssertionConsumerServiceURL10 = plan.AssertionConsumerServiceURL10.ValueString()
 	}
 	if !plan.OidcFlow.IsNull() {
 		createRequest.OidcFlow = plan.OidcFlow.ValueString()
@@ -462,6 +591,15 @@ func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID 
 	data.DisplayNameAttributeName = types.StringValue(srv.DisplayNameAttributeName)
 	data.RegistrationAliasAttributeName = types.StringValue(srv.RegistrationAliasAttributeName)
 	data.AssertionConsumerServiceURL = types.StringValue(srv.AssertionConsumerServiceURL)
+	data.AssertionConsumerServiceURL2 = types.StringValue(srv.AssertionConsumerServiceURL2)
+	data.AssertionConsumerServiceURL3 = types.StringValue(srv.AssertionConsumerServiceURL3)
+	data.AssertionConsumerServiceURL4 = types.StringValue(srv.AssertionConsumerServiceURL4)
+	data.AssertionConsumerServiceURL5 = types.StringValue(srv.AssertionConsumerServiceURL5)
+	data.AssertionConsumerServiceURL6 = types.StringValue(srv.AssertionConsumerServiceURL6)
+	data.AssertionConsumerServiceURL7 = types.StringValue(srv.AssertionConsumerServiceURL7)
+	data.AssertionConsumerServiceURL8 = types.StringValue(srv.AssertionConsumerServiceURL8)
+	data.AssertionConsumerServiceURL9 = types.StringValue(srv.AssertionConsumerServiceURL9)
+	data.AssertionConsumerServiceURL10 = types.StringValue(srv.AssertionConsumerServiceURL10)
 	data.WorkerFQDNACSURLs = types.BoolValue(srv.WorkerFQDNACSURLs)
 	data.DisablePopupFlow = types.BoolValue(srv.DisablePopupFlow)
 	data.OidcFlow = types.StringValue(srv.OidcFlow)
@@ -520,14 +658,8 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.IdentityProviderUpdateRequest{
-		Name:                                plan.Name.ValueString(),
-		IdpType:                             plan.IdpType.ValueString(),
-		SignatureAlgorithm:                  plan.SignatureAlgorithm.ValueString(),
-		DigestAlgorithm:                     plan.DigestAlgorithm.ValueString(),
-		AssertionConsumerServiceURL:         plan.AssertionConsumerServiceURL.ValueString(),
-		OidcTokenEndpointAuthScheme:         plan.OidcTokenEndpointAuthScheme.ValueString(),
-		OidcTokenSignatureScheme:            plan.OidcTokenSignatureScheme.ValueString(),
-		OidcFranceConnectRequiredEidasLevel: plan.OidcFranceConnectRequiredEidasLevel.ValueString(),
+		Name:                        plan.Name.ValueString(),
+		AssertionConsumerServiceURL: plan.AssertionConsumerServiceURL.ValueString(),
 	}
 
 	// Set boolean pointer fields for update
@@ -543,6 +675,24 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	// Set optional string fields
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
+	}
+	if !plan.IdpType.IsNull() {
+		updateRequest.IdpType = plan.IdpType.ValueString()
+	}
+	if !plan.SignatureAlgorithm.IsNull() {
+		updateRequest.SignatureAlgorithm = plan.SignatureAlgorithm.ValueString()
+	}
+	if !plan.DigestAlgorithm.IsNull() {
+		updateRequest.DigestAlgorithm = plan.DigestAlgorithm.ValueString()
+	}
+	if !plan.OidcTokenEndpointAuthScheme.IsNull() {
+		updateRequest.OidcTokenEndpointAuthScheme = plan.OidcTokenEndpointAuthScheme.ValueString()
+	}
+	if !plan.OidcTokenSignatureScheme.IsNull() {
+		updateRequest.OidcTokenSignatureScheme = plan.OidcTokenSignatureScheme.ValueString()
+	}
+	if !plan.OidcFranceConnectRequiredEidasLevel.IsNull() {
+		updateRequest.OidcFranceConnectRequiredEidasLevel = plan.OidcFranceConnectRequiredEidasLevel.ValueString()
 	}
 	if !plan.SSOUrl.IsNull() {
 		updateRequest.SSOUrl = plan.SSOUrl.ValueString()
@@ -567,6 +717,33 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	}
 	if !plan.RegistrationAliasAttributeName.IsNull() {
 		updateRequest.RegistrationAliasAttributeName = plan.RegistrationAliasAttributeName.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL2.IsNull() {
+		updateRequest.AssertionConsumerServiceURL2 = plan.AssertionConsumerServiceURL2.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL3.IsNull() {
+		updateRequest.AssertionConsumerServiceURL3 = plan.AssertionConsumerServiceURL3.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL4.IsNull() {
+		updateRequest.AssertionConsumerServiceURL4 = plan.AssertionConsumerServiceURL4.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL5.IsNull() {
+		updateRequest.AssertionConsumerServiceURL5 = plan.AssertionConsumerServiceURL5.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL6.IsNull() {
+		updateRequest.AssertionConsumerServiceURL6 = plan.AssertionConsumerServiceURL6.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL7.IsNull() {
+		updateRequest.AssertionConsumerServiceURL7 = plan.AssertionConsumerServiceURL7.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL8.IsNull() {
+		updateRequest.AssertionConsumerServiceURL8 = plan.AssertionConsumerServiceURL8.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL9.IsNull() {
+		updateRequest.AssertionConsumerServiceURL9 = plan.AssertionConsumerServiceURL9.ValueString()
+	}
+	if !plan.AssertionConsumerServiceURL10.IsNull() {
+		updateRequest.AssertionConsumerServiceURL10 = plan.AssertionConsumerServiceURL10.ValueString()
 	}
 	if !plan.OidcFlow.IsNull() {
 		updateRequest.OidcFlow = plan.OidcFlow.ValueString()
