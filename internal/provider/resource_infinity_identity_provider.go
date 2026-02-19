@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -69,7 +71,7 @@ type InfinityIdentityProviderResourceModel struct {
 	OidcRegistrationAliasClaimName      types.String `tfsdk:"oidc_registration_alias_claim_name"`
 	OidcAdditionalScopes                types.String `tfsdk:"oidc_additional_scopes"`
 	OidcFranceConnectRequiredEidasLevel types.String `tfsdk:"oidc_france_connect_required_eidas_level"`
-	Attributes                          types.String `tfsdk:"attributes"`
+	Attributes                          types.Set    `tfsdk:"attributes"`
 }
 
 func (r *InfinityIdentityProviderResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -122,6 +124,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"idp_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("saml"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("saml", "oidc"),
 				},
@@ -174,6 +177,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"signature_algorithm": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"),
 				},
@@ -182,6 +186,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"digest_algorithm": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("http://www.w3.org/2001/04/xmlenc#sha256"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#sha1", "http://www.w3.org/2001/04/xmlenc#sha256", "http://www.w3.org/2001/04/xmldsig-more#sha384", "http://www.w3.org/2001/04/xmlenc#sha512"),
 				},
@@ -190,18 +195,20 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"display_name_attribute_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("NameId"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The display name attribute name. Maximum length: 250 characters.",
+				MarkdownDescription: "The display name attribute name. Maximum length: 250 characters. Defaults to NameId.",
 			},
 			"registration_alias_attribute_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("NameId"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The registration alias attribute name. Maximum length: 250 characters.",
+				MarkdownDescription: "The registration alias attribute name. Maximum length: 250 characters. Defaults to NameId.",
 			},
 			"assertion_consumer_service_url": schema.StringAttribute{
 				Required: true,
@@ -285,20 +292,23 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"worker_fqdn_acs_urls": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to use worker FQDN in ACS URLs. Defaults to false.",
 			},
 			"disable_popup_flow": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to disable popup flow. Defaults to false.",
 			},
 			"oidc_flow": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("code"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("code", "implicit"),
 				},
-				MarkdownDescription: "The OIDC flow type. Valid choices: code, implicit.",
+				MarkdownDescription: "The OIDC flow type. Valid choices: code, implicit. Defaults to code.",
 			},
 			"oidc_client_id": schema.StringAttribute{
 				Optional: true,
@@ -344,6 +354,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"oidc_token_endpoint_auth_scheme": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("client_secret_post"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("client_secret_basic", "client_secret_post"),
 				},
@@ -352,6 +363,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"oidc_token_signature_scheme": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("rs256"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("rs256", "hs256"),
 				},
@@ -360,18 +372,20 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"oidc_display_name_claim_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("name"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The OIDC display name claim name. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC display name claim name. Maximum length: 250 characters. Defaults to name.",
 			},
 			"oidc_registration_alias_claim_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("sub"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The OIDC registration alias claim name. Maximum length: 250 characters.",
+				MarkdownDescription: "The OIDC registration alias claim name. Maximum length: 250 characters. Defaults to sub.",
 			},
 			"oidc_additional_scopes": schema.StringAttribute{
 				Optional: true,
@@ -384,15 +398,16 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 			"oidc_france_connect_required_eidas_level": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString("disabled"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("disabled", "eidas1", "eidas2", "eidas3"),
 				},
 				MarkdownDescription: "The required eIDAS level for France Connect. Valid choices: disabled, eidas1, eidas2, eidas3. Defaults to disabled.",
 			},
-			"attributes": schema.StringAttribute{
+			"attributes": schema.SetAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Additional attributes as JSON string.",
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of identity provider attribute resource URIs.",
 			},
 		},
 		MarkdownDescription: "Manages an identity provider configuration with the Infinity service.",
@@ -526,9 +541,6 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 	if !plan.OidcAdditionalScopes.IsNull() {
 		createRequest.OidcAdditionalScopes = plan.OidcAdditionalScopes.ValueString()
 	}
-	if !plan.Attributes.IsNull() {
-		createRequest.Attributes = plan.Attributes.ValueString()
-	}
 
 	createResponse, err := r.InfinityClient.Config().CreateIdentityProvider(ctx, createRequest)
 	if err != nil {
@@ -614,7 +626,19 @@ func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID 
 	data.OidcRegistrationAliasClaimName = types.StringValue(srv.OidcRegistrationAliasClaimName)
 	data.OidcAdditionalScopes = types.StringValue(srv.OidcAdditionalScopes)
 	data.OidcFranceConnectRequiredEidasLevel = types.StringValue(srv.OidcFranceConnectRequiredEidasLevel)
-	data.Attributes = types.StringValue(srv.Attributes)
+
+	// Convert attributes from SDK to Terraform format
+	var attributes []string
+	if srv.Attributes != nil {
+		for _, attr := range *srv.Attributes {
+			attributes = append(attributes, fmt.Sprintf("/api/admin/configuration/v1/identity_provider_attribute/%d/", attr.ID))
+		}
+	}
+	attributesSetValue, diags := types.SetValueFrom(ctx, types.StringType, attributes)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting attributes: %v", diags)
+	}
+	data.Attributes = attributesSetValue
 
 	return &data, nil
 }
@@ -771,9 +795,6 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	}
 	if !plan.OidcAdditionalScopes.IsNull() {
 		updateRequest.OidcAdditionalScopes = plan.OidcAdditionalScopes.ValueString()
-	}
-	if !plan.Attributes.IsNull() {
-		updateRequest.Attributes = plan.Attributes.ValueString()
 	}
 
 	_, err := r.InfinityClient.Config().UpdateIdentityProvider(ctx, resourceID, updateRequest)
