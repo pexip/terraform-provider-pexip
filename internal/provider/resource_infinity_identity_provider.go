@@ -118,7 +118,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The identity provider type. Valid choices: saml, oidc.",
 			},
 			"uuid": schema.StringAttribute{
-				Computed:            true,
+				Required:            true,
 				MarkdownDescription: "The UUID of the identity provider.",
 			},
 			"sso_url": schema.StringAttribute{
@@ -192,8 +192,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The registration alias attribute name. Maximum length: 250 characters.",
 			},
 			"assertion_consumer_service_url": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
