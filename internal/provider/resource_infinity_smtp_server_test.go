@@ -27,13 +27,6 @@ func TestInfinitySMTPServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateSmtpserver API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/smtp_server/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/smtp_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
 	mockState := &config.SMTPServer{
 		ID:                 123,
@@ -43,10 +36,29 @@ func TestInfinitySMTPServer(t *testing.T) {
 		Address:            "test-server.example.com",
 		Port:               587,
 		Username:           "smtp_server-test",
-		Password:           "test-value",
+		Password:           "", // API returns empty string for hashed passwords
 		FromEmailAddress:   "test@example.com",
-		ConnectionSecurity: "starttls",
+		ConnectionSecurity: "NONE",
 	}
+
+	// Mock the CreateSmtpserver API call
+	createResponse := &types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/smtp_server/123/",
+	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/smtp_server/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.SMTPServerCreateRequest)
+
+		// Update mockState to reflect the created resource
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.Address = createReq.Address
+		mockState.Port = createReq.Port
+		mockState.Username = createReq.Username
+		// Don't update password - keep empty to simulate hashing
+		mockState.FromEmailAddress = createReq.FromEmailAddress
+		mockState.ConnectionSecurity = createReq.ConnectionSecurity
+	})
 
 	// Mock the GetSmtpserver API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/smtp_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -60,27 +72,16 @@ func TestInfinitySMTPServer(t *testing.T) {
 		smtp_server := args.Get(3).(*config.SMTPServer)
 
 		// Update mock state based on request
-		if updateReq.Description != "" {
-			mockState.Description = updateReq.Description
-		}
-		if updateReq.Address != "" {
-			mockState.Address = updateReq.Address
-		}
+		mockState.Name = updateReq.Name
+		mockState.Description = updateReq.Description
+		mockState.Address = updateReq.Address
 		if updateReq.Port != nil {
 			mockState.Port = *updateReq.Port
 		}
-		if updateReq.Username != "" {
-			mockState.Username = updateReq.Username
-		}
-		if updateReq.Password != "" {
-			mockState.Password = updateReq.Password
-		}
-		if updateReq.FromEmailAddress != "" {
-			mockState.FromEmailAddress = updateReq.FromEmailAddress
-		}
-		if updateReq.ConnectionSecurity != "" {
-			mockState.ConnectionSecurity = updateReq.ConnectionSecurity
-		}
+		mockState.Username = updateReq.Username
+		// Don't update password from request - keep empty to simulate hashing
+		mockState.FromEmailAddress = updateReq.FromEmailAddress
+		mockState.ConnectionSecurity = updateReq.ConnectionSecurity
 
 		// Return updated state
 		*smtp_server = *mockState
@@ -99,17 +100,8 @@ func testInfinitySMTPServer(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_basic"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "smtp_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "Test SMTPServer"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "username", "smtp_server-test"),
-				),
-			},
-			{
-				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_basic_updated"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
@@ -118,9 +110,52 @@ func testInfinitySMTPServer(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "updated-server.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "port", "465"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "username", "smtp_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "password", "updated-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "password"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "from_email_address", "updated@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "connection_security", "ssl_tls"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "connection_security", "STARTTLS"),
+				),
+			},
+			{
+				// Step 2: Update to min config and delete
+				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "tf-test SMTP Server min"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "test-server.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "from_email_address", "test@example.com"),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_smtp_server_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Recreate with min config
+				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "tf-test SMTP Server min"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "test-server.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "from_email_address", "test@example.com"),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_smtp_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "smtp_server-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "Updated Test SMTPServer"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "updated-server.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "port", "465"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "username", "smtp_server-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "password"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "from_email_address", "updated@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "connection_security", "STARTTLS"),
 				),
 			},
 		},

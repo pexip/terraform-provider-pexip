@@ -191,7 +191,7 @@ func (r *InfinitySMTPServerResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity SMTP server",
@@ -204,7 +204,7 @@ func (r *InfinitySMTPServerResource) Create(ctx context.Context, req resource.Cr
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int) (*InfinitySMTPServerResourceModel, error) {
+func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int, password string) (*InfinitySMTPServerResourceModel, error) {
 	var data InfinitySMTPServerResourceModel
 
 	srv, err := r.InfinityClient.Config().GetSMTPServer(ctx, resourceID)
@@ -223,7 +223,7 @@ func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int) (
 	data.Address = types.StringValue(srv.Address)
 	data.Port = types.Int64Value(int64(srv.Port))
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	data.Password = types.StringValue(password)
 	data.FromEmailAddress = types.StringValue(srv.FromEmailAddress)
 	data.ConnectionSecurity = types.StringValue(srv.ConnectionSecurity)
 
@@ -239,7 +239,7 @@ func (r *InfinitySMTPServerResource) Read(ctx context.Context, req resource.Read
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	updatedState, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -253,7 +253,7 @@ func (r *InfinitySMTPServerResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 }
 
 func (r *InfinitySMTPServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -293,7 +293,7 @@ func (r *InfinitySMTPServerResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity SMTP server",
@@ -340,7 +340,8 @@ func (r *InfinitySMTPServerResource) ImportState(ctx context.Context, req resour
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity SMTP server with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// Note: Password cannot be retrieved on import since it's hashed by the API
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
