@@ -105,8 +105,8 @@ func testInfinitySMTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "smtp_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "Updated Test SMTPServer"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "tf-test SMTP Server full"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "full Test SMTPServer"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "updated-server.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "port", "465"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "username", "smtp_server-test"),
@@ -148,8 +148,8 @@ func testInfinitySMTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_smtp_server.smtp_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "smtp_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "Updated Test SMTPServer"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "name", "tf-test SMTP Server full"),
+					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "description", "full Test SMTPServer"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "address", "updated-server.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "port", "465"),
 					resource.TestCheckResourceAttr("pexip_infinity_smtp_server.smtp_server-test", "username", "smtp_server-test"),
