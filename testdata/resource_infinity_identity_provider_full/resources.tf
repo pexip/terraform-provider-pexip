@@ -7,6 +7,10 @@
 resource "random_uuid4" "example" {
 }
 
+locals {
+  uuid = "988d1247-7997-46e9-a89a-5a148b5c5f29"
+}
+
 # Create identity provider attributes for testing
 resource "pexip_infinity_identity_provider_attribute" "attr1" {
   name        = "tf-test-displayName"
@@ -21,8 +25,8 @@ resource "pexip_infinity_identity_provider_attribute" "attr2" {
 resource "pexip_infinity_identity_provider" "test" {
   # Required fields
   name                                = "tf-test Identity Provider full"
-  uuid                                = random_uuid4.example.result
-  assertion_consumer_service_url      = "https://test.example.com/oidcconsumer/${random_uuid4.example.result}"
+  uuid                                = local.uuid
+  assertion_consumer_service_url      = "https://test.example.com/oidcconsumer/${local.uuid}"
 
   # Optional basic fields
   description                         = "Full test Identity Provider with all fields"
@@ -41,15 +45,15 @@ resource "pexip_infinity_identity_provider" "test" {
   registration_alias_attribute_name   = "userPrincipalName"
 
   # Additional assertion consumer service URLs
-  assertion_consumer_service_url2     = "https://test2.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url3     = "https://test3.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url4     = "https://test4.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url5     = "https://test5.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url6     = "https://test6.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url7     = "https://test7.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url8     = "https://test8.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url9     = "https://test9.example.com/oidcconsumer/${random_uuid4.example.result}"
-  assertion_consumer_service_url10    = "https://test10.example.com/oidcconsumer/${random_uuid4.example.result}"
+  assertion_consumer_service_url2     = "https://test2.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url3     = "https://test3.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url4     = "https://test4.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url5     = "https://test5.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url6     = "https://test6.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url7     = "https://test7.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url8     = "https://test8.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url9     = "https://test9.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
+  assertion_consumer_service_url10    = "https://test10.example.com/oidcconsumer/988d1247-7997-46e9-a89a-5a148b5c5f29"
 
   # Worker and popup settings
   worker_fqdn_acs_urls                = true
