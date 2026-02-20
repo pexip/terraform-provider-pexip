@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
@@ -142,16 +143,16 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 			"time_from": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.Time(),
 				},
-				MarkdownDescription: "The start time for scaling in HH:MM format.",
+				MarkdownDescription: "The start time for scaling in HH:MM:SS format (e.g., 09:30:00).",
 			},
 			"time_to": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.Time(),
 				},
-				MarkdownDescription: "The end time for scaling in HH:MM format.",
+				MarkdownDescription: "The end time for scaling in HH:MM:SS format (e.g., 17:00:00).",
 			},
 			"mon": schema.BoolAttribute{
 				Computed: true,

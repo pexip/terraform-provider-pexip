@@ -12,7 +12,7 @@ resource "pexip_infinity_scheduled_scaling" "test" {
   local_timezone      = "UTC"
   start_date          = "2024-01-01"
   time_from           = "09:00:00"
-  time_to             = "17:00"
+  time_to             = "17:00:00"
   instances_to_add    = 1
   minutes_in_advance  = 15
   mon                 = false
