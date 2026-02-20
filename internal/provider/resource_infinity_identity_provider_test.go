@@ -39,6 +39,7 @@ func TestInfinityIdentityProvider(t *testing.T) {
 		SSOUrl:                              "https://example.com/sso",
 		IdpEntityID:                         "https://example.com/entity",
 		ServiceEntityID:                     "https://pexip.example.com/entity",
+		ServicePrivateKey:                   "",
 		SignatureAlgorithm:                  "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 		DigestAlgorithm:                     "http://www.w3.org/2001/04/xmlenc#sha256",
 		DisplayNameAttributeName:            "displayName",
@@ -47,6 +48,7 @@ func TestInfinityIdentityProvider(t *testing.T) {
 		WorkerFQDNACSURLs:                   true,
 		DisablePopupFlow:                    true,
 		OidcFlow:                            "code",
+		OidcClientSecret:                    "",
 		OidcTokenEndpointAuthScheme:         "client_secret_basic",
 		OidcTokenSignatureScheme:            "rs256",
 		OidcFranceConnectRequiredEidasLevel: "eidas1",
@@ -169,7 +171,10 @@ func TestInfinityIdentityProvider(t *testing.T) {
 	// Mock the GetIdentityprovider API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/identity_provider/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		identity_provider := args.Get(3).(*config.IdentityProvider)
+		// Copy mockState but clear sensitive fields (API doesn't return them)
 		*identity_provider = *mockState
+		identity_provider.ServicePrivateKey = ""
+		identity_provider.OidcClientSecret = ""
 	}).Maybe()
 
 	// Mock the UpdateIdentityprovider API call

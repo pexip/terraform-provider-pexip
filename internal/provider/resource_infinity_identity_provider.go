@@ -172,6 +172,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Optional:            true,
 				Computed:            true,
 				Sensitive:           true,
+				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "The service private key for SAML.",
 			},
 			"signature_algorithm": schema.StringAttribute{
@@ -322,6 +323,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
+				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -571,7 +573,8 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	// Pass sensitive values from plan since API doesn't return them
+	model, err := r.read(ctx, resourceID, plan.ServicePrivateKey.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity identity provider",
@@ -584,7 +587,7 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID int) (*InfinityIdentityProviderResourceModel, error) {
+func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID int, servicePrivateKey, oidcClientSecret string) (*InfinityIdentityProviderResourceModel, error) {
 	var data InfinityIdentityProviderResourceModel
 
 	srv, err := r.InfinityClient.Config().GetIdentityProvider(ctx, resourceID)
@@ -607,7 +610,7 @@ func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID 
 	data.IdpPublicKey = types.StringValue(srv.IdpPublicKey)
 	data.ServiceEntityID = types.StringValue(srv.ServiceEntityID)
 	data.ServicePublicKey = types.StringValue(srv.ServicePublicKey)
-	data.ServicePrivateKey = types.StringValue(srv.ServicePrivateKey)
+	data.ServicePrivateKey = types.StringValue(servicePrivateKey) // Use passed value instead of API response
 	data.SignatureAlgorithm = types.StringValue(srv.SignatureAlgorithm)
 	data.DigestAlgorithm = types.StringValue(srv.DigestAlgorithm)
 	data.DisplayNameAttributeName = types.StringValue(srv.DisplayNameAttributeName)
@@ -626,7 +629,7 @@ func (r *InfinityIdentityProviderResource) read(ctx context.Context, resourceID 
 	data.DisablePopupFlow = types.BoolValue(srv.DisablePopupFlow)
 	data.OidcFlow = types.StringValue(srv.OidcFlow)
 	data.OidcClientID = types.StringValue(srv.OidcClientID)
-	data.OidcClientSecret = types.StringValue(srv.OidcClientSecret)
+	data.OidcClientSecret = types.StringValue(oidcClientSecret) // Use passed value instead of API response
 	data.OidcTokenURL = types.StringValue(srv.OidcTokenURL)
 	data.OidcUserInfoURL = types.StringValue(srv.OidcUserInfoURL)
 	data.OidcJWKSURL = types.StringValue(srv.OidcJWKSURL)
@@ -662,7 +665,8 @@ func (r *InfinityIdentityProviderResource) Read(ctx context.Context, req resourc
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	// Pass sensitive values from state since API doesn't return them
+	updatedState, err := r.read(ctx, resourceID, state.ServicePrivateKey.ValueString(), state.OidcClientSecret.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -676,7 +680,7 @@ func (r *InfinityIdentityProviderResource) Read(ctx context.Context, req resourc
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 }
 
 func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -799,9 +803,8 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 		}
 		updateRequest.Attributes = &attributeURIs
 	} else {
-		// Set to nil to clear the attributes
-		emptyAttrs := []string{}
-		updateRequest.Attributes = &emptyAttrs
+		// Set to nil to clear the attributes (sends null in JSON)
+		updateRequest.Attributes = nil
 	}
 
 	_, err := r.InfinityClient.Config().UpdateIdentityProvider(ctx, resourceID, updateRequest)
@@ -814,7 +817,8 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	// Pass sensitive values from plan since API doesn't return them
+	updatedModel, err := r.read(ctx, resourceID, plan.ServicePrivateKey.ValueString(), plan.OidcClientSecret.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity identity provider",
@@ -861,7 +865,9 @@ func (r *InfinityIdentityProviderResource) ImportState(ctx context.Context, req 
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity identity provider with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// Pass empty strings for sensitive values since we don't have prior state on import
+	// User will need to set these values in their config
+	model, err := r.read(ctx, resourceID, "", "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
