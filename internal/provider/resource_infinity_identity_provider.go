@@ -542,6 +542,16 @@ func (r *InfinityIdentityProviderResource) Create(ctx context.Context, req resou
 		createRequest.OidcAdditionalScopes = plan.OidcAdditionalScopes.ValueString()
 	}
 
+	// Handle Attributes field
+	if !plan.Attributes.IsNull() && len(plan.Attributes.Elements()) > 0 {
+		var attributeURIs []string
+		resp.Diagnostics.Append(plan.Attributes.ElementsAs(ctx, &attributeURIs, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		createRequest.Attributes = &attributeURIs
+	}
+
 	createResponse, err := r.InfinityClient.Config().CreateIdentityProvider(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -742,33 +752,16 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	if !plan.RegistrationAliasAttributeName.IsNull() {
 		updateRequest.RegistrationAliasAttributeName = plan.RegistrationAliasAttributeName.ValueString()
 	}
-	if !plan.AssertionConsumerServiceURL2.IsNull() {
-		updateRequest.AssertionConsumerServiceURL2 = plan.AssertionConsumerServiceURL2.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL3.IsNull() {
-		updateRequest.AssertionConsumerServiceURL3 = plan.AssertionConsumerServiceURL3.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL4.IsNull() {
-		updateRequest.AssertionConsumerServiceURL4 = plan.AssertionConsumerServiceURL4.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL5.IsNull() {
-		updateRequest.AssertionConsumerServiceURL5 = plan.AssertionConsumerServiceURL5.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL6.IsNull() {
-		updateRequest.AssertionConsumerServiceURL6 = plan.AssertionConsumerServiceURL6.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL7.IsNull() {
-		updateRequest.AssertionConsumerServiceURL7 = plan.AssertionConsumerServiceURL7.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL8.IsNull() {
-		updateRequest.AssertionConsumerServiceURL8 = plan.AssertionConsumerServiceURL8.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL9.IsNull() {
-		updateRequest.AssertionConsumerServiceURL9 = plan.AssertionConsumerServiceURL9.ValueString()
-	}
-	if !plan.AssertionConsumerServiceURL10.IsNull() {
-		updateRequest.AssertionConsumerServiceURL10 = plan.AssertionConsumerServiceURL10.ValueString()
-	}
+	// Always set additional assertion consumer URLs (no omitempty in UpdateRequest)
+	updateRequest.AssertionConsumerServiceURL2 = plan.AssertionConsumerServiceURL2.ValueString()
+	updateRequest.AssertionConsumerServiceURL3 = plan.AssertionConsumerServiceURL3.ValueString()
+	updateRequest.AssertionConsumerServiceURL4 = plan.AssertionConsumerServiceURL4.ValueString()
+	updateRequest.AssertionConsumerServiceURL5 = plan.AssertionConsumerServiceURL5.ValueString()
+	updateRequest.AssertionConsumerServiceURL6 = plan.AssertionConsumerServiceURL6.ValueString()
+	updateRequest.AssertionConsumerServiceURL7 = plan.AssertionConsumerServiceURL7.ValueString()
+	updateRequest.AssertionConsumerServiceURL8 = plan.AssertionConsumerServiceURL8.ValueString()
+	updateRequest.AssertionConsumerServiceURL9 = plan.AssertionConsumerServiceURL9.ValueString()
+	updateRequest.AssertionConsumerServiceURL10 = plan.AssertionConsumerServiceURL10.ValueString()
 	if !plan.OidcFlow.IsNull() {
 		updateRequest.OidcFlow = plan.OidcFlow.ValueString()
 	}
@@ -795,6 +788,20 @@ func (r *InfinityIdentityProviderResource) Update(ctx context.Context, req resou
 	}
 	if !plan.OidcAdditionalScopes.IsNull() {
 		updateRequest.OidcAdditionalScopes = plan.OidcAdditionalScopes.ValueString()
+	}
+
+	// Handle Attributes field - always set it since it doesn't have omitempty in UpdateRequest
+	if !plan.Attributes.IsNull() && len(plan.Attributes.Elements()) > 0 {
+		var attributeURIs []string
+		resp.Diagnostics.Append(plan.Attributes.ElementsAs(ctx, &attributeURIs, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		updateRequest.Attributes = &attributeURIs
+	} else {
+		// Set to nil to clear the attributes
+		emptyAttrs := []string{}
+		updateRequest.Attributes = &emptyAttrs
 	}
 
 	_, err := r.InfinityClient.Config().UpdateIdentityProvider(ctx, resourceID, updateRequest)
