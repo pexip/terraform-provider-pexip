@@ -143,10 +143,11 @@ func (r *InfinityOAuth2ClientResource) Create(ctx context.Context, req resource.
 	// Note: We store the numeric ID as ClientID for use in Read/Update/Delete,
 	// not the OAuth2 client_id field which is only used for authentication
 	model := &InfinityOAuth2ClientResourceModel{
-		ID:         types.StringValue(srv.ResourceURI),
-		ClientID:   types.StringValue(clientIDStr),
-		ClientName: types.StringValue(srv.ClientName),
-		Role:       types.StringValue(srv.Role),
+		ID:            types.StringValue(srv.ResourceURI),
+		ClientID:      types.StringValue(clientIDStr),
+		ClientName:    types.StringValue(srv.ClientName),
+		Role:          types.StringValue(srv.Role),
+		PrivateKeyJWT: types.StringValue(srv.PrivateKeyJWT),
 	}
 
 	// private_key_jwt is only returned on creation
