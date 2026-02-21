@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_oauth2_client" "oauth2_client-test" {
-  client_name = "oauth2_client-test"
-  role        = "test-value"
+  client_name = "tf-test oauth2_client RW"
+  role        = "/api/admin/configuration/v1/role/1/"
 }
