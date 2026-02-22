@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -90,21 +92,25 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The name of the MJX endpoint. Maximum length: 100 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
 				},
 				MarkdownDescription: "Description of the MJX endpoint. Maximum length: 500 characters.",
 			},
 			"endpoint_type": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("CISCO"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("polycom", "cisco", "webex"),
+					stringvalidator.OneOf("CISCO", "POLY", "WEBEX"),
 				},
-				MarkdownDescription: "The type of MJX endpoint. Valid values: polycom, cisco, webex.",
+				MarkdownDescription: "The type of MJX endpoint. Valid values: CISCO, POLY, WEBEX.",
 			},
 			"room_resource_email": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(254),
 				},
@@ -115,7 +121,7 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The MJX endpoint group URI this endpoint belongs to.",
 			},
 			"api_address": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -141,18 +147,22 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The password for API authentication to the endpoint. This field is sensitive.",
 			},
 			"use_https": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("yes", "no"),
+					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to use HTTPS for API communication. Valid values: yes, no.",
+				MarkdownDescription: "Whether to use HTTPS for API communication. Valid values: GLOBAL, YES, NO.",
 			},
 			"verify_cert": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("yes", "no"),
+					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to verify SSL certificates. Valid values: yes, no.",
+				MarkdownDescription: "Whether to verify SSL certificates. Valid values: GLOBAL, YES, NO.",
 			},
 			"poly_username": schema.StringAttribute{
 				Optional: true,
@@ -167,7 +177,9 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The password for Polycom-specific authentication. This field is sensitive.",
 			},
 			"poly_raise_alarms_for_this_endpoint": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Whether to raise alarms for this Polycom endpoint.",
 			},
 			"webex_device_id": schema.StringAttribute{
