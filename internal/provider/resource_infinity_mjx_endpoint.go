@@ -280,6 +280,11 @@ func (r *InfinityMjxEndpointResource) Create(ctx context.Context, req resource.C
 		)
 		return
 	}
+
+	// Preserve password fields from plan as they're not returned by the API
+	model.APIPassword = plan.APIPassword
+	model.PolyPassword = plan.PolyPassword
+
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity MJX endpoint with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -332,11 +337,9 @@ func (r *InfinityMjxEndpointResource) read(ctx context.Context, resourceID int) 
 		data.APIUsername = types.StringNull()
 	}
 
-	if srv.APIPassword != nil {
-		data.APIPassword = types.StringValue(*srv.APIPassword)
-	} else {
-		data.APIPassword = types.StringNull()
-	}
+	// Note: APIPassword and PolyPassword are not returned by the API
+	// These fields will be preserved from the plan/state
+	data.APIPassword = types.StringNull()
 
 	if srv.PolyUsername != nil {
 		data.PolyUsername = types.StringValue(*srv.PolyUsername)
@@ -344,11 +347,9 @@ func (r *InfinityMjxEndpointResource) read(ctx context.Context, resourceID int) 
 		data.PolyUsername = types.StringNull()
 	}
 
-	if srv.PolyPassword != nil {
-		data.PolyPassword = types.StringValue(*srv.PolyPassword)
-	} else {
-		data.PolyPassword = types.StringNull()
-	}
+	// Note: PolyPassword is not returned by the API
+	// This field will be preserved from the plan/state
+	data.PolyPassword = types.StringNull()
 
 	if srv.WebexDeviceID != nil {
 		data.WebexDeviceID = types.StringValue(*srv.WebexDeviceID)
@@ -367,6 +368,10 @@ func (r *InfinityMjxEndpointResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
+	// Preserve password fields from existing state
+	apiPassword := state.APIPassword
+	polyPassword := state.PolyPassword
+
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
 	if err != nil {
@@ -381,6 +386,10 @@ func (r *InfinityMjxEndpointResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
+
+	// Restore password fields as they're not returned by the API
+	state.APIPassword = apiPassword
+	state.PolyPassword = polyPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -469,6 +478,10 @@ func (r *InfinityMjxEndpointResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
+
+	// Preserve password fields from plan as they're not returned by the API
+	model.APIPassword = plan.APIPassword
+	model.PolyPassword = plan.PolyPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
