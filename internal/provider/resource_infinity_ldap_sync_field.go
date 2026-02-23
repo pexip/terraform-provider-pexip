@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -73,27 +75,31 @@ func (r *InfinityLdapSyncFieldResource) Schema(ctx context.Context, req resource
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(100),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the LDAP sync field. This should match the LDAP attribute name. Maximum length: 100 characters.",
+				MarkdownDescription: "The name of the LDAP sync field. This should match the LDAP attribute name. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the LDAP sync field. Maximum length: 500 characters.",
+				MarkdownDescription: "Description of the LDAP sync field. Maximum length: 250 characters.",
 			},
 			"template_variable_name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(100),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The template variable name used to reference this field in synchronization templates. Maximum length: 100 characters.",
+				MarkdownDescription: "The template variable name used to reference this field in synchronization templates. Maximum length: 250 characters.",
 			},
 			"is_binary": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether this LDAP field contains binary data (e.g., photos, certificates) or text data.",
 			},
 		},
