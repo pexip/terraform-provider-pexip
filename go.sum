@@ -136,8 +136,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/oklog/run v1.2.0 h1:O8x3yXwah4A73hJdlrwo/2X6J62gE5qTMusH0dvz60E=
 github.com/oklog/run v1.2.0/go.mod h1:mgDbKRSwPhJfesJ4PntqFUbKQRZ50NgmZTSPlFA0YFk=
-github.com/pexip/go-infinity-sdk/v38 v38.0.24 h1:lDBxVXTu5GJRqwnFMGhdqYwAWbHrDCUtCefQmT9OeOs=
-github.com/pexip/go-infinity-sdk/v38 v38.0.24/go.mod h1:gtMzH/Mhk51u1oNkmM38cgQUV9NJc5pguq3gj3hABxk=
+github.com/pexip/go-infinity-sdk/v38 v38.0.25 h1:nXkqcpjuIMLQ0YAl+fJf/iv36wmEhJvd2DzUo4aWHwQ=
+github.com/pexip/go-infinity-sdk/v38 v38.0.25/go.mod h1:gtMzH/Mhk51u1oNkmM38cgQUV9NJc5pguq3gj3hABxk=
 github.com/pjbgf/sha1cd v0.3.2 h1:a9wb0bp1oC2TGwStyn0Umc/IGKQnEgF0vVaZ8QF8eo4=
 github.com/pjbgf/sha1cd v0.3.2/go.mod h1:zQWigSxVmsHEZow5qaLtPYxpcKMMQpa09ixqBxuCS6A=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
