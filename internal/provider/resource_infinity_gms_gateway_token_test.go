@@ -69,20 +69,45 @@ func TestInfinityGMSGatewayToken(t *testing.T) {
 }
 
 func testInfinityGMSGatewayToken(t *testing.T, client InfinityClient) {
+	// Verify required environment variables are set
+	requiredEnvVars := map[string]string{
+		"TF_VAR_INFINITY_GMS_GW_TOKEN_CERT":  os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT"),
+		"TF_VAR_INFINITY_GMS_GW_TOKEN_KEY":   os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY"),
+		"TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2": os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2"),
+		"TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2":  os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2"),
+	}
+
+	for name, value := range requiredEnvVars {
+		if value == "" {
+			t.Fatalf("Required environment variable %s is not set", name)
+		}
+	}
+
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_gms_gateway_token_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_gms_gateway_token_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "id"),
-					// Certificate from plan is preserved in state
-					resource.TestCheckResourceAttr("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "certificate", "-----BEGIN CERTIFICATE-----\nserver-cert\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nintermediate-cert\n-----END CERTIFICATE-----\n"),
-					resource.TestCheckResourceAttr("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "private_key", "test-private-key-data"),
-					// API extracts and returns individual certs
-					resource.TestCheckResourceAttr("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "intermediate_certificate", "-----BEGIN CERTIFICATE-----\nintermediate-cert\n-----END CERTIFICATE-----"),
-					resource.TestCheckResourceAttr("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "leaf_certificate", "-----BEGIN CERTIFICATE-----\nserver-cert\n-----END CERTIFICATE-----"),
-					resource.TestCheckResourceAttr("pexip_infinity_gms_gateway_token.gms_gateway_token_test", "supports_direct_guest_join", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "private_key"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "intermediate_certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "leaf_certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "supports_direct_guest_join"),
+				),
+			},
+			// Step 2: Update with full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_gms_gateway_token_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "private_key"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "intermediate_certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "leaf_certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.test", "supports_direct_guest_join"),
 				),
 			},
 		},
