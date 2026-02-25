@@ -4,17 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-variable "INFINITY_GMS_GW_TOKEN_CERT" {
+variable "infinity_gms_gw_token_cert" {
   description = "The certificate for the GMS gateway token"
   type        = string
 }
 
-variable "INFINITY_GMS_GW_TOKEN_KEY" {
+variable "infinity_gms_gw_token_key" {
   description = "The private key for the GMS gateway token"
   type        = string
 }
 
 resource "pexip_infinity_gms_gateway_token" "test" {
-  certificate = var.INFINITY_GMS_GW_TOKEN_CERT
-  private_key  = var.INFINITY_GMS_GW_TOKEN_KEY
+  certificate = var.infinity_gms_gw_token_cert
+  private_key  = var.infinity_gms_gw_token_key
 }

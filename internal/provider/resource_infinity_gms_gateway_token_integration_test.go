@@ -24,15 +24,15 @@ func TestInfinityGMSGatewayTokenIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
 	// Verify required environment variables are set
-	certificate := os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT")
-	privateKey := os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY")
-	certificateUpdated := os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2")
-	privateKeyUpdated := os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2")
+	certificate := os.Getenv("TF_VAR_infinity_gms_gw_token_cert")
+	privateKey := os.Getenv("TF_VAR_infinity_gms_gw_token_key")
+	certificateUpdated := os.Getenv("TF_VAR_infinity_gms_gw_token_cert2")
+	privateKeyUpdated := os.Getenv("TF_VAR_infinity_gms_gw_token_key2")
 
-	require.NotEmpty(t, certificate, "TF_VAR_INFINITY_GMS_GW_TOKEN_CERT environment variable must be set")
-	require.NotEmpty(t, privateKey, "TF_VAR_INFINITY_GMS_GW_TOKEN_KEY environment variable must be set")
-	require.NotEmpty(t, certificateUpdated, "TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2 environment variable must be set")
-	require.NotEmpty(t, privateKeyUpdated, "TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2 environment variable must be set")
+	require.NotEmpty(t, certificate, "TF_VAR_infinity_gms_gw_token_cert environment variable must be set")
+	require.NotEmpty(t, privateKey, "TF_VAR_infinity_gms_gw_token_key environment variable must be set")
+	require.NotEmpty(t, certificateUpdated, "TF_VAR_infinity_gms_gw_token_cert2 environment variable must be set")
+	require.NotEmpty(t, privateKeyUpdated, "TF_VAR_infinity_gms_gw_token_key2 environment variable must be set")
 
 	client, err := infinity.New(
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),

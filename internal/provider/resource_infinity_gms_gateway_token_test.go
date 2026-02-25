@@ -65,16 +65,22 @@ func TestInfinityGMSGatewayToken(t *testing.T) {
 		*gmsGatewayToken = *mockState
 	}).Maybe()
 
+	// Set test environment variables for Terraform variables
+	_ = os.Setenv("TF_VAR_infinity_gms_gw_token_cert", "-----BEGIN CERTIFICATE-----\nserver-cert\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nintermediate-cert\n-----END CERTIFICATE-----\n")
+	_ = os.Setenv("TF_VAR_infinity_gms_gw_token_key", "test-private-key-data")
+	_ = os.Setenv("TF_VAR_infinity_gms_gw_token_cert2", "-----BEGIN CERTIFICATE-----\nserver-cert2\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nintermediate-cert2\n-----END CERTIFICATE-----\n")
+	_ = os.Setenv("TF_VAR_infinity_gms_gw_token_key2", "test-private-key-data2")
+
 	testInfinityGMSGatewayToken(t, client)
 }
 
 func testInfinityGMSGatewayToken(t *testing.T, client InfinityClient) {
 	// Verify required environment variables are set
 	requiredEnvVars := map[string]string{
-		"TF_VAR_INFINITY_GMS_GW_TOKEN_CERT":  os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT"),
-		"TF_VAR_INFINITY_GMS_GW_TOKEN_KEY":   os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY"),
-		"TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2": os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_CERT2"),
-		"TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2":  os.Getenv("TF_VAR_INFINITY_GMS_GW_TOKEN_KEY2"),
+		"TF_VAR_infinity_gms_gw_token_cert":  os.Getenv("TF_VAR_infinity_gms_gw_token_cert"),
+		"TF_VAR_infinity_gms_gw_token_key":   os.Getenv("TF_VAR_infinity_gms_gw_token_key"),
+		"TF_VAR_infinity_gms_gw_token_cert2": os.Getenv("TF_VAR_infinity_gms_gw_token_cert2"),
+		"TF_VAR_infinity_gms_gw_token_key2":  os.Getenv("TF_VAR_infinity_gms_gw_token_key2"),
 	}
 
 	for name, value := range requiredEnvVars {
