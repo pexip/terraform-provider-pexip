@@ -170,6 +170,11 @@ func TestInfinityAuthentication(t *testing.T) {
 func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source: "hashicorp/tls",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with full config
