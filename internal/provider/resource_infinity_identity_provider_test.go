@@ -266,6 +266,9 @@ func testInfinityIdentityProvider(t *testing.T, client InfinityClient) {
 			"random": {
 				Source: "hashicorp/random",
 			},
+			"tls": {
+				Source: "hashicorp/tls",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
