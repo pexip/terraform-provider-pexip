@@ -159,7 +159,7 @@ func TestInfinityIdentityProvider(t *testing.T) {
 	}).Maybe()
 
 	// Mock UpdateIdentityProviderAttribute
-	client.On("PutJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
+	client.On("PatchJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/identity_provider_attribute/1/" || path == "configuration/v1/identity_provider_attribute/2/"
 	}), mock.Anything, mock.Anything).Return(nil).Maybe()
 
@@ -178,7 +178,7 @@ func TestInfinityIdentityProvider(t *testing.T) {
 	}).Maybe()
 
 	// Mock the UpdateIdentityprovider API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/identity_provider/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PatchJSON", mock.Anything, "configuration/v1/identity_provider/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.IdentityProviderUpdateRequest)
 		identity_provider := args.Get(3).(*config.IdentityProvider)
 
