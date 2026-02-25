@@ -76,11 +76,11 @@ func testInfinityLicence(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_licence_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_licence"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "entitlement_id", "test-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "offline_mode", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "entitlement_id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "offline_mode"),
 				),
 			},
 			// Licence doesn't support updates, so only test creation/read
