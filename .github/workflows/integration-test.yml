@@ -79,7 +79,7 @@ jobs:
           TF_VAR_infinity_licence_key2: ${{ secrets.INFINITY_LICENCE_KEY2 }}
         run: |
           echo "Acceptance tests run against a real Pexip environment"
-          go test -v -tags=integration -timeout 30m ./internal/provider/*_integration_test.go
+          go test -v -tags=integration -timeout 30m ./...
           
   destroy-infinity:
     name: Destroy Infinity
