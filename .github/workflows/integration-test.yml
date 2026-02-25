@@ -76,7 +76,7 @@ jobs:
           TF_VAR_infinity_gms_gw_token_key: ${{ secrets.INFINITY_GMS_GW_TOKEN_KEY }}
           TF_VAR_infinity_gms_gw_token_cert2: ${{ secrets.INFINITY_GMS_GW_TOKEN_CERT2 }}
           TF_VAR_infinity_gms_gw_token_key2: ${{ secrets.INFINITY_GMS_GW_TOKEN_KEY2 }}
-          TF_VAR_infinity_licence_key2: ${{ secrets.INFINITY_LICENCE_KEY2 }}
+          TF_VAR_infinity_licence_key2: ${{ secrets.INFINITY_LICENSE_KEY2 }}
         run: |
           echo "Acceptance tests run against a real Pexip environment"
           go test -v -tags=integration -timeout 30m ./...
