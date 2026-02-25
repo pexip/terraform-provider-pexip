@@ -38,7 +38,6 @@ func TestInfinityLicence(t *testing.T) {
 	mockState := &config.Licence{
 		FulfillmentID: "test-fulfillment-123",
 		EntitlementID: "test-value",
-		OfflineMode:   true,
 		ResourceURI:   "/api/admin/configuration/v1/licence/123/",
 	}
 
