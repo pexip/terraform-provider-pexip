@@ -89,6 +89,7 @@ func (r *InfinityLicenceResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"entitlement_id": schema.StringAttribute{
 				Required: true,
+				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
