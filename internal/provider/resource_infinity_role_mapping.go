@@ -81,7 +81,7 @@ func (r *InfinityRoleMappingResource) Schema(ctx context.Context, req resource.S
 			"source": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				Default: stringdefault.StaticString("LDAP"),
+				Default:  stringdefault.StaticString("LDAP"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("LDAP", "OIDC"),
 				},

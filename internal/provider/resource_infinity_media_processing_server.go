@@ -77,11 +77,11 @@ func (r *InfinityMediaProcessingServerResource) Schema(ctx context.Context, req 
 				MarkdownDescription: "The fully qualified domain name (FQDN) of the media processing server. Maximum length: 253 characters.",
 			},
 			"app_id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "The application ID for the media processing server. Maximum length: 100 characters.",
 			},
 			"public_jwt_key": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "The public JWT key used for authentication with the media processing server.",
 			},
 		},
@@ -98,7 +98,7 @@ func (r *InfinityMediaProcessingServerResource) Create(ctx context.Context, req 
 	}
 
 	createRequest := &config.MediaProcessingServerCreateRequest{
-		FQDN:         plan.FQDN.ValueString(),
+		FQDN: plan.FQDN.ValueString(),
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateMediaProcessingServer(ctx, createRequest)
@@ -191,7 +191,7 @@ func (r *InfinityMediaProcessingServerResource) Update(ctx context.Context, req 
 	}
 
 	updateRequest := &config.MediaProcessingServerUpdateRequest{
-		FQDN:         plan.FQDN.ValueString(),
+		FQDN: plan.FQDN.ValueString(),
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())

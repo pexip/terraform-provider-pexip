@@ -88,7 +88,7 @@ func (r *InfinityLicenceResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "The fulfillment ID of the licence (used as the unique identifier)",
 			},
 			"entitlement_id": schema.StringAttribute{
-				Required: true,
+				Required:  true,
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
