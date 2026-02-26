@@ -214,7 +214,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 	if fulfillmentID == "" {
 		resp.Diagnostics.AddError(
 			"Fulfillment ID Not Found",
-			fmt.Sprintf("Could not find fulfillment ID for entitlement ID %s after creation", plan.EntitlementID.ValueString()),
+			"Could not find fulfillment ID for the provided entitlement ID after creation",
 		)
 		return
 	}
@@ -228,7 +228,7 @@ func (r *InfinityLicenceResource) Create(ctx context.Context, req resource.Creat
 		)
 		return
 	}
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity licence with ID: %s, entitlement: %s, fulfillment: %s", model.ID, model.EntitlementID, model.FulfillmentID))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity licence with ID: %s, fulfillment: %s", model.ID, model.FulfillmentID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
@@ -318,7 +318,7 @@ func (r *InfinityLicenceResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	fulfillmentID := state.FulfillmentID.ValueString()
-	tflog.Info(ctx, "Deleting Infinity licence", map[string]interface{}{"entitlement_id": state.EntitlementID.ValueString(), "fulfillment_id": fulfillmentID})
+	tflog.Info(ctx, "Deleting Infinity licence", map[string]interface{}{"fulfillment_id": fulfillmentID})
 	err := r.InfinityClient.Config().DeleteLicence(ctx, fulfillmentID)
 
 	// Ignore 404 Not Found and Lookup errors on delete
