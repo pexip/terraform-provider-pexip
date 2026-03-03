@@ -61,7 +61,7 @@ func (r *InfinityNtpServerResource) Schema(ctx context.Context, req resource.Sch
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the NTP server in Infinity",
+				MarkdownDescription: "Resource URI for the NTP server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -80,7 +80,7 @@ func (r *InfinityNtpServerResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address of the NTP server.",
+				MarkdownDescription: "The IP address or FQDN of the NTP server. Maximum length: 255 characters.",
 			},
 		},
 		MarkdownDescription: "Registers a NTP server with the Infinity service.",

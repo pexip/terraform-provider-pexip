@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -108,7 +109,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the system location in Infinity",
+				MarkdownDescription: "Resource URI for the system location in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -141,10 +142,13 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "List of NTP server resource URIs for this system location.",
 			},
 			"mtu": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(1500),
-				MarkdownDescription: "Maximum Transmission Unit for this system location. Range: 512 to 1500.",
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(1500),
+				Validators: []validator.Int32{
+					int32validator.Between(512, 1500),
+				},
+				MarkdownDescription: "Maximum Transmission Unit - the size of the largest packet that can be transmitted via the network interface for this system location. It depends on your network topology as to whether you may need to specify an MTU value here. Range: 512 to 1500.",
 			},
 			"syslog_servers": schema.SetAttribute{
 				Optional:            true,
@@ -197,19 +201,25 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to use relay candidates only.",
+				MarkdownDescription: "Select this option to force the WebRTC client to route its media through one of the specified client TURN servers.",
 			},
 			"media_qos": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(0),
-				MarkdownDescription: "Media QoS value.",
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(0),
+				Validators: []validator.Int32{
+					int32validator.Between(0, 63),
+				},
+				MarkdownDescription: "The DSCP value for media traffic sent from Conferencing Nodes in this system location. This is an optional setting used to prioritize different types of traffic in large, complex networks. Range: 0 to 63.",
 			},
 			"signalling_qos": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(0),
-				MarkdownDescription: "Signalling QoS value.",
+				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(0),
+				Validators: []validator.Int32{
+					int32validator.Between(0, 63),
+				},
+				MarkdownDescription: "The DSCP value for signaling traffic sent from Conferencing Nodes in this system location. This is an optional setting used to prioritize different types of traffic in large, complex networks. Range: 0 to 63.",
 			},
 			"transcoding_location": schema.StringAttribute{
 				Optional:            true,
@@ -224,10 +234,13 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Overflow location 2 resource URI.",
 			},
 			"local_mssip_domain": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Local Microsoft SIP domain.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
+				},
+				MarkdownDescription: "The name of the SIP domain that is routed from Skype for Business to Pexip Infinity, either as a static route or via federation. It is also used as the default domain in the From address for outgoing SIP gateway calls and outbound SIP calls from conferences without a valid SIP URI as an alias. Maximum length: 255 characters.",
 			},
 			"policy_server": schema.StringAttribute{
 				Optional:            true,
@@ -245,7 +258,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
-				MarkdownDescription: "Whether BDPM PIN checks are enabled.",
+				MarkdownDescription: "Select this option to instruct Pexip Infinity's Break-in Defense Policy Manager to temporarily block all access to a VMR that receives a significant number of incorrect PIN entry attempts (and thus may perhaps be under attack from a malicious actor). By default, this will block ALL new access attempts to a VMR for up to 10 minutes if more than 20 incorrect PIN entry attempts are made against that VMR in a 10 minute window. Note: this provides a measure of resistance against PIN cracking attacks, but it is not a substitute for having a long PIN (6 digits or longer recommended) and it will not protect against a determined and patient - or lucky - attacker. Also, enabling this feature could potentially allow a malicious attacker or a legitimate user with incorrect access details to prevent legitimate access to VMRs or other call services for a period. This setting is applied according to the location of the node that receives the call signaling. Valid choices: GLOBAL, OFF, ON.",
 			},
 			"bdpm_scan_quarantine_enabled": schema.StringAttribute{
 				Optional: true,
@@ -254,7 +267,7 @@ func (r *InfinitySystemLocationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
-				MarkdownDescription: "Whether BDPM scan quarantine is enabled.",
+				MarkdownDescription: "Select this option to instruct Pexip Infinity's Break-in Defense Policy Manager to temporarily block service access attempts from any source IP address that dials a significant number of incorrect aliases in a short period (and thus may perhaps be attempting to scan your deployment to discover valid aliases to allow the attacker to make improper use of VMRs or gateway rules - such as toll fraud attempts). By default, this will block ALL new call service access attempts from an IP address if more than 20 incorrect aliases are dialed from that IP address over SIP, H.323 or WebRTC (Infinity Connect) in a 10 minute window. Note: this provides a measure of resistance against scanners such as sipvicious which are sometimes used during toll-fraud attempts, but it will not defend against a determined and patient - or lucky - attacker. Also, enabling this feature could potentially allow a malicious attacker or a legitimate user with incorrect access details to prevent legitimate access to VMRs or other call services for a period, if for example, those users are behind the same firewall as other legitimate users. This setting is applied according to the location of the node that receives the call signaling. Valid choices: GLOBAL, OFF, ON.",
 			},
 			"live_captions_dial_out_1": schema.StringAttribute{
 				Optional:            true,

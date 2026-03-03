@@ -67,7 +67,7 @@ func (r *InfinityADFSAuthServerResource) Schema(ctx context.Context, req resourc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the ADFS auth server in Infinity",
+				MarkdownDescription: "Resource URI for the ADFS authentication server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -78,7 +78,7 @@ func (r *InfinityADFSAuthServerResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique name of the ADFS auth server. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this AD FS OAuth 2.0 Client. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -86,35 +86,35 @@ func (r *InfinityADFSAuthServerResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the ADFS auth server. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the AD FS OAuth 2.0 Client. Maximum length: 250 characters.",
 			},
 			"client_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The client ID for the ADFS OAuth 2.0 client. Maximum length: 250 characters.",
+				MarkdownDescription: "The ID of the AD FS OAuth 2.0 Client. Maximum length: 250 characters.",
 			},
 			"federation_service_name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The federation service name. Maximum length: 250 characters.",
+				MarkdownDescription: "The FQDN which is used by clients to connect to AD FS. Maximum length: 255 characters.",
 			},
 			"federation_service_identifier": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The federation service identifier. Maximum length: 250 characters.",
+				MarkdownDescription: "The URL which identifies AD FS. Maximum length: 255 characters.",
 			},
 			"relying_party_trust_identifier_url": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The relying party trust identifier URL. Maximum length: 250 characters.",
+				MarkdownDescription: "The URL which identifies the OAuth 2.0 resource on AD FS. Maximum length: 255 characters.",
 			},
 		},
 		MarkdownDescription: "Manages an ADFS OAuth 2.0 auth server configuration with the Infinity service.",

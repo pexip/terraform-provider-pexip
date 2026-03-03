@@ -62,7 +62,7 @@ func (r *InfinityConferenceAliasResource) Schema(ctx context.Context, req resour
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the conference alias in Infinity",
+				MarkdownDescription: "Resource URI for the conference alias in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -73,7 +73,7 @@ func (r *InfinityConferenceAliasResource) Schema(ctx context.Context, req resour
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique alias for the conference. Maximum length: 250 characters.",
+				MarkdownDescription: "The dial string used to join this service, in the form that it will be received by Pexip Infinity. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -81,7 +81,7 @@ func (r *InfinityConferenceAliasResource) Schema(ctx context.Context, req resour
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the conference alias. Maximum length: 250 characters.",
+				MarkdownDescription: "An optional description of the alias. Note that this description may be displayed on phones and other equipment. Maximum length: 250 characters.",
 			},
 			"conference": schema.StringAttribute{
 				Required:            true,

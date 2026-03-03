@@ -66,7 +66,7 @@ func (r *InfinityRecurringConferenceResource) Schema(ctx context.Context, req re
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the recurring conference in Infinity",
+				MarkdownDescription: "Resource URI for the recurring conference in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -84,25 +84,25 @@ func (r *InfinityRecurringConferenceResource) Schema(ctx context.Context, req re
 				Validators: []validator.Int64{
 					int64validator.AtLeast(0),
 				},
-				MarkdownDescription: "The current index of the recurring conference series.",
+				MarkdownDescription: "The current occurrence index for this series.",
 			},
 			"ews_item_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
-				MarkdownDescription: "The Exchange Web Services (EWS) item identifier for this recurring conference.",
+				MarkdownDescription: "The ID of the Exchange Web Services Item this recurring conference is associated with.",
 			},
 			"is_depleted": schema.BoolAttribute{
 				Required:            true,
-				MarkdownDescription: "Whether the recurring conference series is depleted (no more occurrences).",
+				MarkdownDescription: "Whether or not all occurrences in this series have been depleted.",
 			},
 			"subject": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
 				},
-				MarkdownDescription: "The subject or title of the recurring conference. Maximum length: 500 characters.",
+				MarkdownDescription: "The subject that was used in the meeting email. Maximum length: 255 characters.",
 			},
 			"scheduled_alias": schema.StringAttribute{
 				Optional:            true,

@@ -77,7 +77,7 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the MJX endpoint in Infinity",
+				MarkdownDescription: "Resource URI for the MJX endpoint in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -125,26 +125,29 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The API address for the endpoint management interface.",
+				MarkdownDescription: "The IP address or FQDN of the endpoint's API. Maximum length: 255 characters.",
 			},
 			"api_port": schema.Int64Attribute{
 				Optional: true,
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The API port for the endpoint management interface. Valid range: 1-65535.",
+				MarkdownDescription: "The port of the endpoint's API. Range: 1 to 65535. Default: 443 if HTTPS is used, otherwise 80 for HTTP.",
 			},
 			"api_username": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The username for API authentication to the endpoint.",
+				MarkdownDescription: "The username used by OTJ when accessing the endpoint's API; if left blank, the OTJ Profile default will be used. Maximum length: 100 characters.",
 			},
 			"api_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The password for API authentication to the endpoint. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password used by OTJ when accessing the endpoint's API; if left blank, the OTJ Profile default will be used. Maximum length: 100 characters.",
 			},
 			"use_https": schema.StringAttribute{
 				Computed: true,
@@ -153,7 +156,7 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to use HTTPS for API communication. Valid values: GLOBAL, YES, NO.",
+				MarkdownDescription: "Use HTTPS to access this endpoint's API. Valid choices: GLOBAL, NO, YES.",
 			},
 			"verify_cert": schema.StringAttribute{
 				Computed: true,
@@ -162,32 +165,35 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to verify SSL certificates. Valid values: GLOBAL, YES, NO.",
+				MarkdownDescription: "Enable TLS verification when accessing the endpoint API. Only applicable if using HTTPS to access this endpoint's API. Valid choices: GLOBAL, NO, YES.",
 			},
 			"poly_username": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(100),
+					stringvalidator.LengthAtMost(150),
 				},
-				MarkdownDescription: "The username for Polycom-specific authentication.",
+				MarkdownDescription: "The username the endpoint will use when connecting and authenticating to the calendaring service on the Conferencing Node. Maximum length: 150 characters.",
 			},
 			"poly_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The password for Polycom-specific authentication. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password the endpoint will use when connecting and authenticating to the calendaring service on the Conferencing Node. Maximum length: 100 characters.",
 			},
 			"poly_raise_alarms_for_this_endpoint": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Whether to raise alarms for this Polycom endpoint.",
+				MarkdownDescription: "When enabled, an alarm will be raised if OTJ is unable to provide this endpoint with meeting information.",
 			},
 			"webex_device_id": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The Webex device ID for Webex endpoints.",
+				MarkdownDescription: "The Webex endpoint's unique identifier.",
 			},
 		},
 		MarkdownDescription: "Manages an MJX endpoint with the Infinity service. MJX endpoints represent Microsoft Teams integrated endpoints such as Polycom, Cisco, and Webex devices that can be managed and monitored through Pexip Infinity for hybrid Teams deployments.",

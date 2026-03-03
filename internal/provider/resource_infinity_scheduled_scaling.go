@@ -81,7 +81,7 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the scheduled scaling policy in Infinity",
+				MarkdownDescription: "Resource URI for the scheduled scaling policy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -125,7 +125,7 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 				Computed:            true,
 				Optional:            true,
 				Default:             int64default.StaticInt64(20),
-				MarkdownDescription: "How many minutes in advance to start scaling. Valid range: 0-1440 (24 hours).",
+				MarkdownDescription: "The number of minutes in advance of the activation time to begin scaling up the instances. It can take up to 20 minutes to start an instance so this is to allow enough time for all of the requested additional instances to be started up.",
 			},
 			"local_timezone": schema.StringAttribute{
 				Computed:            true,

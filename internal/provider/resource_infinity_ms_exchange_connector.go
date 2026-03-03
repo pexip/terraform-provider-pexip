@@ -166,7 +166,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the Microsoft Exchange connector in Infinity",
+				MarkdownDescription: "Resource URI for the Microsoft Exchange connector in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -226,7 +226,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				Validators: []validator.String{
 					stringvalidator.OneOf("BASIC", "NTLM", "KERBEROS", "OAUTH", "APP_PERM"),
 				},
-				MarkdownDescription: "The method used to authenticate to Exchange",
+				MarkdownDescription: "The method used to authenticate to Exchange Valid choices: BASIC, NTLM, KERBEROS, OAUTH, APP_PERM.",
 			},
 			"auth_provider": schema.StringAttribute{
 				Optional: true,
@@ -310,63 +310,63 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"oauth_client_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OAuth client ID for authentication.",
+				MarkdownDescription: "The Application ID which was generated when creating an App Registration in Azure Active Directory",
 			},
 			"oauth_client_secret": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				MarkdownDescription: "OAuth client secret for authentication. This field is sensitive.",
+				MarkdownDescription: "The OAuth Client Secret which was generated when creating an App Registration in Microsoft Entra",
 			},
 			"oauth_auth_endpoint": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "OAuth authorization endpoint URL.",
+				MarkdownDescription: "The URI of the OAuth authorization endpoint. This should be copied from the 'Endpoints' section in Azure Active Directory App Registrations. Maximum length: 255 characters.",
 			},
 			"oauth_token_endpoint": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "OAuth token endpoint URL.",
+				MarkdownDescription: "The URI of the OAuth token endpoint. This should be copied from the 'Endpoints' section in Azure Active Directory App Registrations. Maximum length: 255 characters.",
 			},
 			"oauth_redirect_uri": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "OAuth redirect URI for authentication flow.",
+				MarkdownDescription: "The redirect URI you entered when creating an App Registration in Azure Active Directory. It should be in the format 'https://[Management Node Address]/admin/platform/msexchangeconnector/oauth_redirect/'. Maximum length: 255 characters.",
 			},
 			"oauth_refresh_token": schema.StringAttribute{
 				Computed:            true,
 				Sensitive:           true,
-				MarkdownDescription: "OAuth refresh token. This field is sensitive.",
+				MarkdownDescription: "The OAuth refresh token which is obtained after successfully signing in via the OAuth flow. Maximum length: 4096 characters.",
 			},
 			"oauth_state": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OAuth state parameter for security.",
+				MarkdownDescription: "A unique state which is used during the OAuth sign-in flow.",
 			},
 			"kerberos_realm": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Kerberos realm for authentication.",
+				MarkdownDescription: "The Kerberos Realm, which is usually your domain in upper-case. Maximum length: 250 characters.",
 			},
 			"kerberos_kdc": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Kerberos Key Distribution Center.",
+				MarkdownDescription: "The address of the Kerberos key distribution center (KDC). Maximum length: 255 characters.",
 			},
 			"kerberos_kdc_https_proxy": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "HTTPS proxy for Kerberos KDC connections.",
+				MarkdownDescription: "The URL of the Kerberos key distribution center (KDC) HTTPS proxy. Maximum length: 255 characters.",
 			},
 			"kerberos_exchange_spn": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Kerberos Service Principal Name for Exchange.",
+				MarkdownDescription: "The Exchange Service Principal Name (SPN). Maximum length: 255 characters.",
 			},
 			"kerberos_enable_tls": schema.BoolAttribute{
 				Optional:            true,
@@ -434,7 +434,7 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			},
 			"addin_application_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Application ID for the Exchange add-in.",
+				MarkdownDescription: "The Application (client) ID which was generated when creating the App Registration in Microsoft Entra for add-in authentication.",
 			},
 			"addin_authority_url": schema.StringAttribute{
 				Optional:            true,
@@ -455,11 +455,11 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				Validators: []validator.String{
 					stringvalidator.OneOf("EXCHANGE_USER_ID_TOKEN", "SSO_TOKEN", "NAA_TOKEN"),
 				},
-				MarkdownDescription: "The type of token the Outlook add-in uses to authenticate to Pexip",
+				MarkdownDescription: "The type of token the Outlook add-in uses to authenticate to Pexip. Valid choices: EXCHANGE_USER_ID_TOKEN, SSO_TOKEN, NAA_TOKEN.",
 			},
 			"addin_naa_web_api_application_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "NAA Web API application ID for add-in authentication.",
+				MarkdownDescription: "The Application (client) ID for the NAA Web API which was generated when creating the App Registration in Microsoft Entra.",
 			},
 			"personal_vmr_oauth_client_id": schema.StringAttribute{
 				Optional:            true,
@@ -519,15 +519,15 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 			"domains": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of Exchange Metadata Domain URIs associated with this connector.",
+				MarkdownDescription: "The Exchange Metadata Domains / URLs associated with this Secure Scheduler for Exchange Integration.",
 			},
 			"host_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "URI reference to host identity provider group resource.",
+				MarkdownDescription: "The set of Identity Providers to use if participants are required to authenticate in order to join the scheduled conference. If this is blank, participants will not be required to authenticate.",
 			},
 			"ivr_theme": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "URI reference to IVR theme resource.",
+				MarkdownDescription: "The theme for use with this service.",
 			},
 			"non_idp_participants": schema.StringAttribute{
 				Optional: true,
@@ -536,22 +536,22 @@ func (r *InfinityMsExchangeConnectorResource) Schema(ctx context.Context, req re
 				Validators: []validator.String{
 					stringvalidator.OneOf("allow_if_trusted", "disallow_all"),
 				},
-				MarkdownDescription: "Determines whether participants attempting to join from devices other than the Infinity Connect apps (for example, SIP or H.323 endpoints) are permitted to join the conference when authentication is required. Disallow all: these devices may not join the conference. Allow if trusted: these devices may join the conference if they are locally registered.",
+				MarkdownDescription: "Determines whether participants attempting to join from devices other than the Infinity Connect apps (for example, SIP or H.323 endpoints) are permitted to join the conference when authentication is required. Disallow all: these devices may not join the conference directly, and will instead be placed in the waiting room. Allow if trusted: these devices may join the conference if they are locally registered, otherwise they will be placed in the waiting room. Valid choices: allow_if_trusted, disallow_all.",
 			},
 			"private_key": schema.StringAttribute{
 				Computed:            true,
 				Sensitive:           true,
-				MarkdownDescription: "Private key for Exchange connector. This field is sensitive and computed.",
+				MarkdownDescription: "The private key used by this Secure Scheduler for Exchange Integration. Maximum length: 12288 characters.",
 			},
 			"public_key": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Public key for Exchange connector. This field is computed.",
+				MarkdownDescription: "The public key used by this Secure Scheduler for Exchange Integration. Maximum length: 12288 characters.",
 			},
 			"accept_edited_occurrence_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("<div style=\"font-size:11.0pt; color:#000000; font-family:Calibri,Arial,Helvetica,sans-serif;\">\r\nThis meeting occurrence in a recurring series has been successfully rescheduled using the aliases: {{alias}} and {{numeric_alias}}.<br>\r\n</div>"),
-				MarkdownDescription: "A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited occurrence in a recurring series. Maximum length: 12288 characters.",
+				MarkdownDescription: "*Do not use this ms_exchange_connector resource directly; changes should only be made by the Secure Scheduler for Exchange service.* A Jinja2 template that is used to produce the message sent to meeting organizers once the scheduling service successfully schedules an edited occurrence in a recurring series. Maximum length: 12288 characters.",
 			},
 			"accept_edited_recurring_series_template": schema.StringAttribute{
 				Optional:            true,

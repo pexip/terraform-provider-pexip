@@ -102,7 +102,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the gateway routing rule in Infinity",
+				MarkdownDescription: "Resource URI for the gateway routing rule in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -115,7 +115,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				Validators: []validator.String{
 					stringvalidator.OneOf("audio", "video", "video-only", "auto"),
 				},
-				MarkdownDescription: "Maximum media content of the call. The participant being called will not be able to escalate beyond the selected capability.",
+				MarkdownDescription: "Maximum media content of the call. The participant being called will not be able to escalate beyond the selected capability. Valid choices: audio, video, video-only, auto.",
 			},
 			"called_device_type": schema.StringAttribute{
 				Optional: true,
@@ -147,7 +147,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the call routing rule. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the Call Routing Rule. Maximum length: 250 characters.",
 			},
 			"disabled_codecs": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -210,7 +210,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Select whether this rule should apply to incoming Lync / Skype for Business (MS-SIP) calls.",
+				MarkdownDescription: "Select whether this rule should apply to incoming Skype for Business (MS-SIP) calls.",
 			},
 			"match_incoming_only_if_registered": schema.BoolAttribute{
 				Optional:            true,
@@ -222,7 +222,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Only apply this rule to incoming calls from devices, videoconferencing endpoints, soft clients or Infinity Connect clients t…aced from non-registered clients or devices, or from the Infinity web app will not be routed by this rule if it is enabled.",
+				MarkdownDescription: "Select whether this rule should apply to incoming SIP calls.",
 			},
 			"match_incoming_teams": schema.BoolAttribute{
 				Optional:            true,
@@ -282,7 +282,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				Validators: []validator.String{
 					stringvalidator.OneOf("sd", "hd", "fullhd"),
 				},
-				MarkdownDescription: "Sets the maximum call quality for each participant.",
+				MarkdownDescription: "Sets the maximum call quality for each participant. Valid choices: sd, hd, fullhd.",
 			},
 			"mssip_proxy": schema.StringAttribute{
 				Optional:            true,
@@ -313,7 +313,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			"priority": schema.Int32Attribute{
 				Required: true,
 				Validators: []validator.Int32{
-					int32validator.AtLeast(1),
+					int32validator.Between(1, 200),
 				},
 				MarkdownDescription: "The priority of this rule. Rules are checked in ascending priority order until the first matching rule is found, and it is then applied. Range: 1 to 200.",
 			},
@@ -337,9 +337,12 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				MarkdownDescription: "The STUN server to be used for outbound Lync / Skype for Business (MS-SIP) calls (where applicable).",
 			},
 			"tag": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(250),
+				},
 				MarkdownDescription: "A unique identifier used to track usage of this Call Routing Rule. Maximum length: 250 characters.",
 			},
 			"teams_proxy": schema.StringAttribute{

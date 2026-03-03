@@ -73,7 +73,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the end user in Infinity",
+				MarkdownDescription: "Resource URI for the end user in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -92,7 +92,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The first name of the end user. Maximum length: 250 characters.",
+				MarkdownDescription: "The first name of the user. Maximum length: 250 characters.",
 			},
 			"last_name": schema.StringAttribute{
 				Optional: true,
@@ -100,7 +100,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The last name of the end user. Maximum length: 250 characters.",
+				MarkdownDescription: "The last name of the user. Maximum length: 250 characters.",
 			},
 			"display_name": schema.StringAttribute{
 				Optional: true,
@@ -124,7 +124,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The mobile number of the end user. Maximum length: 100 characters.",
+				MarkdownDescription: "The mobile number of the user. Maximum length: 100 characters.",
 			},
 			"title": schema.StringAttribute{
 				Optional: true,
@@ -140,7 +140,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The department of the end user. Maximum length: 100 characters.",
+				MarkdownDescription: "The department of the user. Maximum length: 100 characters.",
 			},
 			"avatar_url": schema.StringAttribute{
 				Optional: true,

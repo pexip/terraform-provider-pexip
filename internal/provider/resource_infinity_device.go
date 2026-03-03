@@ -72,7 +72,7 @@ func (r *InfinityDeviceResource) Schema(ctx context.Context, req resource.Schema
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the device in Infinity",
+				MarkdownDescription: "Resource URI for the device in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -83,7 +83,7 @@ func (r *InfinityDeviceResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique alias name of the device. Maximum length: 250 characters.",
+				MarkdownDescription: "The alias with which the device must register to Pexip Infinity. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -91,7 +91,7 @@ func (r *InfinityDeviceResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the device. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the device alias. Note that this description may be displayed on phones and other equipment. Maximum length: 250 characters.",
 			},
 			"username": schema.StringAttribute{
 				Optional: true,
@@ -136,7 +136,7 @@ func (r *InfinityDeviceResource) Schema(ctx context.Context, req resource.Schema
 			"enable_infinity_connect_sso": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Whether Infinity Connect with SSO is enabled. Defaults to false.",
+				MarkdownDescription: "Allows a Pexip Infinity Connect client to register using this alias, using AD authentication if required.",
 			},
 			"enable_standard_sso": schema.BoolAttribute{
 				Optional:            true,
@@ -162,7 +162,7 @@ func (r *InfinityDeviceResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A sync tag for external system integration. Maximum length: 250 characters.",
+				MarkdownDescription: "A unique identifier used to track which LDAP sync template created this device. Maximum length: 250 characters.",
 			},
 		},
 		MarkdownDescription: "Manages a device configuration with the Infinity service.",

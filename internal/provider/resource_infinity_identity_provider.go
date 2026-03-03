@@ -100,7 +100,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the identity provider in Infinity",
+				MarkdownDescription: "Resource URI for the identity provider in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -111,7 +111,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique name of the identity provider. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Identity Provider. This name will be visible to end users, so you should use a name that will help users differentiate between Identity Providers without compromising security. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -119,7 +119,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the identity provider. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the Identity Provider. Maximum length: 250 characters.",
 			},
 			"idp_type": schema.StringAttribute{
 				Optional: true,
@@ -128,11 +128,11 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("saml", "oidc"),
 				},
-				MarkdownDescription: "The identity provider type. Valid choices: saml, oidc. Defaults to saml.",
+				MarkdownDescription: "Select the protocol used by this Identity Provider. Valid choices: saml, oidc.",
 			},
 			"uuid": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The UUID of the identity provider.",
+				MarkdownDescription: "A unique identifier for the Identity Provider configuration. A value is automatically assigned and there is normally no need to modify it.",
 			},
 			"sso_url": schema.StringAttribute{
 				Optional: true,
@@ -140,7 +140,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The SSO URL for SAML identity providers. Maximum length: 255 characters.",
+				MarkdownDescription: "The URL to which users are sent when authenticating with this Identity Provider. Custom query string parameters may be appended, e.g. https://<url>?foo=bar. Maximum length: 255 characters. ",
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Optional: true,
@@ -148,12 +148,15 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The identity provider entity ID for SAML. Maximum length: 250 characters.",
+				MarkdownDescription: "The identifier for this Identity Provider integration. For SAML IdPs this is the Entity ID and for OpenID Connect IdPs this is the Issuer for returned JWTs.  Maximum length: 250 characters.",
 			},
 			"idp_public_key": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The identity provider public key for SAML.",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(4096),
+				},
+				MarkdownDescription: "The public key used  to verify assertions signed by this Identity Provider. Maximum length: 4096 characters.",
 			},
 			"service_entity_id": schema.StringAttribute{
 				Optional: true,
@@ -161,19 +164,25 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The service entity ID for SAML. Maximum length: 250 characters.",
+				MarkdownDescription: "The Entity ID for this SAML service. Maximum length: 250 characters.",
 			},
 			"service_public_key": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The service public key for SAML.",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(4096),
+				},
+				MarkdownDescription: "Public key used by Pexip Infinity when communicating with the Identity Provider. This must be in PEM (certificate) format. Maximum length: 4096 characters.",
 			},
 			"service_private_key": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The service private key for SAML.",
+				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
+				Default:   stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(12288),
+				},
+				MarkdownDescription: "Private key used by Pexip Infinity when communicating with the Identity Provider. Maximum length: 12288 characters.",
 			},
 			"signature_algorithm": schema.StringAttribute{
 				Optional: true,
@@ -182,7 +191,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#rsa-sha1", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384", "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"),
 				},
-				MarkdownDescription: "The signature algorithm. Valid choices: http://www.w3.org/2000/09/xmldsig#rsa-sha1, http://www.w3.org/2001/04/xmldsig-more#rsa-sha256, http://www.w3.org/2001/04/xmldsig-more#rsa-sha384, http://www.w3.org/2001/04/xmldsig-more#rsa-sha512. Defaults to http://www.w3.org/2001/04/xmldsig-more#rsa-sha256.",
+				MarkdownDescription: "Signature algorithm used to sign SAML authentication request messages and service metadata. Valid choices: http://www.w3.org/2000/09/xmldsig#rsa-sha1, http://www.w3.org/2001/04/xmldsig-more#rsa-sha256, http://www.w3.org/2001/04/xmldsig-more#rsa-sha384, http://www.w3.org/2001/04/xmldsig-more#rsa-sha512.",
 			},
 			"digest_algorithm": schema.StringAttribute{
 				Optional: true,
@@ -191,7 +200,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("http://www.w3.org/2000/09/xmldsig#sha1", "http://www.w3.org/2001/04/xmlenc#sha256", "http://www.w3.org/2001/04/xmldsig-more#sha384", "http://www.w3.org/2001/04/xmlenc#sha512"),
 				},
-				MarkdownDescription: "The digest algorithm. Valid choices: http://www.w3.org/2000/09/xmldsig#sha1, http://www.w3.org/2001/04/xmlenc#sha256, http://www.w3.org/2001/04/xmldsig-more#sha384, http://www.w3.org/2001/04/xmlenc#sha512. Defaults to http://www.w3.org/2001/04/xmlenc#sha256.",
+				MarkdownDescription: "Digest algorithm used to sign SAML authentication request messages and service metadata. Valid choices: http://www.w3.org/2000/09/xmldsig#sha1, http://www.w3.org/2001/04/xmlenc#sha256, http://www.w3.org/2001/04/xmldsig-more#sha384, http://www.w3.org/2001/04/xmlenc#sha512.",
 			},
 			"display_name_attribute_name": schema.StringAttribute{
 				Optional: true,
@@ -200,7 +209,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The display name attribute name. Maximum length: 250 characters. Defaults to NameId.",
+				MarkdownDescription: "The SAML 2.0 attribute name from which the user's display name will be extracted. If one is not specified, participants are able to enter their own display name. Default: NameId. Maximum length: 250 characters.",
 			},
 			"registration_alias_attribute_name": schema.StringAttribute{
 				Optional: true,
@@ -209,14 +218,14 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The registration alias attribute name. Maximum length: 250 characters. Defaults to NameId.",
+				MarkdownDescription: "The SAML 2.0 attribute name from which the user's registration alias will be extracted. If one is not specified, the user will not be able to register. Default: NameId. Maximum length: 250 characters.",
 			},
 			"assertion_consumer_service_url": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The assertion consumer service URL. Must end with the UUID of the Identity Provider and include 'samlconsumer' for SAML or 'oidcconsumer' for OIDC. Maximum length: 255 characters.",
+				MarkdownDescription: "A URL that can be used in the authentication process with this Identity Provider. For SAML2 this should be in the format https://<webapp_FQDN>/api/v1/samlconsumer/<uuid> and for OpenID Connect https://<webapp_FQDN>/api/v1/oidcconsumer/<uuid>. <webapp_FQDN> is the FQDN from which the web app is accessed, and <uuid> is the UUID shown in the field above. You should add one redirect URL for every web app FQDN in your deployment. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url2": schema.StringAttribute{
 				Optional: true,
@@ -224,7 +233,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url3": schema.StringAttribute{
 				Optional: true,
@@ -232,7 +241,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url4": schema.StringAttribute{
 				Optional: true,
@@ -240,7 +249,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url5": schema.StringAttribute{
 				Optional: true,
@@ -248,7 +257,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url6": schema.StringAttribute{
 				Optional: true,
@@ -256,7 +265,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url7": schema.StringAttribute{
 				Optional: true,
@@ -264,7 +273,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url8": schema.StringAttribute{
 				Optional: true,
@@ -272,7 +281,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url9": schema.StringAttribute{
 				Optional: true,
@@ -280,7 +289,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"assertion_consumer_service_url10": schema.StringAttribute{
 				Optional: true,
@@ -288,19 +297,19 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Additional redirect URL valid for use with this Identity Provider. Maximum length: 255 characters.",
+				MarkdownDescription: "Enter any additional redirect URLs valid for use with this Identity Provider. Maximum length: 255 characters.",
 			},
 			"worker_fqdn_acs_urls": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to use worker FQDN in ACS URLs. Defaults to false.",
+				MarkdownDescription: "Automatically generate allowed redirect URLs from the configured FQDNs for each Conferencing Node.",
 			},
 			"disable_popup_flow": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to disable popup flow. Defaults to false.",
+				MarkdownDescription: "Disable pop-up windows used during Single Sign On",
 			},
 			"oidc_flow": schema.StringAttribute{
 				Optional: true,
@@ -309,7 +318,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("code", "implicit"),
 				},
-				MarkdownDescription: "The OIDC flow type. Valid choices: code, implicit. Defaults to code.",
+				MarkdownDescription: "The flow used by the OpenID Connect Identity Provider. Valid choices: implicit, code.",
 			},
 			"oidc_client_id": schema.StringAttribute{
 				Optional: true,
@@ -317,7 +326,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The OIDC client ID. Maximum length: 250 characters.",
+				MarkdownDescription: "The client identifier provided by the OpenID Connect Identity Provider. Maximum length: 250 characters.",
 			},
 			"oidc_client_secret": schema.StringAttribute{
 				Optional:  true,
@@ -327,7 +336,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The OIDC client secret. Maximum length: 100 characters.",
+				MarkdownDescription: "The client secret provided by the OpenID Connect Identity Provider. Maximum length: 100 characters.",
 			},
 			"oidc_token_url": schema.StringAttribute{
 				Optional: true,
@@ -335,7 +344,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC token URL. Maximum length: 255 characters.",
+				MarkdownDescription: "OpenID Connect Token Endpoint URL used for exchanging codes for tokens in the Authorization Code Flow. Not required when using the Implicit Flow. Maximum length: 255 characters.",
 			},
 			"oidc_user_info_url": schema.StringAttribute{
 				Optional: true,
@@ -343,7 +352,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC user info URL. Maximum length: 255 characters.",
+				MarkdownDescription: "You can optionally enter here the URL of an OpenID Connect UserInfo Endpoint if you wish to use this to retrieve information about the user. Maximum length: 255 characters.",
 			},
 			"oidc_jwks_url": schema.StringAttribute{
 				Optional: true,
@@ -351,7 +360,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The OIDC JWKS URL. Maximum length: 255 characters.",
+				MarkdownDescription: "Download location for your Identity Provider's JSON Web Key Set (JWKS) to enable signature verification. Not required when using HS256 signatures. Maximum length: 255 characters.",
 			},
 			"oidc_token_endpoint_auth_scheme": schema.StringAttribute{
 				Optional: true,
@@ -360,7 +369,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("client_secret_basic", "client_secret_post"),
 				},
-				MarkdownDescription: "The OIDC token endpoint auth scheme. Valid choices: client_secret_basic, client_secret_post. Defaults to client_secret_post.",
+				MarkdownDescription: "The authentication method used by Infinity to authenticate when using the token endpoint. Valid choices: client_secret_basic, client_secret_post.",
 			},
 			"oidc_token_signature_scheme": schema.StringAttribute{
 				Optional: true,
@@ -369,7 +378,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("rs256", "hs256"),
 				},
-				MarkdownDescription: "The OIDC token signature scheme. Valid choices: rs256, hs256. Defaults to rs256.",
+				MarkdownDescription: "The algorithm used by the Identity Provider to sign the contents of the token. Valid choices: rs256, hs256.",
 			},
 			"oidc_display_name_claim_name": schema.StringAttribute{
 				Optional: true,
@@ -378,7 +387,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The OIDC display name claim name. Maximum length: 250 characters. Defaults to name.",
+				MarkdownDescription: "The claim name from which the user's display name will be extracted. This can come from either the JWT, or data from the UserInfo endpoint (if one is configured). Maximum length: 250 characters.",
 			},
 			"oidc_registration_alias_claim_name": schema.StringAttribute{
 				Optional: true,
@@ -387,7 +396,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The OIDC registration alias claim name. Maximum length: 250 characters. Defaults to sub.",
+				MarkdownDescription: "The claim name from which the user's registration alias will be extracted. This can come from either the JWT, or data from the UserInfo endpoint (if one is configured). Maximum length: 250 characters.",
 			},
 			"oidc_additional_scopes": schema.StringAttribute{
 				Optional: true,
@@ -395,7 +404,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Additional OIDC scopes. Maximum length: 250 characters.",
+				MarkdownDescription: "Space-separated list of additional scopes to request from the OpenID Connect Identity Provider. Maximum length: 250 characters.",
 			},
 			"oidc_france_connect_required_eidas_level": schema.StringAttribute{
 				Optional: true,
@@ -404,7 +413,7 @@ func (r *InfinityIdentityProviderResource) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidator.OneOf("disabled", "eidas1", "eidas2", "eidas3"),
 				},
-				MarkdownDescription: "The required eIDAS level for France Connect. Valid choices: disabled, eidas1, eidas2, eidas3. Defaults to disabled.",
+				MarkdownDescription: "The eIDAS level to use in requests and responses. This should not be changed from the default \"Disabled\" unless advised by your Pexip support representative. Valid choices: disabled, eidas1, eidas2, eidas3.",
 			},
 			"attributes": schema.SetAttribute{
 				Optional:            true,

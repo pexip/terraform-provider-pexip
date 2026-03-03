@@ -74,7 +74,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the automatic participant in Infinity",
+				MarkdownDescription: "Resource URI for the automatic participant in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -85,7 +85,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique alias of the automatic participant. Maximum length: 250 characters.",
+				MarkdownDescription: "The alias of the participant that is to be dialed when the conference starts. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -93,7 +93,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the automatic participant. Maximum length: 250 characters.",
+				MarkdownDescription: "An optional description of the Automatically Dialed Participant. Maximum length: 250 characters.",
 			},
 			"conference": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -130,7 +130,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "DTMF sequence to send when connecting. Maximum length: 250 characters.",
+				MarkdownDescription: "The DTMF sequence to be transmitted after the call to the automatically dialed participant has been established. Maximum length: 250 characters.",
 			},
 			"keep_conference_alive": schema.StringAttribute{
 				Required: true,
@@ -144,7 +144,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.OneOf("auto", "manual"),
 				},
-				MarkdownDescription: "The routing type. Valid choices: auto, manual.",
+				MarkdownDescription: "Route this call manually using the defaults for the specified location - or route using the system location policy. Valid choices: auto, manual.",
 			},
 			"system_location": schema.StringAttribute{
 				Optional:            true,

@@ -67,7 +67,7 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the SIP proxy in Infinity",
+				MarkdownDescription: "Resource URI for the SIP proxy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -93,7 +93,7 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the SIP proxy. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the SIP proxy. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
@@ -102,7 +102,7 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the SIP proxy. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port of the SIP proxy. Range: 1 to 65535. Default: 5061.",
 			},
 			"transport": schema.StringAttribute{
 				Optional: true,
@@ -111,7 +111,7 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "udp", "tls"),
 				},
-				MarkdownDescription: "The transport protocol for the SIP proxy. Valid values: tcp, udp, tls.",
+				MarkdownDescription: "The IP transport used to connect to the SIP proxy. Valid choices: udp, tcp, tls.",
 			},
 		},
 		MarkdownDescription: "Manages a SIP proxy configuration with the Infinity service.",
