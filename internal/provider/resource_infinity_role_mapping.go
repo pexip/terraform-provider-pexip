@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -78,7 +79,9 @@ func (r *InfinityRoleMappingResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The name of the role mapping. Maximum length: 250 characters.",
 			},
 			"source": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("LDAP"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("LDAP", "OIDC"),
 				},

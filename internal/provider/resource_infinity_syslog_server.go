@@ -69,7 +69,7 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the syslog server in Infinity",
+				MarkdownDescription: "Resource URI for the syslog server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -85,41 +85,41 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 			"description": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the syslog server. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the Syslog server. Maximum length: 250 characters.",
 			},
 			"port": schema.Int64Attribute{
 				Required: true,
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for syslog communications. Valid range: 1-65535.",
+				MarkdownDescription: "The port on the remote syslog server. Range: 1 to 65535. Default: 514.",
 			},
 			"transport": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("udp", "tcp", "tls"),
 				},
-				MarkdownDescription: "Transport protocol for syslog. Valid values: udp, tcp, tls.",
+				MarkdownDescription: "The IP transport used to connect to the remote syslog server. Valid choices: udp, tcp, tls.",
 			},
 			"audit_log": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to send audit logs to this syslog server.",
+				MarkdownDescription: "Enable sending of audit log entries.",
 			},
 			"support_log": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to send support logs to this syslog server.",
+				MarkdownDescription: "Enable sending of support and administrator log entries.",
 			},
 			"web_log": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to send web logs to this syslog server.",
+				MarkdownDescription: "Enable sending of web server log entries.",
 			},
 		},
 		MarkdownDescription: "Manages a syslog server with the Infinity service. Syslog servers receive system logs and audit information from Pexip Infinity for centralized logging and monitoring.",

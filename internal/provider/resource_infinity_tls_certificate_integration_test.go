@@ -25,9 +25,6 @@ import (
 func TestInfinityTLSCertificateIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
-	tlsCertificate := test.LoadTestFile(t, "tls_certificate.pem")
-	tlsPrivateKey := test.LoadTestFile(t, "tls_private_key.pem")
-
 	client, err := infinity.New(
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),
 		infinity.WithBasicAuth(test.INFINITY_USERNAME, test.INFINITY_PASSWORD),
@@ -44,5 +41,5 @@ func TestInfinityTLSCertificateIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityTLSCertificate(t, client, tlsPrivateKey, tlsCertificate)
+	testInfinityTLSCertificate(t, client)
 }

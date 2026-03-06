@@ -66,7 +66,7 @@ func (r *InfinityStaticRouteResource) Schema(ctx context.Context, req resource.S
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the static route in Infinity",
+				MarkdownDescription: "Resource URI for the static route in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -75,30 +75,30 @@ func (r *InfinityStaticRouteResource) Schema(ctx context.Context, req resource.S
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(32),
 				},
-				MarkdownDescription: "The name of the static route. Maximum length: 250 characters.",
+				MarkdownDescription: "The name of the static route. Maximum length: 32 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "The destination network address for the static route.",
+				MarkdownDescription: "The IP address to be used in conjunction with the Network prefix to determine the network that this route applies to.",
 			},
 			"prefix": schema.Int64Attribute{
 				Required: true,
 				Validators: []validator.Int64{
 					int64validator.Between(0, 32),
 				},
-				MarkdownDescription: "The network prefix length (CIDR notation). Valid range: 0-32.",
+				MarkdownDescription: "The prefix length used in conjunction with the Destination network address to determine the network that this route applies to. Range: 0 to 32.",
 			},
 			"gateway": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "The gateway IP address for the static route.",
+				MarkdownDescription: "The IP address of the gateway to the network for this route.",
 			},
 		},
 		MarkdownDescription: "Manages a static route configuration with the Infinity service.",

@@ -82,7 +82,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the policy server in Infinity",
+				MarkdownDescription: "Resource URI for the policy server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -93,7 +93,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name used to refer to this policy server. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this policy profile. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -101,15 +101,15 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the policy server. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the policy profile. Maximum length: 250 characters.",
 			},
 			"url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The URL for the policy server. Maximum length: 500 characters.",
+				MarkdownDescription: "The URL of the external policy server. Maximum length: 255 characters. ",
 			},
 			"username": schema.StringAttribute{
 				Optional: true,
@@ -117,7 +117,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Username for authentication to the policy server. Maximum length: 100 characters.",
+				MarkdownDescription: "The username used when accessing the policy server. Maximum length: 100 characters.",
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
@@ -126,67 +126,67 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Password for authentication to the policy server. Maximum length: 100 characters.",
+				MarkdownDescription: "The password used when accessing the policy server. Maximum length: 100 characters.",
 			},
 			"enable_service_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable service lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to fetch service configuration details. ",
 			},
 			"enable_participant_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable participant lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to fetch participant configuration details. ",
 			},
 			"enable_registration_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable registration lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to determine whether the device is permitted to register to Pexip Infinity. ",
 			},
 			"enable_directory_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable directory lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to fetch directory listing results. ",
 			},
 			"enable_avatar_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable avatar lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to fetch avatar images for participants. ",
 			},
 			"enable_media_location_lookup": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable media location lookup on this policy server.",
+				MarkdownDescription: "If enabled, requests are sent to the external policy server to fetch the system location to use for media processing. ",
 			},
 			"enable_internal_service_policy": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable internal service policy on this policy server.",
+				MarkdownDescription: "If enabled, service configuration retrieved from the local database or an external policy server can be transformed using Jinja2 templating before being returned to the endpoint. ",
 			},
 			"enable_internal_participant_policy": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable internal participant policy on this policy server.",
+				MarkdownDescription: "If enabled, the participant configuration based on information from the local database or an external policy server can be transformed using Jinja2 templating before being returned to the endpoint. ",
 			},
 			"enable_internal_media_location_policy": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to enable internal media location policy on this policy server.",
+				MarkdownDescription: "If enabled, the media location configuration based on information from the local database or an external policy server can be transformed using Jinja2 templating before being returned to the endpoint. ",
 			},
 			"prefer_local_avatar_configuration": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether to prefer local avatar configuration over policy server configuration.",
+				MarkdownDescription: "If enabled, requests are sent to the Avatar URL configured on the user when logging into the Pexip Infinity web app. Note: Avatar URL for Pexip Infinity web app (conference control) is not currently supported, so avatars are not displayed in the conference roster or in self-view. ",
 			},
 			"service_configuration_template": schema.StringAttribute{
 				Optional: true,

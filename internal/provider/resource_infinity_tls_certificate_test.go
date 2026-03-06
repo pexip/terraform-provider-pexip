@@ -27,24 +27,26 @@ func TestInfinityTLSCertificate(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking
+	mockState := &config.TLSCertificate{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/tls_certificate/123/",
+		Certificate: "",
+		PrivateKey:  "",
+		Nodes:       []string{}, // Start with empty slice (empty list in Terraform)
+	}
+
 	// Mock the CreateTLSCertificate API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/tls_certificate/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/tls_certificate/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	tlsCertificate := test.LoadTestFile(t, "tls_certificate.pem")
-	tlsPrivateKey := test.LoadTestFile(t, "tls_private_key.pem")
-
-	// Shared state for mocking
-	mockState := &config.TLSCertificate{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/tls_certificate/123/",
-		Certificate: tlsCertificate,
-		PrivateKey:  tlsPrivateKey,
-		Nodes:       []string{}, // Start with empty slice (empty list in Terraform)
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/tls_certificate/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createRequest := args.Get(2).(*config.TLSCertificateCreateRequest)
+		// Store the certificate and private key from the create request
+		mockState.Certificate = createRequest.Certificate
+		mockState.PrivateKey = createRequest.PrivateKey
+	})
 
 	// Mock the GetTLSCertificate API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/tls_certificate/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -77,29 +79,34 @@ func TestInfinityTLSCertificate(t *testing.T) {
 		return path == "configuration/v1/tls_certificate/123/"
 	}), mock.Anything).Return(nil)
 
-	testInfinityTLSCertificate(t, client, tlsPrivateKey, tlsCertificate)
+	testInfinityTLSCertificate(t, client)
 }
 
-func testInfinityTLSCertificate(t *testing.T, client InfinityClient, privateKey, certificate string) {
+func testInfinityTLSCertificate(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source: "hashicorp/tls",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_tls_certificate_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_tls_certificate"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_tls_certificate.tls-cert-test", "certificate", certificate),
-					resource.TestCheckResourceAttr("pexip_infinity_tls_certificate.tls-cert-test", "private_key", privateKey),
+					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "private_key"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_tls_certificate_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_tls_certificate_updated"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_tls_certificate.tls-cert-test", "certificate", certificate),
-					resource.TestCheckResourceAttr("pexip_infinity_tls_certificate.tls-cert-test", "private_key", privateKey),
+					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "certificate"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_tls_certificate.tls-cert-test", "private_key"),
 				),
 			},
 		},

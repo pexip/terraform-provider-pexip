@@ -84,8 +84,9 @@ func (r *InfinityLdapRoleResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The distinguished name (DN) of the LDAP group.",
 			},
 			"roles": schema.SetAttribute{
-				ElementType:         types.StringType,
+				Computed:            true,
 				Optional:            true,
+				ElementType:         types.StringType,
 				MarkdownDescription: "List of role URIs associated with this LDAP role mapping.",
 			},
 		},
@@ -107,7 +108,7 @@ func (r *InfinityLdapRoleResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Handle list field
-	if !plan.Roles.IsNull() {
+	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		var roles []string
 		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
 		if resp.Diagnostics.HasError() {
@@ -221,7 +222,7 @@ func (r *InfinityLdapRoleResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Handle list field
-	if !plan.Roles.IsNull() {
+	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		var roles []string
 		resp.Diagnostics.Append(plan.Roles.ElementsAs(ctx, &roles, false)...)
 		if resp.Diagnostics.HasError() {

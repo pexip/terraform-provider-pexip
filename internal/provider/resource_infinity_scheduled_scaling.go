@@ -11,14 +11,17 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/pexip/terraform-provider-pexip/internal/provider/validators"
 )
 
 var (
@@ -78,7 +81,7 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the scheduled scaling policy in Infinity",
+				MarkdownDescription: "Resource URI for the scheduled scaling policy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -107,28 +110,27 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The identifier of the resource group or deployment to scale.",
 			},
 			"enabled": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Whether this scheduled scaling policy is enabled.",
 			},
 			"instances_to_add": schema.Int64Attribute{
-				Required: true,
-				Validators: []validator.Int64{
-					int64validator.Between(0, 100),
-				},
+				Computed:            true,
+				Optional:            true,
+				Default:             int64default.StaticInt64(0),
 				MarkdownDescription: "The number of instances to add during scaling. Valid range: 0-100.",
 			},
 			"minutes_in_advance": schema.Int64Attribute{
-				Required: true,
-				Validators: []validator.Int64{
-					int64validator.Between(0, 1440),
-				},
-				MarkdownDescription: "How many minutes in advance to start scaling. Valid range: 0-1440 (24 hours).",
+				Computed:            true,
+				Optional:            true,
+				Default:             int64default.StaticInt64(20),
+				MarkdownDescription: "The number of minutes in advance of the activation time to begin scaling up the instances. It can take up to 20 minutes to start an instance so this is to allow enough time for all of the requested additional instances to be started up.",
 			},
 			"local_timezone": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
+				Computed:            true,
+				Optional:            true,
+				Default:             stringdefault.StaticString("UTC"),
 				MarkdownDescription: "The local timezone for scheduling (e.g., 'America/New_York', 'Europe/London').",
 			},
 			"start_date": schema.StringAttribute{
@@ -141,43 +143,57 @@ func (r *InfinityScheduledScalingResource) Schema(ctx context.Context, req resou
 			"time_from": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.Time(),
 				},
-				MarkdownDescription: "The start time for scaling in HH:MM format.",
+				MarkdownDescription: "The start time for scaling in HH:MM:SS format (e.g., 09:30:00).",
 			},
 			"time_to": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					validators.Time(),
 				},
-				MarkdownDescription: "The end time for scaling in HH:MM format.",
+				MarkdownDescription: "The end time for scaling in HH:MM:SS format (e.g., 17:00:00).",
 			},
 			"mon": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Monday.",
 			},
 			"tue": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Tuesday.",
 			},
 			"wed": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Wednesday.",
 			},
 			"thu": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Thursday.",
 			},
 			"fri": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Friday.",
 			},
 			"sat": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Saturday.",
 			},
 			"sun": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to apply scaling on Sunday.",
 			},
 			"updated": schema.StringAttribute{

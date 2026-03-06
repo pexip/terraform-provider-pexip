@@ -77,17 +77,11 @@ func (r *InfinityMediaProcessingServerResource) Schema(ctx context.Context, req 
 				MarkdownDescription: "The fully qualified domain name (FQDN) of the media processing server. Maximum length: 253 characters.",
 			},
 			"app_id": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(100),
-				},
+				Computed:            true,
 				MarkdownDescription: "The application ID for the media processing server. Maximum length: 100 characters.",
 			},
 			"public_jwt_key": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
+				Computed:            true,
 				MarkdownDescription: "The public JWT key used for authentication with the media processing server.",
 			},
 		},
@@ -104,14 +98,7 @@ func (r *InfinityMediaProcessingServerResource) Create(ctx context.Context, req 
 	}
 
 	createRequest := &config.MediaProcessingServerCreateRequest{
-		FQDN:         plan.FQDN.ValueString(),
-		PublicJWTKey: plan.PublicJWTKey.ValueString(),
-	}
-
-	// Handle optional pointer field
-	if !plan.AppID.IsNull() && !plan.AppID.IsUnknown() {
-		appID := plan.AppID.ValueString()
-		createRequest.AppID = &appID
+		FQDN: plan.FQDN.ValueString(),
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateMediaProcessingServer(ctx, createRequest)
@@ -162,13 +149,7 @@ func (r *InfinityMediaProcessingServerResource) read(ctx context.Context, resour
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.FQDN = types.StringValue(srv.FQDN)
 	data.PublicJWTKey = types.StringValue(srv.PublicJWTKey)
-
-	// Handle optional pointer field
-	if srv.AppID != nil {
-		data.AppID = types.StringValue(*srv.AppID)
-	} else {
-		data.AppID = types.StringNull()
-	}
+	data.AppID = types.StringValue(srv.AppID)
 
 	return &data, nil
 }
@@ -210,14 +191,7 @@ func (r *InfinityMediaProcessingServerResource) Update(ctx context.Context, req 
 	}
 
 	updateRequest := &config.MediaProcessingServerUpdateRequest{
-		FQDN:         plan.FQDN.ValueString(),
-		PublicJWTKey: plan.PublicJWTKey.ValueString(),
-	}
-
-	// Handle optional pointer field
-	if !plan.AppID.IsNull() && !plan.AppID.IsUnknown() {
-		appID := plan.AppID.ValueString()
-		updateRequest.AppID = &appID
+		FQDN: plan.FQDN.ValueString(),
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())

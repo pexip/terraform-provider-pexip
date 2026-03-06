@@ -262,3 +262,56 @@ func TestNetmaskValidator(t *testing.T) {
 		testNullAndUnknown(t, v)
 	})
 }
+
+func TestTimeValidator(t *testing.T) {
+	v := Time()
+
+	tests := []struct {
+		name        string
+		value       string
+		expectError bool
+	}{
+		// Valid times
+		{"valid time - midnight", "00:00:00", false},
+		{"valid time - noon", "12:00:00", false},
+		{"valid time - end of day", "23:59:59", false},
+		{"valid time - morning", "09:30:00", false},
+		{"valid time - afternoon", "14:45:30", false},
+		{"valid time - evening", "18:15:45", false},
+		{"valid time - early morning", "01:23:45", false},
+		{"valid time - late evening", "23:00:00", false},
+
+		// Invalid times - wrong format
+		{"invalid time - missing seconds", "09:30", true},
+		{"invalid time - single digit hour", "9:30:00", true},
+		{"invalid time - single digit minute", "09:3:00", true},
+		{"invalid time - single digit second", "09:30:0", true},
+		{"invalid time - hour out of range (24)", "24:00:00", true},
+		{"invalid time - hour out of range (25)", "25:00:00", true},
+		{"invalid time - minute out of range (60)", "12:60:00", true},
+		{"invalid time - minute out of range (99)", "12:99:00", true},
+		{"invalid time - second out of range (60)", "12:30:60", true},
+		{"invalid time - second out of range (99)", "12:30:99", true},
+		{"invalid time - negative hour", "-01:00:00", true},
+		{"invalid time - negative minute", "12:-30:00", true},
+		{"invalid time - negative second", "12:30:-45", true},
+		{"invalid time - extra digits", "012:30:00", true},
+		{"invalid time - missing colon", "123000", true},
+		{"invalid time - only one colon", "12:3000", true},
+		{"invalid time - letters", "12:3a:00", true},
+		{"invalid time - AM/PM format", "09:30:00 AM", true},
+		{"invalid time - with timezone", "09:30:00 UTC", true},
+		{"invalid time - ISO format", "T09:30:00", true},
+		{"empty time", "", false}, // Empty values are allowed (handled by required validation)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testStringValidator(t, v, tt.value, tt.expectError)
+		})
+	}
+
+	t.Run("null and unknown", func(t *testing.T) {
+		testNullAndUnknown(t, v)
+	})
+}

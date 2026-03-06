@@ -56,29 +56,59 @@ func TestInfinityAuthentication(t *testing.T) {
 
 	client := infinity.NewClientMock()
 
+	// Initialize mockState with default values (min config)
 	mockState := &config.Authentication{
-		Source:            "LOCAL",
-		ClientCertificate: "NO",
-		ResourceURI:       "/configuration/v1/authentication/1/",
-		// Don't set ApiOauth2Expiration - let it default to 0 but handle it properly in the resource
+		ResourceURI:               "/api/admin/configuration/v1/authentication/1/",
+		Source:                    "LOCAL",
+		ClientCertificate:         "NO",
+		ApiOauth2DisableBasic:     false,
+		ApiOauth2AllowAllPerms:    false,
+		ApiOauth2Expiration:       3600,
+		LdapServer:                "",
+		LdapBaseDN:                "",
+		LdapBindUsername:          "",
+		LdapBindPassword:          "",
+		LdapUserSearchDN:          "",
+		LdapUserFilter:            "(&(objectclass=person)(!(objectclass=computer)))",
+		LdapUserSearchFilter:      "(|(uid={username})(sAMAccountName={username}))",
+		LdapUserGroupAttributes:   "memberOf",
+		LdapGroupSearchDN:         "",
+		LdapGroupFilter:           "(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup))",
+		LdapGroupMembershipFilter: "(|(member={userdn})(uniquemember={userdn})(memberuid={useruid}))",
+		LdapUseGlobalCatalog:      false,
+		LdapPermitNoTLS:           false,
+		OidcMetadataURL:           "",
+		OidcMetadata:              "",
+		OidcClientID:              "",
+		OidcClientSecret:          "",
+		OidcPrivateKey:            "",
+		OidcAuthMethod:            "client_secret",
+		OidcScope:                 "openid profile email",
+		OidcAuthorizeURL:          "",
+		OidcTokenEndpointURL:      "",
+		OidcUsernameField:         "preferred_username",
+		OidcGroupsField:           "groups",
+		OidcRequiredKey:           "",
+		OidcRequiredValue:         "",
+		OidcDomainHint:            "",
+		OidcLoginButton:           "",
 	}
 
+	// Mock GetJSON to return current mockState
 	client.On("GetJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		auth := args.Get(3).(*config.Authentication)
 		*auth = *mockState
 	}).Maybe()
 
+	// Mock PatchJSON to update mockState
 	client.On("PatchJSON", mock.Anything, "configuration/v1/authentication/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateRequest := args.Get(2).(*config.AuthenticationUpdateRequest)
 		auth := args.Get(3).(*config.Authentication)
 
-		// Update mockState with all the values from the update request
-		if updateRequest.Source != "" {
-			mockState.Source = updateRequest.Source
-		}
-		if updateRequest.ClientCertificate != "" {
-			mockState.ClientCertificate = updateRequest.ClientCertificate
-		}
+		// Update mockState with values from the update request
+		mockState.Source = updateRequest.Source
+		mockState.ClientCertificate = updateRequest.ClientCertificate
+
 		if updateRequest.ApiOauth2DisableBasic != nil {
 			mockState.ApiOauth2DisableBasic = *updateRequest.ApiOauth2DisableBasic
 		}
@@ -88,90 +118,48 @@ func TestInfinityAuthentication(t *testing.T) {
 		if updateRequest.ApiOauth2Expiration != nil {
 			mockState.ApiOauth2Expiration = *updateRequest.ApiOauth2Expiration
 		}
-		if updateRequest.LdapServer != "" {
-			mockState.LdapServer = updateRequest.LdapServer
-		}
-		if updateRequest.LdapBaseDN != "" {
-			mockState.LdapBaseDN = updateRequest.LdapBaseDN
-		}
-		if updateRequest.LdapBindUsername != "" {
-			mockState.LdapBindUsername = updateRequest.LdapBindUsername
-		}
-		if updateRequest.LdapBindPassword != "" {
-			mockState.LdapBindPassword = updateRequest.LdapBindPassword
-		}
-		if updateRequest.LdapUserSearchDN != "" {
-			mockState.LdapUserSearchDN = updateRequest.LdapUserSearchDN
-		}
-		if updateRequest.LdapUserFilter != "" {
-			mockState.LdapUserFilter = updateRequest.LdapUserFilter
-		}
-		if updateRequest.LdapUserSearchFilter != "" {
-			mockState.LdapUserSearchFilter = updateRequest.LdapUserSearchFilter
-		}
-		if updateRequest.LdapUserGroupAttributes != "" {
-			mockState.LdapUserGroupAttributes = updateRequest.LdapUserGroupAttributes
-		}
-		if updateRequest.LdapGroupSearchDN != "" {
-			mockState.LdapGroupSearchDN = updateRequest.LdapGroupSearchDN
-		}
-		if updateRequest.LdapGroupFilter != "" {
-			mockState.LdapGroupFilter = updateRequest.LdapGroupFilter
-		}
-		if updateRequest.LdapGroupMembershipFilter != "" {
-			mockState.LdapGroupMembershipFilter = updateRequest.LdapGroupMembershipFilter
-		}
+
+		// LDAP fields
+		mockState.LdapServer = updateRequest.LdapServer
+		mockState.LdapBaseDN = updateRequest.LdapBaseDN
+		mockState.LdapBindUsername = updateRequest.LdapBindUsername
+		// Don't update password from request - keep empty to simulate hashing
+		mockState.LdapUserSearchDN = updateRequest.LdapUserSearchDN
+		mockState.LdapUserFilter = updateRequest.LdapUserFilter
+		mockState.LdapUserSearchFilter = updateRequest.LdapUserSearchFilter
+		mockState.LdapUserGroupAttributes = updateRequest.LdapUserGroupAttributes
+		mockState.LdapGroupSearchDN = updateRequest.LdapGroupSearchDN
+		mockState.LdapGroupFilter = updateRequest.LdapGroupFilter
+		mockState.LdapGroupMembershipFilter = updateRequest.LdapGroupMembershipFilter
+
 		if updateRequest.LdapUseGlobalCatalog != nil {
 			mockState.LdapUseGlobalCatalog = *updateRequest.LdapUseGlobalCatalog
 		}
 		if updateRequest.LdapPermitNoTLS != nil {
 			mockState.LdapPermitNoTLS = *updateRequest.LdapPermitNoTLS
 		}
-		if updateRequest.OidcMetadataURL != "" {
-			mockState.OidcMetadataURL = updateRequest.OidcMetadataURL
-		}
-		if updateRequest.OidcMetadata != "" {
-			mockState.OidcMetadata = updateRequest.OidcMetadata
-		}
-		if updateRequest.OidcClientID != "" {
-			mockState.OidcClientID = updateRequest.OidcClientID
-		}
-		if updateRequest.OidcClientSecret != "" {
-			mockState.OidcClientSecret = updateRequest.OidcClientSecret
-		}
+
+		// OIDC fields
+		mockState.OidcMetadataURL = updateRequest.OidcMetadataURL
+		mockState.OidcMetadata = updateRequest.OidcMetadata
+		mockState.OidcClientID = updateRequest.OidcClientID
+		// Don't update secret from request - keep empty to simulate hashing
+		// Hash the private key to simulate the API behavior
 		if updateRequest.OidcPrivateKey != "" {
-			mockState.OidcPrivateKey = updateRequest.OidcPrivateKey
+			mockState.OidcPrivateKey = "hashed_private_key_value"
+		} else {
+			mockState.OidcPrivateKey = ""
 		}
-		if updateRequest.OidcAuthMethod != "" {
-			mockState.OidcAuthMethod = updateRequest.OidcAuthMethod
-		}
-		if updateRequest.OidcScope != "" {
-			mockState.OidcScope = updateRequest.OidcScope
-		}
-		if updateRequest.OidcAuthorizeURL != "" {
-			mockState.OidcAuthorizeURL = updateRequest.OidcAuthorizeURL
-		}
-		if updateRequest.OidcTokenEndpointURL != "" {
-			mockState.OidcTokenEndpointURL = updateRequest.OidcTokenEndpointURL
-		}
-		if updateRequest.OidcUsernameField != "" {
-			mockState.OidcUsernameField = updateRequest.OidcUsernameField
-		}
-		if updateRequest.OidcGroupsField != "" {
-			mockState.OidcGroupsField = updateRequest.OidcGroupsField
-		}
-		if updateRequest.OidcRequiredKey != "" {
-			mockState.OidcRequiredKey = updateRequest.OidcRequiredKey
-		}
-		if updateRequest.OidcRequiredValue != "" {
-			mockState.OidcRequiredValue = updateRequest.OidcRequiredValue
-		}
-		if updateRequest.OidcDomainHint != "" {
-			mockState.OidcDomainHint = updateRequest.OidcDomainHint
-		}
-		if updateRequest.OidcLoginButton != "" {
-			mockState.OidcLoginButton = updateRequest.OidcLoginButton
-		}
+		mockState.OidcAuthMethod = updateRequest.OidcAuthMethod
+		mockState.OidcScope = updateRequest.OidcScope
+		mockState.OidcAuthorizeURL = updateRequest.OidcAuthorizeURL
+		mockState.OidcTokenEndpointURL = updateRequest.OidcTokenEndpointURL
+		mockState.OidcUsernameField = updateRequest.OidcUsernameField
+		mockState.OidcGroupsField = updateRequest.OidcGroupsField
+		mockState.OidcRequiredKey = updateRequest.OidcRequiredKey
+		mockState.OidcRequiredValue = updateRequest.OidcRequiredValue
+		mockState.OidcDomainHint = updateRequest.OidcDomainHint
+		mockState.OidcLoginButton = updateRequest.OidcLoginButton
 
 		*auth = *mockState
 	}).Maybe()
@@ -182,12 +170,124 @@ func TestInfinityAuthentication(t *testing.T) {
 func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source: "hashicorp/tls",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_authentication_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_authentication_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "client_certificate", "NO"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_allow_all_perms", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_expiration", "7200"),
+					// LDAP configuration
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_server", "ldap.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_base_dn", "dc=example,dc=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_bind_username", "CN=Service Account,OU=Service Accounts,DC=example,DC=com"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "ldap_bind_password"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_search_dn", "OU=Users,DC=example,DC=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_filter", "(&(objectclass=person))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_search_filter", "(|(uid={username}))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_group_attributes", "memberOftest"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_search_dn", "OU=Groups,DC=example,DC=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_filter", "(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup)(objectclass=testGroup))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_membership_filter", "(|(member={userdn})(uniquemember={userdn}))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_use_global_catalog", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_permit_no_tls", "true"),
+					// OIDC configuration
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_metadata_url", "https://auth.example.com/.well-known/openid-configuration"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_client_id", "pexip-infinity-client-id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "oidc_client_secret"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_auth_method", "private_key"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "oidc_private_key"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_scope", "openid profile email groups"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_authorize_url", "https://auth.example.com/oauth2/authorize"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_token_endpoint_url", "https://auth.example.com/oauth2/token"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_username_field", "preferred_username_test"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_groups_field", "testgroups"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_required_key", "department"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_required_value", "IT"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_domain_hint", "example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_login_button", "Sign in with Corporate SSO"),
+				),
+			},
+			{
+				// Step 2: Update to min config
+				Config: test.LoadTestFolder(t, "resource_infinity_authentication_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
+					// Verify defaults are restored
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "client_certificate", "NO"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_disable_basic", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_allow_all_perms", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_expiration", "3600"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_server", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_base_dn", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_bind_username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_metadata_url", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_client_id", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_auth_method", "client_secret"),
+				),
+			},
+			{
+				// Step 3: Destroy (no-op for singleton, but included for consistency)
+				Config:  test.LoadTestFolder(t, "resource_infinity_authentication_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Recreate with min config (actually just updates since it's a singleton)
+				Config: test.LoadTestFolder(t, "resource_infinity_authentication_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "client_certificate", "NO"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_expiration", "3600"),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_authentication_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "client_certificate", "NO"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_allow_all_perms", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_expiration", "7200"),
+					// LDAP configuration
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_server", "ldap.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_base_dn", "dc=example,dc=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_bind_username", "CN=Service Account,OU=Service Accounts,DC=example,DC=com"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "ldap_bind_password"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_search_dn", "OU=Users,DC=example,DC=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_filter", "(&(objectclass=person))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_search_filter", "(|(uid={username}))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_user_group_attributes", "memberOftest"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_search_dn", "OU=Groups,DC=example,DC=com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_filter", "(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup)(objectclass=testGroup))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_group_membership_filter", "(|(member={userdn})(uniquemember={userdn}))"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_use_global_catalog", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_permit_no_tls", "true"),
+					// OIDC configuration
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_metadata_url", "https://auth.example.com/.well-known/openid-configuration"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_client_id", "pexip-infinity-client-id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "oidc_client_secret"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_auth_method", "private_key"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "oidc_private_key"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_scope", "openid profile email groups"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_authorize_url", "https://auth.example.com/oauth2/authorize"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_token_endpoint_url", "https://auth.example.com/oauth2/token"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_username_field", "preferred_username_test"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_groups_field", "testgroups"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_required_key", "department"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_required_value", "IT"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_domain_hint", "example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_login_button", "Sign in with Corporate SSO"),
 				),
 			},
 		},

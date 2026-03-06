@@ -62,7 +62,7 @@ func (r *InfinityIdentityProviderGroupResource) Schema(ctx context.Context, req 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the identity provider group in Infinity",
+				MarkdownDescription: "Resource URI for the identity provider group in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -74,14 +74,14 @@ func (r *InfinityIdentityProviderGroupResource) Schema(ctx context.Context, req 
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the identity provider group. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Identity Provider Group. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the identity provider group. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the Identity Provider Group. Maximum length: 250 characters.",
 			},
 			"identity_provider": schema.SetAttribute{
 				ElementType:         types.StringType,

@@ -38,9 +38,9 @@ func TestInfinityMediaProcessingServer(t *testing.T) {
 	mockState := &config.MediaProcessingServer{
 		ID:           123,
 		ResourceURI:  "/api/admin/configuration/v1/media_processing_server/123/",
-		FQDN:         "test-value",
-		AppID:        test.StringPtr("test-value"),
-		PublicJWTKey: "test-value",
+		FQDN:         "tf-test-mps-full.test.local",
+		AppID:        "test-app-id",
+		PublicJWTKey: "test-public-jwt-key",
 	}
 
 	// Mock the GetMediaprocessingserver API call for Read operations
@@ -54,15 +54,9 @@ func TestInfinityMediaProcessingServer(t *testing.T) {
 		updateRequest := args.Get(2).(*config.MediaProcessingServerUpdateRequest)
 		media_processing_server := args.Get(3).(*config.MediaProcessingServer)
 
-		// Update mock state based on request
+		// Update mock state based on request (only FQDN can be updated)
 		if updateRequest.FQDN != "" {
 			mockState.FQDN = updateRequest.FQDN
-		}
-		if updateRequest.AppID != nil {
-			mockState.AppID = updateRequest.AppID
-		}
-		if updateRequest.PublicJWTKey != "" {
-			mockState.PublicJWTKey = updateRequest.PublicJWTKey
 		}
 
 		// Return updated state
@@ -81,18 +75,37 @@ func testInfinityMediaProcessingServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Test 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_processing_server_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_processing_server_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_processing_server.media_processing_server-test", "fqdn", "tf-test-mps-full.test.local"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "app_id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "public_jwt_key"),
 				),
 			},
+			// Test 2: Update with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_processing_server_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_processing_server_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_processing_server.media_processing_server-test", "fqdn", "tf-test-mps.test.local"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "app_id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "public_jwt_key"),
+				),
+			},
+			// Test 3: Update with full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_processing_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_processing_server.media_processing_server-test", "fqdn", "tf-test-mps-full.test.local"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "app_id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_processing_server.media_processing_server-test", "public_jwt_key"),
 				),
 			},
 		},

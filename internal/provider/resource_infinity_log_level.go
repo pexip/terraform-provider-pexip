@@ -61,7 +61,7 @@ func (r *InfinityLogLevelResource) Schema(ctx context.Context, req resource.Sche
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the log level in Infinity",
+				MarkdownDescription: "Resource URI for the log level in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,

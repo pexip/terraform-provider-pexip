@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/pexip/go-infinity-sdk/v38"
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 	"github.com/stretchr/testify/require"
@@ -25,11 +24,15 @@ func TestInfinityGMSGatewayTokenIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
 	// Verify required environment variables are set
-	certificate := os.Getenv("TF_VAR_gms_certificate")
-	privateKey := os.Getenv("TF_VAR_gms_private_key")
+	certificate := os.Getenv("TF_VAR_infinity_gms_gw_token_cert")
+	privateKey := os.Getenv("TF_VAR_infinity_gms_gw_token_key")
+	certificateUpdated := os.Getenv("TF_VAR_infinity_gms_gw_token_cert2")
+	privateKeyUpdated := os.Getenv("TF_VAR_infinity_gms_gw_token_key2")
 
-	require.NotEmpty(t, certificate, "TF_VAR_gms_certificate environment variable must be set")
-	require.NotEmpty(t, privateKey, "TF_VAR_gms_private_key environment variable must be set")
+	require.NotEmpty(t, certificate, "TF_VAR_infinity_gms_gw_token_cert environment variable must be set")
+	require.NotEmpty(t, privateKey, "TF_VAR_infinity_gms_gw_token_key environment variable must be set")
+	require.NotEmpty(t, certificateUpdated, "TF_VAR_infinity_gms_gw_token_cert2 environment variable must be set")
+	require.NotEmpty(t, privateKeyUpdated, "TF_VAR_infinity_gms_gw_token_key2 environment variable must be set")
 
 	client, err := infinity.New(
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),
@@ -47,25 +50,5 @@ func TestInfinityGMSGatewayTokenIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityGMSGatewayTokenIntegration(t, client)
-}
-
-func testInfinityGMSGatewayTokenIntegration(t *testing.T, client InfinityClient) {
-	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
-		Steps: []resource.TestStep{
-			{
-				Config: test.LoadTestFolder(t, "resource_infinity_gms_gateway_token_integration"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "certificate"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "private_key"),
-					// API should return extracted certificates
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "intermediate_certificate"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "leaf_certificate"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_gms_gateway_token.gms_gateway_token_integration_test", "supports_direct_guest_join"),
-				),
-			},
-		},
-	})
+	testInfinityGMSGatewayToken(t, client)
 }

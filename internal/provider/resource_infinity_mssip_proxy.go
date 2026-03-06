@@ -68,7 +68,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the MSSIP proxy in Infinity",
+				MarkdownDescription: "Resource URI for the MS-SIP proxy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -79,7 +79,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name used to refer to this MSSIP proxy. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Skype for Business server. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -88,14 +88,14 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the MSSIP proxy. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the Skype for Business server. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the MSSIP proxy. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the Skype for Business server to use for outbound MSSIP calls. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
@@ -104,7 +104,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the MSSIP proxy. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port of the Skype for Business server. Range: 1 to 65535. Default: 5061.",
 			},
 			"transport": schema.StringAttribute{
 				Optional: true,
@@ -113,7 +113,7 @@ func (r *InfinityMSSIPProxyResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "tls"),
 				},
-				MarkdownDescription: "The transport protocol for the MSSIP proxy. Valid values: tcp, tls.",
+				MarkdownDescription: "The IP transport used to connect to the Skype for Business server. Valid choices: tcp, tls.",
 			},
 		},
 		MarkdownDescription: "Manages an MSSIP proxy configuration with the Infinity service.",

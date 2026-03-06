@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -65,7 +67,7 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the SIP proxy in Infinity",
+				MarkdownDescription: "Resource URI for the SIP proxy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -91,22 +93,25 @@ func (r *InfinitySIPProxyResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the SIP proxy. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the SIP proxy. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int32default.StaticInt32(5061),
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the SIP proxy. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port of the SIP proxy. Range: 1 to 65535. Default: 5061.",
 			},
 			"transport": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("tls"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "udp", "tls"),
 				},
-				MarkdownDescription: "The transport protocol for the SIP proxy. Valid values: tcp, udp, tls.",
+				MarkdownDescription: "The IP transport used to connect to the SIP proxy. Valid choices: udp, tcp, tls.",
 			},
 		},
 		MarkdownDescription: "Manages a SIP proxy configuration with the Infinity service.",
@@ -235,14 +240,12 @@ func (r *InfinitySIPProxyResource) Update(ctx context.Context, req resource.Upda
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.SIPProxyUpdateRequest{
-		Name:      plan.Name.ValueString(),
-		Address:   plan.Address.ValueString(),
-		Transport: plan.Transport.ValueString(),
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		Address:     plan.Address.ValueString(),
+		Transport:   plan.Transport.ValueString(),
 	}
 
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
 	if !plan.Port.IsNull() {
 		port := int(plan.Port.ValueInt32())
 		updateRequest.Port = &port

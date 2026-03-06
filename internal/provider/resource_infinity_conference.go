@@ -113,7 +113,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the conference in Infinity",
+				MarkdownDescription: "Resource URI for the conference in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -124,7 +124,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The unique name used to refer to this conference. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this service. Maximum length: 250 characters.",
 			},
 			"aliases": schema.SetAttribute{
 				Optional:            true,
@@ -157,7 +157,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("audio", "video", "video-only"),
 				},
-				MarkdownDescription: "Maximum media content of the conference. Participants will not be able to escalate beyond the selected capability.",
+				MarkdownDescription: "Maximum media content of the conference. Participants will not be able to escalate beyond the selected capability. Valid choices: audio, video, video-only.",
 			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
@@ -166,7 +166,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
-				MarkdownDescription: "Controls the media encryption requirements for participants connecting to this service. Use global setting: Use the global media encryption setting (Platform > Global Settings). Required: All participants (including RTMP participants) must use media encryption. Best effort: Each participant will use media encryption if their device supports it, otherwise the connection will be unencrypted. No encryption: All H.323, SIP and MS-SIP participants must use unencrypted media. (RTMP participants will use encryption if their device supports it, otherwise the connection will be unencrypted.)",
+				MarkdownDescription: "Controls the media encryption requirements for participants connecting to this service. Use global setting: Use the global media encryption setting (Platform > Global Settings). Required: All participants (including RTMP participants) must use media encryption. Best effort: Each participant will use media encryption if their device supports it, otherwise the connection will be unencrypted. No encryption: All H.323, SIP and MS-SIP participants must use unencrypted media. (RTMP participants will use encryption if their device supports it, otherwise the connection will be unencrypted.) Valid choices: besteffort, on, off.",
 			},
 			"denoise_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -181,7 +181,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the conference. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the service. Maximum length: 250 characters.",
 			},
 			"direct_media": schema.StringAttribute{
 				Optional: true,
@@ -190,7 +190,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("never", "best_effort", "always"),
 				},
-				MarkdownDescription: "Allows this VMR to use direct media between participants. When enabled, the VMR provides non-transcoded, encrypted, point-to-point calls between any two WebRTC participants.",
+				MarkdownDescription: "Allows this VMR to use direct media between participants. When enabled, the VMR provides non-transcoded, encrypted, point-to-point calls between any two WebRTC participants. Valid choices: never, best_effort, always.",
 			},
 			"direct_media_notification_duration": schema.Int32Attribute{
 				Optional: true,
@@ -214,7 +214,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("default", "yes", "no"),
 				},
-				MarkdownDescription: "Enables relay of chat messages between conference participants using Lync / Skype for Business and Infinity Connect clients. You can use this option to override the global configuration setting.",
+				MarkdownDescription: "Enables relay of chat messages between conference participants using Skype for Business and Infinity Connect clients. You can use this option to override the global configuration setting. Valid choices: default, yes, no.",
 			},
 			"enable_overlay_text": schema.BoolAttribute{
 				Optional:            true,
@@ -267,7 +267,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("no_hosts", "never", "always"),
 				},
-				MarkdownDescription: "If enabled, when the Host leaves the conference Guests will see other Guests. If disabled, Guests will see a splash screen.",
+				MarkdownDescription: "If enabled, when the Host leaves the conference Guests will see other Guests. If disabled, Guests will see a splash screen. Valid choices: no_hosts, never, always.",
 			},
 			"host_identity_provider_group": schema.StringAttribute{
 				Optional:            true,
@@ -293,12 +293,15 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("default", "yes", "no"),
 				},
-				MarkdownDescription: "Select whether to enable, disable, or use the default global live captions setting for this service.",
+				MarkdownDescription: "Select whether to enable, disable, or use the default global live captions setting for this service. Valid choices: default, yes, no.",
 			},
 			"match_string": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(250),
+				},
 				MarkdownDescription: "An optional regular expression used to match against the alias entered by the caller into the Virtual Reception. If the entered alias does not match the expression, the Virtual Reception will not route the call. If this field is left blank, any entered alias is permitted. Maximum length: 250 characters.",
 			},
 			"max_callrate_in": schema.Int32Attribute{
@@ -343,13 +346,13 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("allow_if_trusted", "disallow_all"),
 				},
-				MarkdownDescription: "Determines whether participants attempting to join from devices other than the Infinity Connect apps (for example, SIP or H.323 endpoints) are permitted to join the conference when authentication is required. Disallow all: these devices may not join the conference. Allow if trusted: these devices may join the conference if they are locally registered.",
+				MarkdownDescription: "Determines whether participants attempting to join from devices other than the Infinity Connect apps (for example, SIP or H.323 endpoints) are permitted to join the conference when authentication is required. Disallow all: these devices may not join the conference. Allow if trusted: these devices may join the conference if they are locally registered. Valid choices: allow_if_trusted, disallow_all.",
 			},
 			"on_completion": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "JSON format is used to specify what happens when the playlist finishes. If omitted, the last video's final frame remains in …the specified alias, for example, a VMR. Role is optional and can be auto, host, or guest. If omitted, the default is auto.",
+				MarkdownDescription: "JSON format is used to specify what happens when the playlist finishes. If omitted, the last video's final frame remains in view. You can use one of the following options:{\"disconnect\": true} disconnects the user. {\"transfer\": {\"conference\": \"<alias>\", \"role\": \"<role>\"} } transfers the user to the specified alias, for example, a VMR. Role is optional and can be auto, host, or guest. If omitted, the default is auto.",
 			},
 			"participant_limit": schema.Int32Attribute{
 				Optional: true,
@@ -388,7 +391,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "An optional regular expression used to transform the meeting code so that, for example, it will match a Call Routing Rule fo…s if a Post-lookup regex match is also configured and the meeting code matches that regex.) Maximum length: 250 characters.",
+				MarkdownDescription: "An optional regular expression used to transform the meeting code so that, for example, it will match a Call Routing Rule for onward routing to the required conference. (Only applies if a Post-lookup regex match is also configured and the meeting code matches that regex.) Maximum length: 250 characters.",
 			},
 			"primary_owner_email_address": schema.StringAttribute{
 				Optional: true,
@@ -428,7 +431,7 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("conference", "lecture", "two_stage_dialing", "test_call", "media_playback"),
 				},
-				MarkdownDescription: "The type of conferencing service. Valid choices: conference, lecture, two_stage_dialing, test_call, media_playback.",
+				MarkdownDescription: "The type of conferencing service. conference: A Virtual Meeting Room. lecture: A Virtual Auditorium. two_stage_dialing: A Virtual Reception. Valid choices: conference, lecture, two_stage_dialing, test_call, media_playback.",
 			},
 			"softmute_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -469,9 +472,8 @@ func (r *InfinityConferenceResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.OneOf("regular", "mssip", "gms", "teams"),
 				},
-				MarkdownDescription: "The type of this Virtual Reception. Select Lync / Skype for Business if this Virtual Reception is to act as an IVR gateway to scheduled and ad hoc Lync / Skype for Business meetings. Select Google Meet if this Virtual Reception is to act as an IVR gateway to Google Meet meetings. Skype for Business meetings. Otherwise, select Regular.",
+				MarkdownDescription: "The type of this Virtual Reception. Select Skype for Business if this Virtual Reception is to act as an IVR gateway to scheduled and ad hoc Skype for Business meetings. Select Google Meet if this Virtual Reception is to act as an IVR gateway to Google Meet meetings. Skype for Business meetings. Otherwise, select Regular. Valid choices: regular, mssip, gms, teams.",
 			},
-			// Add other fields as needed
 		},
 		MarkdownDescription: "Manages a conference configuration with the Infinity service.",
 	}

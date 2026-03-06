@@ -65,7 +65,7 @@ func (r *InfinitySTUNServerResource) Schema(ctx context.Context, req resource.Sc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the STUN server in Infinity",
+				MarkdownDescription: "Resource URI for the STUN server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -91,7 +91,7 @@ func (r *InfinitySTUNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the STUN server. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the STUN server. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
@@ -100,7 +100,7 @@ func (r *InfinitySTUNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the STUN server. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port on the STUN server to which the Conferencing Node will connect. Range: 1 to 65535. Default: 3478.",
 			},
 		},
 		MarkdownDescription: "Manages a STUN server configuration with the Infinity service.",

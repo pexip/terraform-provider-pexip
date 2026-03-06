@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -82,51 +84,69 @@ func (r *InfinitySMTPServerResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the SMTP server. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this SMTP server. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the SMTP server. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the SMTP server. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The IP address or hostname of the SMTP server.",
+				MarkdownDescription: "The IP address or FQDN of the SMTP server. Maximum length: 255 characters.",
 			},
 			"port": schema.Int64Attribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  int64default.StaticInt64(587),
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for SMTP communications. Valid range: 1-65535.",
+				MarkdownDescription: "The IP port on the SMTP server to which the Conferencing Node will connect. Range: 1 to 65535. Default: 587.",
 			},
 			"username": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Username for SMTP authentication (optional).",
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString(""),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The username of a valid account on the SMTP server. Maximum length: 100 characters.",
 			},
 			"password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "Password for SMTP authentication (optional). This field is sensitive.",
+				Computed:  true,
+				Optional:  true,
+				Default:   stringdefault.StaticString(""),
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password of a valid account on the SMTP server. Maximum length: 100 characters.",
 			},
 			"from_email_address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.Email(),
+					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The from email address used when sending emails through this SMTP server.",
+				MarkdownDescription: "The 'From' email address to use when sending emails via this server. This must be an email address that is permitted to be used for sending email using this server and account.  Maximum length: 100 characters.",
 			},
 			"connection_security": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("NONE"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("none", "starttls", "ssl_tls"),
+					stringvalidator.OneOf("NONE", "STARTTLS"),
 				},
-				MarkdownDescription: "Connection security method for SMTP. Valid values: none, starttls, ssl_tls.",
+				MarkdownDescription: "The connection security to use when connecting to this email server.",
 			},
 		},
 		MarkdownDescription: "Manages an SMTP server with the Infinity service. SMTP servers are used for sending email notifications and alerts from Pexip Infinity.",
@@ -171,7 +191,7 @@ func (r *InfinitySMTPServerResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity SMTP server",
@@ -184,7 +204,7 @@ func (r *InfinitySMTPServerResource) Create(ctx context.Context, req resource.Cr
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int) (*InfinitySMTPServerResourceModel, error) {
+func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int, password string) (*InfinitySMTPServerResourceModel, error) {
 	var data InfinitySMTPServerResourceModel
 
 	srv, err := r.InfinityClient.Config().GetSMTPServer(ctx, resourceID)
@@ -203,7 +223,7 @@ func (r *InfinitySMTPServerResource) read(ctx context.Context, resourceID int) (
 	data.Address = types.StringValue(srv.Address)
 	data.Port = types.Int64Value(int64(srv.Port))
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	data.Password = types.StringValue(password)
 	data.FromEmailAddress = types.StringValue(srv.FromEmailAddress)
 	data.ConnectionSecurity = types.StringValue(srv.ConnectionSecurity)
 
@@ -219,7 +239,7 @@ func (r *InfinitySMTPServerResource) Read(ctx context.Context, req resource.Read
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	updatedState, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -233,7 +253,7 @@ func (r *InfinitySMTPServerResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 }
 
 func (r *InfinitySMTPServerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -273,7 +293,7 @@ func (r *InfinitySMTPServerResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity SMTP server",
@@ -320,7 +340,8 @@ func (r *InfinitySMTPServerResource) ImportState(ctx context.Context, req resour
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity SMTP server with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// Note: Password cannot be retrieved on import since it's hashed by the API
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

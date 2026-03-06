@@ -28,18 +28,26 @@ func TestInfinityOAuth2Client(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	// Mock the CreateOauth2Client API call
+	createResponseBody := `{
+		"resource_uri": "/api/admin/configuration/v1/oauth2_client/123/",
+		"client_id": "test-oauth2-client-id",
+		"client_name": "tf-test oauth2_client RW",
+		"role": "/api/admin/configuration/v1/role/1/",
+		"private_key_jwt": "test-private-key-jwt"
+	}`
 	createResponse := &types.PostResponse{
-		Body:        []byte(""),
+		Body:        []byte(createResponseBody),
 		ResourceURI: "/api/admin/configuration/v1/oauth2_client/123/",
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/oauth2_client/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
 	// Shared state for mocking
 	mockState := &config.OAuth2Client{
-		ResourceURI: "/api/admin/configuration/v1/oauth2_client/123/",
-		ClientID:    "123",
-		ClientName:  "oauth2_client-test",
-		Role:        "test-value",
+		ResourceURI:   "/api/admin/configuration/v1/oauth2_client/123/",
+		ClientID:      "123",
+		ClientName:    "tf-test oauth2_client RW",
+		Role:          "/api/admin/configuration/v1/role/1/",
+		PrivateKeyJWT: "test-private-key-jwt",
 	}
 
 	// Mock the GetOauth2Client API call for Read operations
@@ -54,8 +62,12 @@ func TestInfinityOAuth2Client(t *testing.T) {
 		oauth2_client := args.Get(3).(*config.OAuth2Client)
 
 		// Update mock state based on request
-		mockState.ClientName = updateRequest.ClientName
-		mockState.Role = updateRequest.Role
+		if updateRequest.ClientName != "" {
+			mockState.ClientName = updateRequest.ClientName
+		}
+		if updateRequest.Role != "" {
+			mockState.Role = updateRequest.Role
+		}
 
 		// Return updated state
 		*oauth2_client = *mockState
@@ -72,21 +84,23 @@ func testInfinityOAuth2Client(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_oauth2_client_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_oauth2_client_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "client_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "client_name", "oauth2_client-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "role", "test-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "client_name", "tf-test oauth2_client RW"),
+					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "role", "/api/admin/configuration/v1/role/1/"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "private_key_jwt"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_oauth2_client_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_oauth2_client_full_updated"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "client_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "client_name", "oauth2_client-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "role", "updated-value"),
+					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "client_name", "tf-test oauth2_client RO"),
+					resource.TestCheckResourceAttr("pexip_infinity_oauth2_client.oauth2_client-test", "role", "/api/admin/configuration/v1/role/2/"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_oauth2_client.oauth2_client-test", "private_key_jwt"),
 				),
 			},
 		},

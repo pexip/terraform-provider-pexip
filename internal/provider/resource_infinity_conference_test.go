@@ -71,7 +71,7 @@ func TestInfinityConference(t *testing.T) {
 		TwoStageDialType:                "regular",
 
 		ServiceType: "conference",
-		PIN:         "1234",
+		PIN:         "123456",
 		Tag:         "test-tag",
 	}
 
@@ -125,7 +125,7 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "name", "conference-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "description", "Test Conference"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "service_type", "conference"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "1234"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "123456"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "tag", "test-tag"),
 				),
 			},
@@ -137,8 +137,8 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "name", "conference-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "description", "Updated Test Conference"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "service_type", "conference"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "9876"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guest_pin", "4321"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "pin", "987654"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "guest_pin", "432109"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "allow_guests", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.conference-test", "tag", "updated-tag"),
 				),

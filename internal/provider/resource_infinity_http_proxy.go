@@ -68,7 +68,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the HTTP proxy in Infinity",
+				MarkdownDescription: "Resource URI for the HTTP proxy in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -79,14 +79,14 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name used to refer to this HTTP proxy. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this proxy server. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the HTTP proxy. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the proxy server. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
@@ -95,7 +95,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the HTTP proxy. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port of the proxy server. Range: 1 to 65535. Default: 8080.",
 			},
 			"protocol": schema.StringAttribute{
 				Optional: true,
@@ -104,7 +104,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.OneOf("http"),
 				},
-				MarkdownDescription: "The protocol for the HTTP proxy. Valid values: http.",
+				MarkdownDescription: "The protocol used to connect to the proxy server. Valid choices: http.",
 			},
 			"username": schema.StringAttribute{
 				Optional: true,
@@ -112,7 +112,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Username for authentication to the HTTP proxy. Maximum length: 100 characters.",
+				MarkdownDescription: "The username used when accessing the proxy server. Maximum length: 100 characters.",
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
@@ -121,7 +121,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Password for authentication to the HTTP proxy. Maximum length: 100 characters.",
+				MarkdownDescription: "The password used when accessing the proxy server. Maximum length: 100 characters.",
 			},
 		},
 		MarkdownDescription: "Manages an HTTP proxy configuration with the Infinity service.",

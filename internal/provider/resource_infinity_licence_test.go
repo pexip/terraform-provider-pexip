@@ -8,6 +8,7 @@ package provider
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -27,28 +28,29 @@ func TestInfinityLicence(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking
+	mockState := &config.Licence{
+		FulfillmentID: "test-fulfillment-123",
+		EntitlementID: "",
+		ResourceURI:   "/api/admin/configuration/v1/licence/123/",
+	}
+
 	// Mock the CreateLicence API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/licence/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/licence/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.Licence{
-		FulfillmentID: "test-fulfillment-123",
-		EntitlementID: "test-value",
-		OfflineMode:   true,
-		ResourceURI:   "/api/admin/configuration/v1/licence/123/",
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/licence/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.LicenceCreateRequest)
+		// Store the entitlement ID from the create request (without spaces)
+		mockState.EntitlementID = strings.ReplaceAll(req.EntitlementID, " ", "")
+	})
 
 	// Mock the ListLicences API call (needed after creation to find fulfillment ID)
-	listResponse := &config.LicenceListResponse{
-		Objects: []config.Licence{*mockState},
-	}
 	client.On("GetJSON", mock.Anything, "configuration/v1/licence/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		response := args.Get(3).(*config.LicenceListResponse)
-		*response = *listResponse
+		// Dynamically return the current state of mockState
+		response.Objects = []config.Licence{*mockState}
 	})
 
 	// Mock the GetLicence API call for Read operations (both paths needed)
@@ -76,11 +78,11 @@ func testInfinityLicence(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_licence_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_licence"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "entitlement_id", "test-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_licence.licence-test", "offline_mode", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "entitlement_id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_licence.licence-test", "offline_mode"),
 				),
 			},
 			// Licence doesn't support updates, so only test creation/read

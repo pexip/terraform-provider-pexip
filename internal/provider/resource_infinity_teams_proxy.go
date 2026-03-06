@@ -119,12 +119,8 @@ func (r *InfinityTeamsProxyResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The Azure tenant ID for the Teams proxy. Maximum length: 255 characters.",
 			},
 			"eventhub_id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(255),
-				},
-				MarkdownDescription: "The event hub identifier for the Teams proxy. Maximum length: 255 characters.",
+				Computed:            true,
+				MarkdownDescription: "The event hub identifier for the Teams proxy. This value is computed by the API from the notifications_queue connection string.",
 			},
 			"min_number_of_instances": schema.Int32Attribute{
 				Optional: true,
@@ -171,10 +167,7 @@ func (r *InfinityTeamsProxyResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Only set optional fields if they are not null in the plan
-	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
-		eventhubID := plan.EventhubID.ValueString()
-		createRequest.EventhubID = &eventhubID
-	}
+	// Note: eventhub_id is computed-only and should not be set in the request
 	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
 		createRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}
@@ -290,10 +283,7 @@ func (r *InfinityTeamsProxyResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Only set optional fields if they are not null in the plan
-	if !plan.EventhubID.IsNull() && !plan.EventhubID.IsUnknown() {
-		eventhubID := plan.EventhubID.ValueString()
-		updateRequest.EventhubID = &eventhubID
-	}
+	// Note: eventhub_id is computed-only and should not be set in the request
 	if !plan.NotificationsEnabled.IsNull() && !plan.NotificationsEnabled.IsUnknown() {
 		updateRequest.NotificationsEnabled = plan.NotificationsEnabled.ValueBool()
 	}

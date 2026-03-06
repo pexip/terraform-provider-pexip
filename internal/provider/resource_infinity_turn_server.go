@@ -72,7 +72,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the TURN server in Infinity",
+				MarkdownDescription: "Resource URI for the TURN server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -98,7 +98,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The address or hostname of the TURN server. Maximum length: 255 characters.",
+				MarkdownDescription: "The IP address or FQDN of the TURN server. Maximum length: 255 characters.",
 			},
 			"port": schema.Int32Attribute{
 				Optional: true,
@@ -107,7 +107,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.Int32{
 					int32validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for the TURN server. Range: 1 to 65535.",
+				MarkdownDescription: "The IP port on the TURN server to which the Conferencing Node or Connect app will connect. Range: 1 to 65535. Default: 3478.",
 			},
 			"server_type": schema.StringAttribute{
 				Optional: true,
@@ -116,7 +116,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.OneOf("namepsw", "coturn_shared"),
 				},
 				Default:             stringdefault.StaticString("namepsw"),
-				MarkdownDescription: "The type of TURN server. Valid values: standard, shared_secret.",
+				MarkdownDescription: "Type of TURN server and TURN server authentication. Valid choices: namepsw, credentials.",
 			},
 			"transport_type": schema.StringAttribute{
 				Optional: true,
@@ -125,7 +125,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.OneOf("udp", "tcp", "tls"),
 				},
 				Default:             stringdefault.StaticString("udp"),
-				MarkdownDescription: "The transport type for the TURN server. Valid values: udp, tcp, tls.",
+				MarkdownDescription: "Network transport type for communication with the TURN server. Valid choices: udp, tcp, tls.",
 			},
 			"username": schema.StringAttribute{
 				Optional: true,
@@ -133,7 +133,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Username for authentication to the TURN server. Maximum length: 100 characters.",
+				MarkdownDescription: "The username of a valid account on the TURN server. Maximum length: 100 characters.",
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
@@ -142,7 +142,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Password for authentication to the TURN server. Maximum length: 100 characters.",
+				MarkdownDescription: "The password of a valid account on the TURN server. Maximum length: 100 characters.",
 			},
 			"secret_key": schema.StringAttribute{
 				Optional:  true,
@@ -151,7 +151,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(256),
 				},
-				MarkdownDescription: "Secret key for shared secret TURN servers. Maximum length: 256 characters.",
+				MarkdownDescription: "Shared secret to be used with TURN server time-limited credentials. Maximum length: 256 characters.",
 			},
 		},
 		MarkdownDescription: "Manages a TURN server configuration with the Infinity service.",

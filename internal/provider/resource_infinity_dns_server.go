@@ -63,7 +63,7 @@ func (r *InfinityDnsServerResource) Schema(ctx context.Context, req resource.Sch
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the DNS server in Infinity",
+				MarkdownDescription: "Resource URI for the DNS server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,

@@ -76,6 +76,9 @@ func (r *InfinityGMSAccessTokenResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The name of the GMS access token. Maximum length: 250 characters.",
 			},
 			"token": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
 				Optional:            true,
 				Sensitive:           true,
 				MarkdownDescription: "The Google Meet access token. This field is sensitive and will not be displayed in logs.",

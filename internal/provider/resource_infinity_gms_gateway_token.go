@@ -10,8 +10,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -76,9 +78,12 @@ func (r *InfinityGMSGatewayTokenResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "The leaf certificate for the Google Meet gateway token.",
 			},
 			"private_key": schema.StringAttribute{
-				Required:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The private key for the Google Meet gateway token.",
+				Required:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(12288),
+				},
+				MarkdownDescription: "The private key used for the Google Meet gateway token which authenticates your Pexip deployment to Google Meet conferencing services. Maximum length: 12288 characters.",
 			},
 			"supports_direct_guest_join": schema.BoolAttribute{
 				Computed:            true,

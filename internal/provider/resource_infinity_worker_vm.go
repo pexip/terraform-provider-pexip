@@ -109,7 +109,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the worker VM in Infinity",
+				MarkdownDescription: "Resource URI for the worker VM in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -123,7 +123,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The IPv4 address of the worker VM.",
+				MarkdownDescription: "The IPv4 address for this Conferencing Node. Each Conferencing Node must have a unique IP address.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
 				Optional: true,
@@ -132,18 +132,18 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "An identity for this Conferencing Node, used in signaling SIP TLS Contact addresses",
+				MarkdownDescription: "(Required for Conferencing Nodes that are involved in signaling of calls to and from Skype for Business servers.) An identity for this Conferencing Node, used in signaling SIP TLS Contact addresses. Maximum length: 255 characters.",
 			},
 			// this field is set by Infinity and should not be modified by users
 			"cloud_bursting": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node. This is set by Infinity.",
+				MarkdownDescription: "Defines whether this Conference Node is a cloud bursting node",
 			},
 			"deployment_type": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("MANUAL-PROVISION-ONLY"),
-				MarkdownDescription: "The means by which this Conferencing Node will be deployed",
+				MarkdownDescription: "The means by which this Conferencing Node will be deployed.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -152,7 +152,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "A description of the Conferencing Node.",
+				MarkdownDescription: "A description of the Conferencing Node. Maximum length: 250 characters.",
 			},
 			"domain": schema.StringAttribute{
 				Required: true,
@@ -162,7 +162,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The domain of the worker VM. Maximum length: 250 characters.",
+				MarkdownDescription: "The domain name for this Conferencing Node. Maximum length: 192 characters.",
 			},
 			"enable_distributed_database": schema.BoolAttribute{
 				Optional:            true,
@@ -177,7 +177,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
-				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid values are: global, off, on. Defaults to global.",
+				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid choices: GLOBAL, OFF, ON.",
 			},
 			"gateway": schema.StringAttribute{
 				Required: true,
@@ -187,7 +187,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The gateway address for the worker VM.",
+				MarkdownDescription: "The IPv4 address of the default gateway.",
 			},
 			"hostname": schema.StringAttribute{
 				Required: true,
@@ -207,7 +207,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The IPv6 address of the conferencing node. Maximum length: 250 characters.",
+				MarkdownDescription: "The IPv6 address for this Conferencing Node. Each Conferencing Node must have a unique IPv6 address.",
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional: true,
@@ -217,13 +217,13 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The IPv6 gateway for the conferencing node. Maximum length: 250 characters.",
+				MarkdownDescription: "The IPv6 address of the default gateway. If unspecified, the gateway will be configured from IPv6 router advertisements.",
 			},
 			"maintenance_mode": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Whether the worker VM is in maintenance mode. Defaults to false.",
+				MarkdownDescription: "While maintenance mode is enabled, this Conferencing Node will not accept any new conference instances.",
 			},
 			"maintenance_mode_reason": schema.StringAttribute{
 				Optional: true,
@@ -232,7 +232,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The reason for maintenance mode. Maximum length: 250 characters.",
+				MarkdownDescription: "A description for the reason we are in maintenance mode. Maximum length: 250 characters.",
 			},
 			"media_priority_weight": schema.Int64Attribute{
 				Optional:            true,
@@ -245,7 +245,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(32),
 				},
-				MarkdownDescription: "he name used to refer to this Conferencing Node. Each Conferencing Node must have a unique name. Maximum length: 32 characters.",
+				MarkdownDescription: "The name used to refer to this Conferencing Node. Each Conferencing Node must have a unique name. Maximum length: 32 characters.",
 			},
 			"netmask": schema.StringAttribute{
 				Required: true,
@@ -264,7 +264,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.OneOf("CONFERENCING", "PROXYING"),
 				},
-				MarkdownDescription: "The role of this Conferencing Node. Valid choices: CONFERENCING, PROXYING. Defaults to CONFERENCING.",
+				MarkdownDescription: "The role of this Conferencing Node. Valid choices: CONFERENCING, PROXYING.",
 			},
 			"password": schema.StringAttribute{
 				// password is not required in the Infinity API, but this is a bug and the node will not be accessible without it
@@ -287,7 +287,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "The optional secondary interface IPv4 netmask for this Conferencing Node.",
+				MarkdownDescription: "The optional secondary interface network mask for this Conferencing Node.",
 			},
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
@@ -317,7 +317,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidator.OneOf("DISABLED", "STANDARD", "AUTHPRIV"),
 				},
-				MarkdownDescription: "The SNMP mode.",
+				MarkdownDescription: "The SNMP mode. Valid choices: DISABLED, STANDARD, AUTHPRIV.",
 			},
 			"snmp_privacy_password": schema.StringAttribute{
 				Optional:  true,
@@ -391,7 +391,7 @@ func (r *InfinityWorkerVMResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"transcoding": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "This determines the Conferencing Node's role. This is set by Infinity. When transcoding is enabled, this node can handle all the media processing, protocol interworking, mixing and so on that is required in hosting Pexip Infinity calls and conferences. When transcoding is disabled, it becomes a Proxying Edge Node that can only handle the media and signaling connections with an endpoint or external device, and it then forwards the device's media on to a node that does have transcoding capabilities.",
+				MarkdownDescription: "Deprecated field - use node_type field instead.",
 			},
 			"vm_cpu_count": schema.Int64Attribute{
 				Optional: true,

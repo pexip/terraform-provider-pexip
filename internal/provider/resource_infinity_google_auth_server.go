@@ -64,7 +64,7 @@ func (r *InfinityGoogleAuthServerResource) Schema(ctx context.Context, req resou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the Google auth server in Infinity",
+				MarkdownDescription: "Resource URI for the Google authentication server in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -74,34 +74,37 @@ func (r *InfinityGoogleAuthServerResource) Schema(ctx context.Context, req resou
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(100),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the Google auth server. Maximum length: 100 characters.",
+				MarkdownDescription: "The name used to refer to this Google OAuth 2.0 Credential. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the Google auth server. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the Google OAuth 2.0 Credential. Maximum length: 250 characters.",
 			},
 			"application_type": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("web", "installed"),
+					stringvalidator.OneOf("PEXIP_ANDROID", "WEB_APP", "ANDROID", "IOS", "OTHER"),
 				},
-				MarkdownDescription: "The Google OAuth 2.0 application type. Valid values: web, installed.",
+				MarkdownDescription: "The application type of this Google OAuth 2.0 Credential. Valid choices: PEXIP_ANDROID, WEB_APP, ANDROID, IOS, OTHER.",
 			},
 			"client_id": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(200),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The Google OAuth 2.0 client ID. Maximum length: 200 characters.",
+				MarkdownDescription: "The client ID of this Google OAuth 2.0 Credential. Maximum length: 250 characters.",
 			},
 			"client_secret": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(128),
+				},
 				MarkdownDescription: "The Google OAuth 2.0 client secret. This field is sensitive.",
 			},
 		},

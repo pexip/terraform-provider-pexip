@@ -20,3 +20,8 @@ func IntPtr(i int) *int {
 func BoolPtr(b bool) *bool {
 	return &b
 }
+
+// Int32Ptr returns a pointer to the given int32 value.
+func Int32Ptr(i int32) *int32 {
+	return &i
+}

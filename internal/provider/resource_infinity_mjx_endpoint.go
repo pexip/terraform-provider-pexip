@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -75,7 +77,7 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the MJX endpoint in Infinity",
+				MarkdownDescription: "Resource URI for the MJX endpoint in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -90,21 +92,25 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The name of the MJX endpoint. Maximum length: 100 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
 				},
 				MarkdownDescription: "Description of the MJX endpoint. Maximum length: 500 characters.",
 			},
 			"endpoint_type": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("CISCO"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("polycom", "cisco", "webex"),
+					stringvalidator.OneOf("CISCO", "POLY", "WEBEX"),
 				},
-				MarkdownDescription: "The type of MJX endpoint. Valid values: polycom, cisco, webex.",
+				MarkdownDescription: "The type of MJX endpoint. Valid values: CISCO, POLY, WEBEX.",
 			},
 			"room_resource_email": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(254),
 				},
@@ -115,67 +121,79 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The MJX endpoint group URI this endpoint belongs to.",
 			},
 			"api_address": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The API address for the endpoint management interface.",
+				MarkdownDescription: "The IP address or FQDN of the endpoint's API. Maximum length: 255 characters.",
 			},
 			"api_port": schema.Int64Attribute{
 				Optional: true,
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The API port for the endpoint management interface. Valid range: 1-65535.",
+				MarkdownDescription: "The port of the endpoint's API. Range: 1 to 65535. Default: 443 if HTTPS is used, otherwise 80 for HTTP.",
 			},
 			"api_username": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The username for API authentication to the endpoint.",
+				MarkdownDescription: "The username used by OTJ when accessing the endpoint's API; if left blank, the OTJ Profile default will be used. Maximum length: 100 characters.",
 			},
 			"api_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The password for API authentication to the endpoint. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password used by OTJ when accessing the endpoint's API; if left blank, the OTJ Profile default will be used. Maximum length: 100 characters.",
 			},
 			"use_https": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("yes", "no"),
+					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to use HTTPS for API communication. Valid values: yes, no.",
+				MarkdownDescription: "Use HTTPS to access this endpoint's API. Valid choices: GLOBAL, NO, YES.",
 			},
 			"verify_cert": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("GLOBAL"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("yes", "no"),
+					stringvalidator.OneOf("GLOBAL", "NO", "YES"),
 				},
-				MarkdownDescription: "Whether to verify SSL certificates. Valid values: yes, no.",
+				MarkdownDescription: "Enable TLS verification when accessing the endpoint API. Only applicable if using HTTPS to access this endpoint's API. Valid choices: GLOBAL, NO, YES.",
 			},
 			"poly_username": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(100),
+					stringvalidator.LengthAtMost(150),
 				},
-				MarkdownDescription: "The username for Polycom-specific authentication.",
+				MarkdownDescription: "The username the endpoint will use when connecting and authenticating to the calendaring service on the Conferencing Node. Maximum length: 150 characters.",
 			},
 			"poly_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The password for Polycom-specific authentication. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password the endpoint will use when connecting and authenticating to the calendaring service on the Conferencing Node. Maximum length: 100 characters.",
 			},
 			"poly_raise_alarms_for_this_endpoint": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Whether to raise alarms for this Polycom endpoint.",
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "When enabled, an alarm will be raised if OTJ is unable to provide this endpoint with meeting information.",
 			},
 			"webex_device_id": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "The Webex device ID for Webex endpoints.",
+				MarkdownDescription: "The Webex endpoint's unique identifier.",
 			},
 		},
 		MarkdownDescription: "Manages an MJX endpoint with the Infinity service. MJX endpoints represent Microsoft Teams integrated endpoints such as Polycom, Cisco, and Webex devices that can be managed and monitored through Pexip Infinity for hybrid Teams deployments.",
@@ -268,6 +286,11 @@ func (r *InfinityMjxEndpointResource) Create(ctx context.Context, req resource.C
 		)
 		return
 	}
+
+	// Preserve password fields from plan as they're not returned by the API
+	model.APIPassword = plan.APIPassword
+	model.PolyPassword = plan.PolyPassword
+
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity MJX endpoint with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -320,11 +343,9 @@ func (r *InfinityMjxEndpointResource) read(ctx context.Context, resourceID int) 
 		data.APIUsername = types.StringNull()
 	}
 
-	if srv.APIPassword != nil {
-		data.APIPassword = types.StringValue(*srv.APIPassword)
-	} else {
-		data.APIPassword = types.StringNull()
-	}
+	// Note: APIPassword and PolyPassword are not returned by the API
+	// These fields will be preserved from the plan/state
+	data.APIPassword = types.StringNull()
 
 	if srv.PolyUsername != nil {
 		data.PolyUsername = types.StringValue(*srv.PolyUsername)
@@ -332,11 +353,9 @@ func (r *InfinityMjxEndpointResource) read(ctx context.Context, resourceID int) 
 		data.PolyUsername = types.StringNull()
 	}
 
-	if srv.PolyPassword != nil {
-		data.PolyPassword = types.StringValue(*srv.PolyPassword)
-	} else {
-		data.PolyPassword = types.StringNull()
-	}
+	// Note: PolyPassword is not returned by the API
+	// This field will be preserved from the plan/state
+	data.PolyPassword = types.StringNull()
 
 	if srv.WebexDeviceID != nil {
 		data.WebexDeviceID = types.StringValue(*srv.WebexDeviceID)
@@ -355,6 +374,10 @@ func (r *InfinityMjxEndpointResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
+	// Preserve password fields from existing state
+	apiPassword := state.APIPassword
+	polyPassword := state.PolyPassword
+
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
 	if err != nil {
@@ -369,6 +392,10 @@ func (r *InfinityMjxEndpointResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
+
+	// Restore password fields as they're not returned by the API
+	state.APIPassword = apiPassword
+	state.PolyPassword = polyPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -457,6 +484,10 @@ func (r *InfinityMjxEndpointResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
+
+	// Preserve password fields from plan as they're not returned by the API
+	model.APIPassword = plan.APIPassword
+	model.PolyPassword = plan.PolyPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }

@@ -61,7 +61,7 @@ func (r *InfinityIdentityProviderAttributeResource) Schema(ctx context.Context, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the identity provider attribute in Infinity",
+				MarkdownDescription: "Resource URI for the identity provider attribute in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -73,14 +73,14 @@ func (r *InfinityIdentityProviderAttributeResource) Schema(ctx context.Context, 
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the identity provider attribute. Maximum length: 250 characters.",
+				MarkdownDescription: "The name of the attribute in the Identity Provider's response. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the identity provider attribute. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the Identity Provider Attribute. Maximum length: 250 characters.",
 			},
 		},
 		MarkdownDescription: "Manages an identity provider attribute with the Infinity service. Identity provider attributes define custom attributes that can be mapped from identity providers for user authentication and authorization.",

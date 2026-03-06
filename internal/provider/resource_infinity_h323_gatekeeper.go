@@ -66,7 +66,7 @@ func (r *InfinityH323GatekeeperResource) Schema(ctx context.Context, req resourc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the H.323 gatekeeper in Infinity",
+				MarkdownDescription: "Resource URI for the H323 gatekeeper in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -78,16 +78,16 @@ func (r *InfinityH323GatekeeperResource) Schema(ctx context.Context, req resourc
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The name of the H.323 gatekeeper. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this H.323 gatekeeper. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the H.323 gatekeeper. Maximum length: 500 characters.",
+				MarkdownDescription: "A description of the H.323 gatekeeper. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
@@ -103,7 +103,7 @@ func (r *InfinityH323GatekeeperResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
-				MarkdownDescription: "The port number for H.323 gatekeeper communications. Valid range: 1-65535.",
+				MarkdownDescription: "The RAS port of the H.323 gatekeeper. Range: 1 to 65535. Default: 1719.",
 			},
 		},
 		MarkdownDescription: "Manages an H.323 gatekeeper with the Infinity service. H.323 gatekeepers provide address resolution and call routing services for H.323 endpoints and gateways.",

@@ -86,7 +86,7 @@ func (r *InfinityMjxIntegrationResource) Schema(ctx context.Context, req resourc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the MJX integration in Infinity",
+				MarkdownDescription: "Resource URI for the MJX integration in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -125,36 +125,39 @@ func (r *InfinityMjxIntegrationResource) Schema(ctx context.Context, req resourc
 			"end_buffer": schema.Int64Attribute{
 				Required: true,
 				Validators: []validator.Int64{
-					int64validator.Between(0, 120),
+					int64validator.Between(0, 180),
 				},
-				MarkdownDescription: "End buffer time in minutes. Valid range: 0-120.",
+				MarkdownDescription: "The number of minutes after the meeting's scheduled end time that the Join button on the endpoint will remain enabled. Range: 0 to 180. Default: 0.",
 			},
 			"start_buffer": schema.Int64Attribute{
 				Required: true,
 				Validators: []validator.Int64{
-					int64validator.Between(0, 120),
+					int64validator.Between(0, 180),
 				},
-				MarkdownDescription: "Start buffer time in minutes. Valid range: 0-120.",
+				MarkdownDescription: "The number of minutes before the meeting's scheduled start time that the Join button on the endpoint will become enabled. Range: 0 to 180. Default: 5.",
 			},
 			"ep_username": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "Endpoint username for authentication. Maximum length: 100 characters.",
+				MarkdownDescription: "The username used by OTJ to access a Cisco OBTP endpoint's API; only used if the endpoint's username is left blank. Maximum length: 100 characters.",
 			},
 			"ep_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "Endpoint password for authentication. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password used by OTJ to access a Cisco OBTP endpoint's API; only used if the endpoint's password is left blank. Maximum length: 100 characters.",
 			},
 			"ep_use_https": schema.BoolAttribute{
 				Required:            true,
-				MarkdownDescription: "Whether to use HTTPS for endpoint communication.",
+				MarkdownDescription: "Whether or not to use HTTPS by default when accessing a Cisco OBTP endpoint's API. Can be overridden per endpoint.",
 			},
 			"ep_verify_certificate": schema.BoolAttribute{
 				Required:            true,
-				MarkdownDescription: "Whether to verify SSL certificates for endpoint communication.",
+				MarkdownDescription: "Whether or not to verify the TLS certificate of a Cisco OBTP endpoint by default when accessing its API. Can be overridden per endpoint.",
 			},
 			"exchange_deployment": schema.StringAttribute{
 				Optional:            true,
@@ -174,7 +177,7 @@ func (r *InfinityMjxIntegrationResource) Schema(ctx context.Context, req resourc
 			},
 			"replace_empty_subject": schema.BoolAttribute{
 				Required:            true,
-				MarkdownDescription: "Whether to replace empty meeting subjects.",
+				MarkdownDescription: "For meetings that do not have a subject, use the organizer's name in place of the subject.",
 			},
 			"replace_subject_type": schema.StringAttribute{
 				Required: true,
@@ -220,14 +223,17 @@ func (r *InfinityMjxIntegrationResource) Schema(ctx context.Context, req resourc
 			"webex_redirect_uri": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(500),
+					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Webex OAuth redirect URI. Maximum length: 500 characters.",
+				MarkdownDescription: "The redirect URI you entered when creating a Webex Integration for OTJ. It must be in the format 'https://[Management Node Address]/admin/platform/mjxintegration/oauth_redirect/'. Maximum length: 255 characters.",
 			},
 			"webex_refresh_token": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				MarkdownDescription: "Webex OAuth refresh token. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(4096),
+				},
+				MarkdownDescription: "The Webex Refresh token for your webex integration Maximum length: 4096 characters.",
 			},
 			"endpoint_groups": schema.SetAttribute{
 				ElementType:         types.StringType,

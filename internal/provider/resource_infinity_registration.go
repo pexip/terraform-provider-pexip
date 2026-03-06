@@ -70,18 +70,18 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the registration configuration in Infinity",
+				MarkdownDescription: "Resource URI for the registration in Infinity.",
 			},
 			"enable": schema.BoolAttribute{
 				Required:            true,
-				MarkdownDescription: "Whether to enable registration functionality.",
+				MarkdownDescription: "Allows devices to register to Pexip Infinity in order to receive calls. Devices remain registered to Pexip Infinity until they send an unregister command or until their registration expires. ",
 			},
 			"refresh_strategy": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("adaptive", "maximum"),
 				},
-				MarkdownDescription: "The refresh strategy to use. Valid values: adaptive, maximum.",
+				MarkdownDescription: "Defines which strategy to use when calculating the expiry time of a SIP or H.323 device's registration. Valid choices: adaptive, maximum.",
 			},
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -89,7 +89,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for adaptive strategy in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when using the adaptive strategy. Range: 60 to 3600.",
 			},
 			"adaptive_max_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -97,7 +97,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for adaptive strategy in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when using the adaptive strategy. Range: 60 to 3600.",
 			},
 			"maximum_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -105,7 +105,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for maximum strategy in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when using the maximum strategy. Range: 60 to 3600.",
 			},
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -113,7 +113,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for maximum strategy in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when using the maximum strategy. Range: 60 to 3600.",
 			},
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -121,7 +121,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Minimum refresh interval for NATted connections in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when the device is behind a NAT or firewall. Range: 60 to 3600.",
 			},
 			"natted_max_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -129,24 +129,24 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "Maximum refresh interval for NATted connections in seconds. Valid range: 60-3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when the device is behind a NAT or firewall. Range: 60 to 3600.",
 			},
 			"route_via_registrar": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Whether to route calls via the registrar.",
+				MarkdownDescription: "When enabled, all calls from registered desktop clients are routed via the registrar. ",
 			},
 			"enable_push_notifications": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Whether to enable push notifications for mobile clients.",
+				MarkdownDescription: "Allows mobile devices to register to Pexip Infinity and receive push notifications when they are called. ",
 			},
 			"enable_google_cloud_messaging": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Whether to enable Google Cloud Messaging for push notifications.",
+				MarkdownDescription: "Enables sending of push notifications to registered mobile devices via the Google Cloud Messaging service. ",
 			},
 			"push_token": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				MarkdownDescription: "Push notification token for mobile clients. This field is sensitive.",
+				MarkdownDescription: "Customizes the Google Cloud Messaging push token. You should only change this if you have created a project to use your own push notification servers. ",
 			},
 		},
 		MarkdownDescription: "Manages the registration configuration with the Infinity service. This is a singleton resource - only one registration configuration exists per system.",

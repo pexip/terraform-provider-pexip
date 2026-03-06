@@ -23,7 +23,11 @@ import (
 )
 
 func TestInfinityLicenceIntegration(t *testing.T) {
-	t.Skip("Skipping: Requires valid license data")
+	// Check for required environment variable
+	if os.Getenv("TF_VAR_infinity_licence_key2") == "" {
+		t.Fatal("TF_VAR_infinity_licence_key2 environment variable must be set")
+	}
+
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

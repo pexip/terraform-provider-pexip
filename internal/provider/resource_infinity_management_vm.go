@@ -97,7 +97,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the management VM in Infinity",
+				MarkdownDescription: "Resource URI for the management VM in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
@@ -107,9 +107,9 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(250),
+					stringvalidator.LengthAtMost(32),
 				},
-				MarkdownDescription: "The name of the management VM. Maximum length: 250 characters.",
+				MarkdownDescription: "The name used to refer to this Management Node. Maximum length: 32 characters.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -118,43 +118,44 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "Description of the management VM. Maximum length: 250 characters.",
+				MarkdownDescription: "A description of the Management Node. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "The IP address of the management VM.",
+				MarkdownDescription: "The IPv4 address for this Management Node.",
 			},
 			"netmask": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.Netmask(),
 				},
-				MarkdownDescription: "The network mask for the management VM.",
+				MarkdownDescription: "The IPv4 network mask for this Management Node.",
 			},
 			"gateway": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "The gateway IP address for the management VM.",
+				MarkdownDescription: "The IPv4 address of the default gateway.",
 			},
 			"hostname": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(253),
+					stringvalidator.LengthAtMost(63),
 				},
-				MarkdownDescription: "The hostname of the management VM. Maximum length: 253 characters.",
+				MarkdownDescription: "The hostname for this Management Node. Maximum length: 63 characters.",
 			},
 			"domain": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					validators.Domain(),
+					stringvalidator.LengthAtMost(192),
 				},
-				MarkdownDescription: "The domain name for the management VM.",
+				MarkdownDescription: "The domain name for this Management Node. Maximum length: 192 characters.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
 				Optional: true,
@@ -163,29 +164,29 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "Alternative fully qualified domain name for the management VM.",
+				MarkdownDescription: "An identity for this Management Node, used by the web interface when indicating its own identity. If configured, the name must match an identity in the Management Node's TLS certificate. Maximum length: 255 characters.",
 			},
 			"ipv6_address": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The IPv6 address of the management VM.",
+				MarkdownDescription: "The IPv6 address for this Management Node.",
 			},
 			"ipv6_gateway": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The IPv6 gateway for the management VM.",
+				MarkdownDescription: "The IPv6 address of the default gateway. If unspecified, the gateway will be configured from IPv6 router advertisements.",
 			},
 			"mtu": schema.Int32Attribute{
 				Optional: true,
 				Validators: []validator.Int32{
-					int32validator.Between(576, 9000),
+					int32validator.Between(512, 1500),
 				},
-				MarkdownDescription: "Maximum Transmission Unit (MTU) size. Valid range: 576-9000.",
+				MarkdownDescription: "Maximum Transmission Unit - the size of the largest packet that can be transmitted via the network interface for this system location. It depends on your network topology as to whether you may need to specify an MTU value here. Range: 512 to 1500.",
 			},
 			"static_nat_address": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					validators.IPAddress(),
 				},
-				MarkdownDescription: "Static NAT address for the management VM.",
+				MarkdownDescription: "The IPv4 static NAT address for this Management Node.",
 			},
 			"dns_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -230,7 +231,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.OneOf("GLOBAL", "OFF", "ON"),
 				},
-				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid values are: global, off, on. Defaults to global.",
+				MarkdownDescription: "Allows an administrator to log in to this node over SSH. Valid choices: GLOBAL, OFF, ON.",
 			},
 			"ssh_authorized_keys": schema.SetAttribute{
 				Optional:            true,
@@ -250,7 +251,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Sensitive:           true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Secondary configuration passphrase. This field is sensitive.",
+				MarkdownDescription: "The passphrase to be used to encrypt the configuration for the new Management Node.",
 			},
 			"snmp_mode": schema.StringAttribute{
 				Optional: true,
@@ -259,14 +260,17 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.OneOf("DISABLED", "STANDARD", "AUTHPRIV"),
 				},
-				MarkdownDescription: "The SNMP mode.",
+				MarkdownDescription: "The SNMP mode. Valid choices: DISABLED, STANDARD, AUTHPRIV.",
 			},
 			"snmp_community": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("public"),
-				MarkdownDescription: "SNMP community string. This field is sensitive.",
+				Optional:  true,
+				Sensitive: true,
+				Computed:  true,
+				Default:   stringdefault.StaticString("public"),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(16),
+				},
+				MarkdownDescription: "The SNMP group to which this virtual machine belongs. Maximum length: 16 characters.",
 			},
 			"snmp_username": schema.StringAttribute{
 				Optional: true,
@@ -278,28 +282,40 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "The username used to authenticate SNMPv3 requests. Maximum length: 100 characters.",
 			},
 			"snmp_authentication_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Computed:            true,
-				MarkdownDescription: "The password used for SNMPv3 privacy. Minimum length: 8 characters. Maximum length: 100 characters.",
+				Optional:  true,
+				Sensitive: true,
+				Computed:  true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
+				MarkdownDescription: "The password used for SNMPv3 authentication. Minimum length: 8 characters. Maximum length: 100 characters.",
 			},
 			"snmp_privacy_password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Computed:            true,
+				Optional:  true,
+				Sensitive: true,
+				Computed:  true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
 				MarkdownDescription: "The password used for SNMPv3 privacy. Minimum length: 8 characters. Maximum length: 100 characters.",
 			},
 			"snmp_system_contact": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
-				Default:             stringdefault.StaticString("admin@domain.com"),
-				MarkdownDescription: "SNMP system contact information.",
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("admin@domain.com"),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(70),
+				},
+				MarkdownDescription: "The SNMP contact for this Management Node. Maximum length: 70 characters.",
 			},
 			"snmp_system_location": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("Virtual machine"),
-				MarkdownDescription: "SNMP system location information.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("Virtual machine"),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(70),
+				},
+				MarkdownDescription: "The SNMP location for this Management Node. Maximum length: 70 characters.",
 			},
 			"snmp_network_management_system": schema.StringAttribute{
 				Optional:            true,
@@ -307,7 +323,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"initializing": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Whether the management VM is in initializing state.",
+				MarkdownDescription: "This Management Node is initializing the configuration file.",
 			},
 			"primary": schema.BoolAttribute{
 				Computed:            true,

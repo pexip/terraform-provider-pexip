@@ -8,6 +8,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -114,6 +115,7 @@ func (r *InfinityOAuth2ClientResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	// Extract the numeric ID from the response for use in Read/Update/Delete operations
 	clientID, err := createResponse.ResourceID()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -123,18 +125,38 @@ func (r *InfinityOAuth2ClientResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	// The OAuth2 client uses a string client_id instead of numeric ID
+	// The OAuth2 client API uses numeric IDs in URLs, not the client_id field
 	clientIDStr := fmt.Sprintf("%d", clientID)
 
-	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, clientIDStr)
-	if err != nil {
+	// Unmarshal the response body to get the full OAuth2Client including private_key_jwt
+	// which is only returned on creation
+	var srv config.OAuth2Client
+	if err := json.Unmarshal(createResponse.Body, &srv); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity OAuth2 client",
-			fmt.Sprintf("Could not read created Infinity OAuth2 client with ID %s: %s", clientIDStr, err),
+			"Error Parsing Created Infinity OAuth2 client",
+			fmt.Sprintf("Could not parse created Infinity OAuth2 client response: %s", err),
 		)
 		return
 	}
+
+	// Build the model from the create response
+	// Note: We store the numeric ID as ClientID for use in Read/Update/Delete,
+	// not the OAuth2 client_id field which is only used for authentication
+	model := &InfinityOAuth2ClientResourceModel{
+		ID:            types.StringValue(srv.ResourceURI),
+		ClientID:      types.StringValue(clientIDStr),
+		ClientName:    types.StringValue(srv.ClientName),
+		Role:          types.StringValue(srv.Role),
+		PrivateKeyJWT: types.StringValue(srv.PrivateKeyJWT),
+	}
+
+	// private_key_jwt is only returned on creation
+	if srv.PrivateKeyJWT != "" {
+		model.PrivateKeyJWT = types.StringValue(srv.PrivateKeyJWT)
+	} else {
+		model.PrivateKeyJWT = types.StringNull()
+	}
+
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity OAuth2 client with ID: %s, name: %s", model.ID, model.ClientName))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
@@ -153,15 +175,15 @@ func (r *InfinityOAuth2ClientResource) read(ctx context.Context, clientID string
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
-	data.ClientID = types.StringValue(srv.ClientID)
+	// Keep the numeric ID that was passed in, not the OAuth2 client_id field
+	// The OAuth2 client_id field is only used for authentication, not API operations
+	data.ClientID = types.StringValue(clientID)
 	data.ClientName = types.StringValue(srv.ClientName)
 	data.Role = types.StringValue(srv.Role)
 
-	if srv.PrivateKeyJWT != nil {
-		data.PrivateKeyJWT = types.StringValue(*srv.PrivateKeyJWT)
-	} else {
-		data.PrivateKeyJWT = types.StringNull()
-	}
+	// Note: private_key_jwt is only returned on creation, not on reads
+	// We don't set it here to preserve the value from creation in state
+	// Terraform will keep the existing state value for computed fields not explicitly set
 
 	return &data, nil
 }
@@ -175,7 +197,10 @@ func (r *InfinityOAuth2ClientResource) Read(ctx context.Context, req resource.Re
 	}
 
 	clientID := state.ClientID.ValueString()
-	state, err := r.read(ctx, clientID)
+	// Save private_key_jwt before reading
+	savedPrivateKeyJWT := state.PrivateKeyJWT
+
+	newState, err := r.read(ctx, clientID)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -189,7 +214,10 @@ func (r *InfinityOAuth2ClientResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	// Preserve private_key_jwt from previous state since it's only returned on creation
+	newState.PrivateKeyJWT = savedPrivateKeyJWT
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, newState)...)
 }
 
 func (r *InfinityOAuth2ClientResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -226,6 +254,9 @@ func (r *InfinityOAuth2ClientResource) Update(ctx context.Context, req resource.
 		)
 		return
 	}
+
+	// Preserve private_key_jwt from state since it's only returned on creation
+	model.PrivateKeyJWT = state.PrivateKeyJWT
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }

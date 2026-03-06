@@ -23,7 +23,6 @@ import (
 )
 
 func TestInfinityTeamsProxyIntegration(t *testing.T) {
-	t.Skip("Skipping: Requires Microsoft Teams integration")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(
