@@ -218,7 +218,7 @@ func (r *InfinityAutomaticParticipantResource) Create(ctx context.Context, req r
 	if !plan.DTMFSequence.IsNull() {
 		createRequest.DTMFSequence = plan.DTMFSequence.ValueString()
 	}
-	if !plan.SystemLocation.IsNull() {
+	if !plan.SystemLocation.IsNull() && plan.SystemLocation.ValueString() != "" {
 		systemLocation := plan.SystemLocation.ValueString()
 		createRequest.SystemLocation = &systemLocation
 	}
@@ -335,9 +335,11 @@ func (r *InfinityAutomaticParticipantResource) Read(ctx context.Context, req res
 func (r *InfinityAutomaticParticipantResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	plan := &InfinityAutomaticParticipantResourceModel{}
 	state := &InfinityAutomaticParticipantResourceModel{}
+	rawConfig := &InfinityAutomaticParticipantResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, rawConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -370,9 +372,13 @@ func (r *InfinityAutomaticParticipantResource) Update(ctx context.Context, req r
 	if !plan.DTMFSequence.IsNull() {
 		updateRequest.DTMFSequence = plan.DTMFSequence.ValueString()
 	}
-	if !plan.SystemLocation.IsNull() {
+	// SystemLocation must always be set (even to nil) to allow clearing
+	// Check the config to see if the user specified it, rather than the plan which might have computed values
+	if !rawConfig.SystemLocation.IsNull() && rawConfig.SystemLocation.ValueString() != "" {
 		systemLocation := plan.SystemLocation.ValueString()
 		updateRequest.SystemLocation = &systemLocation
+	} else {
+		updateRequest.SystemLocation = nil
 	}
 	if !plan.RemoteDisplayName.IsNull() {
 		updateRequest.RemoteDisplayName = plan.RemoteDisplayName.ValueString()
