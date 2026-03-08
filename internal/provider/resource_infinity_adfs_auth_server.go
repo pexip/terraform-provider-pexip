@@ -89,7 +89,8 @@ func (r *InfinityADFSAuthServerResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "A description of the AD FS OAuth 2.0 Client. Maximum length: 250 characters.",
 			},
 			"client_id": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
