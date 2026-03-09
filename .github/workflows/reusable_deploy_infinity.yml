@@ -37,4 +37,4 @@ jobs:
         with:
           directory: ${{ inputs.path }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          continue_on_security_warnings: true
+          continue_on_security_warnings: 'true'
