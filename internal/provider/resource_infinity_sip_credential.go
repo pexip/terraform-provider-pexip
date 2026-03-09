@@ -85,7 +85,8 @@ func (r *InfinitySIPCredentialResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "The SIP username for authentication. Maximum length: 250 characters.",
 			},
 			"password": schema.StringAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
 				Sensitive:           true,
 				MarkdownDescription: "The SIP password for authentication. This field is sensitive.",
 			},

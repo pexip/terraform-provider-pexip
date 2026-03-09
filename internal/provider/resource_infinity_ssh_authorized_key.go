@@ -70,11 +70,8 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The resource integer identifier for the SSH authorized key in Infinity",
 			},
 			"keytype": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("ssh-rsa", "ssh-dss", "ssh-ed25519", "ecdsa-sha2-nistp256", "ecdsa-sha2-nistp384", "ecdsa-sha2-nistp521"),
-				},
-				MarkdownDescription: "The SSH key type. Valid choices: ssh-rsa, ssh-dss, ssh-ed25519, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521.",
+				Computed:  true,
+				MarkdownDescription: "SSH authorized key type.",
 			},
 			"key": schema.StringAttribute{
 				Required: true,
