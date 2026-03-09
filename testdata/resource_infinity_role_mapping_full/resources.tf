@@ -13,8 +13,8 @@ resource "pexip_infinity_role" "test2" {
 }
 
 resource "pexip_infinity_role_mapping" "test" {
-  name = "tf-test role mapping full"
-  value = "testfull"
+  name   = "tf-test role mapping full"
+  value  = "testfull"
   source = "OIDC"
   roles = [
     pexip_infinity_role.test1.id,

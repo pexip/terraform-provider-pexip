@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_ldap_role" "ldap_role-test" {
-  name = "tf-test min"
+  name          = "tf-test min"
   ldap_group_dn = "testmin"
 }

@@ -6,7 +6,7 @@
 
 resource "pexip_infinity_smtp_server" "smtp_server-test" {
   name                = "tf-test SMTP Server full"
-  description         = "full Test SMTPServer"    // Updated description
+  description         = "full Test SMTPServer"       // Updated description
   address             = "updated-server.example.com" // Updated address
   port                = 465                          // Updated port
   username            = "smtp_server-test"

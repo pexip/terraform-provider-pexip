@@ -64,11 +64,11 @@ resource "pexip_infinity_turn_server" "turn2" {
 
 # Event Sink
 resource "pexip_infinity_event_sink" "event1" {
-  name                     = "tf-test-event-sink"
-  url                      = "https://events.pexvclab.com/webhook"
-  bulk_support             = false
-  verify_tls_certificate   = false
-  version                  = 2
+  name                   = "tf-test-event-sink"
+  url                    = "https://events.pexvclab.com/webhook"
+  bulk_support           = false
+  verify_tls_certificate = false
+  version                = 2
 }
 
 # H.323 Gatekeeper
@@ -93,13 +93,13 @@ resource "pexip_infinity_mssip_proxy" "mssip" {
 
 # Policy Server
 resource "pexip_infinity_policy_server" "policy" {
-  name                                    = "tf-test-policy"
-  url                                     = "https://policy.pexvclab.com"
-  enable_avatar_lookup                    = false
-  enable_directory_lookup                 = false
-  enable_internal_media_location_policy   = false
-  enable_internal_participant_policy      = false
-  enable_internal_service_policy          = false
+  name                                  = "tf-test-policy"
+  url                                   = "https://policy.pexvclab.com"
+  enable_avatar_lookup                  = false
+  enable_directory_lookup               = false
+  enable_internal_media_location_policy = false
+  enable_internal_participant_policy    = false
+  enable_internal_service_policy        = false
 }
 
 # SIP Proxy
@@ -111,11 +111,11 @@ resource "pexip_infinity_sip_proxy" "sip" {
 
 # SNMP Network Management System
 resource "pexip_infinity_snmp_network_management_system" "snmp" {
-  name                 = "tf-test-snmp"
-  description          = "Test SNMP System"
-  address              = "snmp.pexvclab.com"
-  port                 = 162
-  snmp_trap_community  = "public"
+  name                = "tf-test-snmp"
+  description         = "Test SNMP System"
+  address             = "snmp.pexvclab.com"
+  port                = 162
+  snmp_trap_community = "public"
 }
 
 # Azure Tenant for Teams Proxy

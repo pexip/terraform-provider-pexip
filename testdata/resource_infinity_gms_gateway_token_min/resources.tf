@@ -16,5 +16,5 @@ variable "infinity_gms_gw_token_key" {
 
 resource "pexip_infinity_gms_gateway_token" "test" {
   certificate = var.infinity_gms_gw_token_cert
-  private_key  = var.infinity_gms_gw_token_key
+  private_key = var.infinity_gms_gw_token_key
 }
