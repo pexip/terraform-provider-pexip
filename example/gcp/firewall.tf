@@ -33,8 +33,8 @@ resource "google_compute_firewall" "allow_https" {
   target_tags   = ["allow-https-${var.project_id}"]
 }
 
-#trivy:ignore:AVD-GCP-0072
-resource "google_compute_firewall" "allow_inter_node" {
+
+resource "google_compute_firewall" "allow_inter_node" { #trivy:ignore:AVD-GCP-0072
   name    = "allow-inter-node-${var.project_id}"
   network = data.google_compute_network.default.name
 
