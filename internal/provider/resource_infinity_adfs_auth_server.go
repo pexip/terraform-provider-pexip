@@ -248,7 +248,7 @@ func (r *InfinityADFSAuthServerResource) Update(ctx context.Context, req resourc
 		RelyingPartyTrustIdentifierURL: plan.RelyingPartyTrustIdentifierURL.ValueString(),
 	}
 
-	// Set optional fields
+	// Set optional fields only if provided
 	if !plan.Description.IsNull() {
 		updateRequest.Description = plan.Description.ValueString()
 	}

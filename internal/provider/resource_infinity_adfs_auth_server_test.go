@@ -38,12 +38,12 @@ func TestInfinityADFSAuthServer(t *testing.T) {
 	mockState := &config.ADFSAuthServer{
 		ID:                             123,
 		ResourceURI:                    "/api/admin/configuration/v1/adfs_auth_server/123/",
-		Name:                           "adfs_auth_server-test",
-		Description:                    "Test ADFSAuthServer",
-		ClientID:                       "test-client-id-12345",
-		FederationServiceName:          "adfs.example.com",
-		FederationServiceIdentifier:    "https://adfs.example.com/adfs/services/trust",
-		RelyingPartyTrustIdentifierURL: "https://example.com",
+		Name:                           "tf-test-adfs-auth-server",
+		Description:                    "Full test configuration for ADFS Auth Server",
+		ClientID:                       "test-client-id-full",
+		FederationServiceName:          "adfs-full.example.com",
+		FederationServiceIdentifier:    "https://adfs-full.example.com/adfs/services/trust",
+		RelyingPartyTrustIdentifierURL: "https://full.example.com",
 	}
 
 	// Mock the GetADFSAuthServer API call for Read operations
@@ -58,12 +58,24 @@ func TestInfinityADFSAuthServer(t *testing.T) {
 		adfsauthserver := args.Get(3).(*config.ADFSAuthServer)
 
 		// Update mock state with all fields from the update request
-		mockState.Name = updateRequest.Name
-		mockState.Description = updateRequest.Description
-		mockState.ClientID = updateRequest.ClientID
-		mockState.FederationServiceName = updateRequest.FederationServiceName
-		mockState.FederationServiceIdentifier = updateRequest.FederationServiceIdentifier
-		mockState.RelyingPartyTrustIdentifierURL = updateRequest.RelyingPartyTrustIdentifierURL
+		if updateRequest.Name != "" {
+			mockState.Name = updateRequest.Name
+		}
+		if updateRequest.Description != "" {
+			mockState.Description = updateRequest.Description
+		}
+		if updateRequest.ClientID != "" {
+			mockState.ClientID = updateRequest.ClientID
+		}
+		if updateRequest.FederationServiceName != "" {
+			mockState.FederationServiceName = updateRequest.FederationServiceName
+		}
+		if updateRequest.FederationServiceIdentifier != "" {
+			mockState.FederationServiceIdentifier = updateRequest.FederationServiceIdentifier
+		}
+		if updateRequest.RelyingPartyTrustIdentifierURL != "" {
+			mockState.RelyingPartyTrustIdentifierURL = updateRequest.RelyingPartyTrustIdentifierURL
+		}
 
 		// Return updated state
 		*adfsauthserver = *mockState
@@ -81,30 +93,59 @@ func testInfinityADFSAuthServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Test 1: Create with full configuration
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "name", "adfs_auth_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "description", "Test ADFSAuthServer"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "federation_service_name", "adfs.example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "client_id", "test-client-id-12345"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "federation_service_identifier", "https://adfs.example.com/adfs/services/trust"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "relying_party_trust_identifier_url", "https://example.com"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "name", "tf-test-adfs-auth-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "description", "Full test configuration for ADFS Auth Server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "client_id", "test-client-id-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_name", "adfs-full.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_identifier", "https://adfs-full.example.com/adfs/services/trust"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "relying_party_trust_identifier_url", "https://full.example.com"),
 				),
 			},
+			// Test 2: Update to min configuration, then delete
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "name", "adfs_auth_server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "description", "Updated Test ADFSAuthServer"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "federation_service_name", "adfs-updated.example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "client_id", "updated-client-id-67890"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "federation_service_identifier", "https://adfs-updated.example.com/adfs/services/trust"),
-					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.adfs_auth_server-test", "relying_party_trust_identifier_url", "https://updated.example.com"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "name", "tf-test-adfs-auth-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "description", "Full test configuration for ADFS Auth Server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "client_id", "test-client-id-min"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_name", "adfs-min.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_identifier", "https://adfs-min.example.com/adfs/services/trust"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "relying_party_trust_identifier_url", "https://min.example.com"),
+				),
+			},
+			// Test 3: Create with min configuration
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "name", "tf-test-adfs-auth-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "client_id", "test-client-id-min"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_name", "adfs-min.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_identifier", "https://adfs-min.example.com/adfs/services/trust"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "relying_party_trust_identifier_url", "https://min.example.com"),
+				),
+			},
+			// Test 4: Update to full configuration
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_adfs_auth_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "name", "tf-test-adfs-auth-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "description", "Full test configuration for ADFS Auth Server"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "client_id", "test-client-id-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_name", "adfs-full.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "federation_service_identifier", "https://adfs-full.example.com/adfs/services/trust"),
+					resource.TestCheckResourceAttr("pexip_infinity_adfs_auth_server.tf-test-adfs-auth-server", "relying_party_trust_identifier_url", "https://full.example.com"),
 				),
 			},
 		},
