@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -76,9 +77,11 @@ func (r *InfinityLogLevelResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The name of the log level configuration. Maximum length: 250 characters.",
 			},
 			"level": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default: stringdefault.StaticString("NOTSET"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
+					stringvalidator.OneOf("NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
 				},
 				MarkdownDescription: "The log level. Valid values: DEBUG, INFO, WARNING, ERROR, CRITICAL.",
 			},

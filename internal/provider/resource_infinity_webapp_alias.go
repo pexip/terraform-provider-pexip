@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -97,7 +98,9 @@ func (r *InfinityWebappAliasResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The type of webapp this alias serves. Valid values: webapp1, webapp2, webapp3.",
 			},
 			"is_enabled": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether this webapp alias is enabled and active.",
 			},
 			"bundle": schema.StringAttribute{

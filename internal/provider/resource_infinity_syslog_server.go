@@ -12,6 +12,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -90,14 +92,18 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "A description of the Syslog server. Maximum length: 250 characters.",
 			},
 			"port": schema.Int64Attribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  int64default.StaticInt64(514),
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
 				MarkdownDescription: "The port on the remote syslog server. Range: 1 to 65535. Default: 514.",
 			},
 			"transport": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("udp"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("udp", "tcp", "tls"),
 				},
