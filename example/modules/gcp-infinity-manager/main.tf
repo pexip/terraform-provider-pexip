@@ -52,6 +52,7 @@ resource "random_string" "disk_encryption_key" {
 #tfsec:ignore:AVD-GCP-0041
 #tfsec:ignore:AVD-GCP-0045
 #tfsec:ignore:AVD-GCP-0067
+#trivy:ignore:GCP-0036
 resource "google_compute_instance" "infinity_manager" {
   name             = local.hostname
   zone             = "${var.location}-a"
