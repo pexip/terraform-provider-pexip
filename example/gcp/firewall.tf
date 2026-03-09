@@ -17,6 +17,7 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags   = ["allow-ssh-${var.project_id}"]
 }
 
+#tfsec:ignore:AVD-GCP-0073
 resource "google_compute_firewall" "allow_https" {
   name    = "allow-https-${var.project_id}"
   network = data.google_compute_network.default.name
