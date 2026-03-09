@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_role_mapping" "test" {
-  name = "tf-test role mapping min"
+  name  = "tf-test role mapping min"
   value = "testmin"
 }

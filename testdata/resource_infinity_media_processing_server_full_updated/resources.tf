@@ -5,5 +5,5 @@
  */
 
 resource "pexip_infinity_media_processing_server" "media_processing_server-test" {
-  fqdn           = "tf-test.updated.test.local"
+  fqdn = "tf-test.updated.test.local"
 }

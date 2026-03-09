@@ -6,9 +6,9 @@
 
 variable "infinity_licence_key2" {
   description = "The entitlement ID for the licence activation."
-  default = "test-value"
+  default     = "test-value"
   type        = string
-  
+
 }
 
 resource "pexip_infinity_licence" "licence-test" {

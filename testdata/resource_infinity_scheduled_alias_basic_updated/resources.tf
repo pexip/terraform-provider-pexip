@@ -5,9 +5,9 @@
  */
 
 resource "pexip_infinity_ms_exchange_connector" "test-connector" {
-  name                  = "test-exchange-connector"
-  description           = "Test Exchange Connector"
-  addin_server_domain   = "test-domain"
+  name                = "test-exchange-connector"
+  description         = "Test Exchange Connector"
+  addin_server_domain = "test-domain"
 }
 
 resource "pexip_infinity_scheduled_alias" "scheduled_alias-test" {

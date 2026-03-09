@@ -5,7 +5,7 @@
  */
 
 resource "pexip_infinity_ldap_sync_field" "test" {
-  name = "tf-test-full"
+  name                   = "tf-test-full"
   template_variable_name = "testfull"
-  is_binary = true
+  is_binary              = true
 }

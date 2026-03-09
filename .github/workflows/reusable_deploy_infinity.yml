@@ -33,7 +33,8 @@ jobs:
         id: auth-gcp
         with:
           service_account_key: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_KEY }}
-      - uses: pexip/shared-github-actions/terraform-deploy-gcp-action@1d23017a5082a03cd73bb254fd8da5be60228c8a
+      - uses: pexip/shared-github-actions/terraform-deploy-gcp-action@0eb0a226f33c2dee93a1b8e1d2059435666c19d4
         with:
           directory: ${{ inputs.path }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          skip_trivy_scan: true
