@@ -18,8 +18,6 @@ resource "google_compute_firewall" "allow_ssh" {
 }
 
 #trivy:ignore:AVD-GCP-0073
-#trivy:ignore:AVD-GCP-00073
-#tfsec:ignore:AVD-GCP-0073
 resource "google_compute_firewall" "allow_https" {
   name    = "allow-https-${var.project_id}"
   network = data.google_compute_network.default.name
@@ -33,8 +31,8 @@ resource "google_compute_firewall" "allow_https" {
   target_tags   = ["allow-https-${var.project_id}"]
 }
 
-
-resource "google_compute_firewall" "allow_inter_node" { #trivy:ignore:AVD-GCP-0072
+#trivy:ignore:AVD-GCP-0072
+resource "google_compute_firewall" "allow_inter_node" {
   name    = "allow-inter-node-${var.project_id}"
   network = data.google_compute_network.default.name
 
