@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -85,6 +87,7 @@ func (r *InfinityBreakInAllowListAddressResource) Schema(ctx context.Context, re
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
 				},
@@ -105,18 +108,24 @@ func (r *InfinityBreakInAllowListAddressResource) Schema(ctx context.Context, re
 				MarkdownDescription: "The network prefix length (CIDR notation). Valid range: 0-128 (supports both IPv4 and IPv6).",
 			},
 			"allowlist_entry_type": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("user"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("user", "proxy"),
 				},
 				MarkdownDescription: "The entry type of this address range. Use 'user' for IP ranges containing trusted end-user workstations or hardware video endpoints; use 'proxy' for trusted reverse proxies. Valid values: user, proxy.",
 			},
 			"ignore_incorrect_aliases": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to ignore incorrect alias attempts from this address range.",
 			},
 			"ignore_incorrect_pins": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to ignore incorrect PIN attempts from this address range.",
 			},
 		},
@@ -134,12 +143,16 @@ func (r *InfinityBreakInAllowListAddressResource) Create(ctx context.Context, re
 
 	createRequest := &config.BreakInAllowListAddressCreateRequest{
 		Name:                   plan.Name.ValueString(),
-		Description:            plan.Description.ValueString(),
 		Address:                plan.Address.ValueString(),
 		Prefix:                 int(plan.Prefix.ValueInt64()),
 		AllowlistEntryType:     plan.AllowlistEntryType.ValueString(),
 		IgnoreIncorrectAliases: plan.IgnoreIncorrectAliases.ValueBool(),
 		IgnoreIncorrectPins:    plan.IgnoreIncorrectPins.ValueBool(),
+	}
+
+	// Set optional fields
+	if !plan.Description.IsNull() {
+		createRequest.Description = plan.Description.ValueString()
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateBreakInAllowListAddress(ctx, createRequest)
@@ -237,9 +250,13 @@ func (r *InfinityBreakInAllowListAddressResource) Update(ctx context.Context, re
 
 	updateRequest := &config.BreakInAllowListAddressUpdateRequest{
 		Name:               plan.Name.ValueString(),
-		Description:        plan.Description.ValueString(),
 		Address:            plan.Address.ValueString(),
 		AllowlistEntryType: plan.AllowlistEntryType.ValueString(),
+	}
+
+	// Set optional fields only if provided
+	if !plan.Description.IsNull() {
+		updateRequest.Description = plan.Description.ValueString()
 	}
 
 	// Handle optional pointer fields
