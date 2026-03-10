@@ -38,13 +38,13 @@ func TestInfinityBreakInAllowListAddress(t *testing.T) {
 	mockState := &config.BreakInAllowListAddress{
 		ID:                     123,
 		ResourceURI:            "/api/admin/configuration/v1/break_in_allow_list_address/123/",
-		Name:                   "break_in_allow_list_address-test",
-		Description:            "Test BreakInAllowListAddress",
-		Address:                "192.168.1.0",
-		Prefix:                 24,
-		AllowlistEntryType:     "user",
-		IgnoreIncorrectAliases: true,
-		IgnoreIncorrectPins:    true,
+		Name:                   "tf-test-break-in-allow-list-address",
+		Description:            "Full test configuration for break-in allow list address",
+		Address:                "10.0.0.0",
+		Prefix:                 16,
+		AllowlistEntryType:     "proxy",
+		IgnoreIncorrectAliases: false,
+		IgnoreIncorrectPins:    false,
 	}
 
 	// Mock the GetBreakInAllowListAddress API call for Read operations
@@ -59,24 +59,36 @@ func TestInfinityBreakInAllowListAddress(t *testing.T) {
 		breakInAllowListAddress := args.Get(3).(*config.BreakInAllowListAddress)
 
 		// Update mock state
-		mockState.Name = updateRequest.Name
+		if updateRequest.Name != "" {
+			mockState.Name = updateRequest.Name
+		}
+		// Update description only if provided
 		if updateRequest.Description != "" {
 			mockState.Description = updateRequest.Description
 		}
 		if updateRequest.Address != "" {
 			mockState.Address = updateRequest.Address
 		}
+		// Apply default if AllowlistEntryType not provided
 		if updateRequest.AllowlistEntryType != "" {
 			mockState.AllowlistEntryType = updateRequest.AllowlistEntryType
+		} else {
+			mockState.AllowlistEntryType = "user"
 		}
 		if updateRequest.Prefix != nil {
 			mockState.Prefix = *updateRequest.Prefix
 		}
+		// Apply default if IgnoreIncorrectAliases not provided
 		if updateRequest.IgnoreIncorrectAliases != nil {
 			mockState.IgnoreIncorrectAliases = *updateRequest.IgnoreIncorrectAliases
+		} else {
+			mockState.IgnoreIncorrectAliases = false
 		}
+		// Apply default if IgnoreIncorrectPins not provided
 		if updateRequest.IgnoreIncorrectPins != nil {
 			mockState.IgnoreIncorrectPins = *updateRequest.IgnoreIncorrectPins
+		} else {
+			mockState.IgnoreIncorrectPins = false
 		}
 
 		// Return updated state
@@ -95,32 +107,63 @@ func testInfinityBreakInAllowListAddress(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Test 1: Create with full configuration
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "name", "break_in_allow_list_address-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "description", "Test BreakInAllowListAddress"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "address", "192.168.1.0"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "prefix", "24"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "allowlist_entry_type", "user"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "ignore_incorrect_aliases", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "ignore_incorrect_pins", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "name", "tf-test-break-in-allow-list-address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "description", "Full test configuration for break-in allow list address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "address", "10.0.0.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "prefix", "16"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "allowlist_entry_type", "proxy"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_aliases", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_pins", "false"),
 				),
 			},
+			// Test 2: Update to min configuration, then delete
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "name", "break_in_allow_list_address-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "description", "Updated Test BreakInAllowListAddress"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "address", "10.0.0.0"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "prefix", "16"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "allowlist_entry_type", "proxy"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "ignore_incorrect_aliases", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.break_in_allow_list_address-test", "ignore_incorrect_pins", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "name", "tf-test-break-in-allow-list-address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "description", "Full test configuration for break-in allow list address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "address", "192.168.1.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "prefix", "24"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "allowlist_entry_type", "user"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_aliases", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_pins", "false"),
+				),
+			},
+			// Test 3: Create with min configuration
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "name", "tf-test-break-in-allow-list-address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "address", "192.168.1.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "prefix", "24"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "allowlist_entry_type", "user"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_aliases", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_pins", "false"),
+				),
+			},
+			// Test 4: Update to full configuration
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_break_in_allow_list_address_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "name", "tf-test-break-in-allow-list-address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "description", "Full test configuration for break-in allow list address"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "address", "10.0.0.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "prefix", "16"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "allowlist_entry_type", "proxy"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_aliases", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_break_in_allow_list_address.tf-test-break-in-allow-list-address", "ignore_incorrect_pins", "false"),
 				),
 			},
 		},
