@@ -38,8 +38,8 @@ func TestInfinityIdentityProviderGroup(t *testing.T) {
 	mockState := &config.IdentityProviderGroup{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/identity_provider_group/123/",
-		Name:        "identity_provider_group-test",
-		Description: "Test IdentityProviderGroup",
+		Name:        "tf-test-identity-provider-group",
+		Description: "Test Identity Provider Group Description",
 	}
 
 	// Mock the GetIdentityprovidergroup API call for Read operations
@@ -54,12 +54,9 @@ func TestInfinityIdentityProviderGroup(t *testing.T) {
 		identity_provider_group := args.Get(3).(*config.IdentityProviderGroup)
 
 		// Update mock state based on request
-		if updateRequest.Name != "" {
-			mockState.Name = updateRequest.Name
-		}
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
+		mockState.Name = updateRequest.Name
+		mockState.Description = updateRequest.Description
+		mockState.IdentityProvider = updateRequest.IdentityProvider
 
 		// Return updated state
 		*identity_provider_group = *mockState
@@ -77,22 +74,47 @@ func testInfinityIdentityProviderGroup(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.identity_provider_group-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.identity_provider_group-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.identity_provider_group-test", "name", "identity_provider_group-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.identity_provider_group-test", "description", "Test IdentityProviderGroup"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "name", "tf-test-identity-provider-group"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "description", "Test Identity Provider Group Description"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.identity_provider_group-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.identity_provider_group-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.identity_provider_group-test", "name", "identity_provider_group-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.identity_provider_group-test", "description", "Updated Test IdentityProviderGroup"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "name", "tf-test-identity-provider-group"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_identity_provider_group_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "name", "tf-test-identity-provider-group"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_group_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "name", "tf-test-identity-provider-group"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_group.tf-test-identity-provider-group", "description", "Test Identity Provider Group Description"),
 				),
 			},
 		},
