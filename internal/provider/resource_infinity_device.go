@@ -259,7 +259,7 @@ func (r *InfinityDeviceResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Read the state from the API to get all computed values
-	model, err := r.read(ctx, resourceID)
+	model, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Created Infinity device",
@@ -268,15 +268,12 @@ func (r *InfinityDeviceResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// Preserve the password from the plan since the API doesn't return it
-	model.Password = plan.Password
-
 	tflog.Trace(ctx, fmt.Sprintf("created Infinity device with ID: %s, alias: %s", model.ID, model.Alias))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-func (r *InfinityDeviceResource) read(ctx context.Context, resourceID int) (*InfinityDeviceResourceModel, error) {
+func (r *InfinityDeviceResource) read(ctx context.Context, resourceID int, password string) (*InfinityDeviceResourceModel, error) {
 	var data InfinityDeviceResourceModel
 
 	srv, err := r.InfinityClient.Config().GetDevice(ctx, resourceID)
@@ -293,7 +290,8 @@ func (r *InfinityDeviceResource) read(ctx context.Context, resourceID int) (*Inf
 	data.Alias = types.StringValue(srv.Alias)
 	data.Description = types.StringValue(srv.Description)
 	data.Username = types.StringValue(srv.Username)
-	data.Password = types.StringValue(srv.Password)
+	// Password is not returned by API, use the value passed in
+	data.Password = types.StringValue(password)
 	data.PrimaryOwnerEmailAddress = types.StringValue(srv.PrimaryOwnerEmailAddress)
 	data.Tag = types.StringValue(srv.Tag)
 	data.SyncTag = types.StringValue(srv.SyncTag)
@@ -323,11 +321,8 @@ func (r *InfinityDeviceResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Preserve password from current state
-	currentPassword := state.Password
-
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID)
+	state, err := r.read(ctx, resourceID, state.Password.ValueString())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -340,9 +335,6 @@ func (r *InfinityDeviceResource) Read(ctx context.Context, req resource.ReadRequ
 		)
 		return
 	}
-
-	// Restore the password from the previous state since API doesn't return it
-	state.Password = currentPassword
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -360,27 +352,13 @@ func (r *InfinityDeviceResource) Update(ctx context.Context, req resource.Update
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.DeviceUpdateRequest{
-		Alias: plan.Alias.ValueString(),
-	}
-
-	// Set optional string fields
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
-	}
-	if !plan.Username.IsNull() {
-		updateRequest.Username = plan.Username.ValueString()
-	}
-	if !plan.Password.IsNull() {
-		updateRequest.Password = plan.Password.ValueString()
-	}
-	if !plan.PrimaryOwnerEmailAddress.IsNull() {
-		updateRequest.PrimaryOwnerEmailAddress = plan.PrimaryOwnerEmailAddress.ValueString()
-	}
-	if !plan.Tag.IsNull() {
-		updateRequest.Tag = plan.Tag.ValueString()
-	}
-	if !plan.SyncTag.IsNull() {
-		updateRequest.SyncTag = plan.SyncTag.ValueString()
+		Alias:                    plan.Alias.ValueString(),
+		Description:              plan.Description.ValueString(),
+		Username:                 plan.Username.ValueString(),
+		Password:                 plan.Password.ValueString(),
+		PrimaryOwnerEmailAddress: plan.PrimaryOwnerEmailAddress.ValueString(),
+		Tag:                      plan.Tag.ValueString(),
+		SyncTag:                  plan.SyncTag.ValueString(),
 	}
 
 	// Set optional boolean fields (use pointers for update requests)
@@ -423,7 +401,7 @@ func (r *InfinityDeviceResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, resourceID)
+	updatedModel, err := r.read(ctx, resourceID, plan.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity device",
@@ -431,9 +409,6 @@ func (r *InfinityDeviceResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
-
-	// Preserve the password from the plan since the API doesn't return it
-	updatedModel.Password = plan.Password
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
@@ -472,8 +447,8 @@ func (r *InfinityDeviceResource) ImportState(ctx context.Context, req resource.I
 
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity device with resource ID: %d", resourceID))
 
-	// Read the resource from the API
-	model, err := r.read(ctx, resourceID)
+	// Read the resource from the API (password cannot be imported as it's not returned by API)
+	model, err := r.read(ctx, resourceID, "")
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
