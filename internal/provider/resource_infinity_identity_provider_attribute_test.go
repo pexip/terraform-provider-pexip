@@ -38,8 +38,8 @@ func TestInfinityIdentityProviderAttribute(t *testing.T) {
 	mockState := &config.IdentityProviderAttribute{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/identity_provider_attribute/123/",
-		Name:        "identity_provider_attribute-test",
-		Description: "Test IdentityProviderAttribute",
+		Name:        "tf-test-identity-provider-attribute",
+		Description: "Test Identity Provider Attribute Description",
 	}
 
 	// Mock the GetIdentityproviderattribute API call for Read operations
@@ -54,12 +54,8 @@ func TestInfinityIdentityProviderAttribute(t *testing.T) {
 		identity_provider_attribute := args.Get(3).(*config.IdentityProviderAttribute)
 
 		// Update mock state based on request
-		if updateRequest.Name != "" {
-			mockState.Name = updateRequest.Name
-		}
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
+		mockState.Name = updateRequest.Name
+		mockState.Description = updateRequest.Description
 
 		// Return updated state
 		*identity_provider_attribute = *mockState
@@ -77,22 +73,47 @@ func testInfinityIdentityProviderAttribute(t *testing.T, client InfinityClient) 
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "name", "identity_provider_attribute-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "description", "Test IdentityProviderAttribute"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "name", "tf-test-identity-provider-attribute"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "description", "Test Identity Provider Attribute Description"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "name", "identity_provider_attribute-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.identity_provider_attribute-test", "description", "Updated Test IdentityProviderAttribute"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "name", "tf-test-identity-provider-attribute"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "name", "tf-test-identity-provider-attribute"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_identity_provider_attribute_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "name", "tf-test-identity-provider-attribute"),
+					resource.TestCheckResourceAttr("pexip_infinity_identity_provider_attribute.tf-test-identity-provider-attribute", "description", "Test Identity Provider Attribute Description"),
 				),
 			},
 		},
