@@ -123,11 +123,10 @@ func TestInfinityConferenceAlias(t *testing.T) {
 }
 
 func testInfinityConferenceAlias(t *testing.T, client InfinityClient) {
-	// Test 1 & 2: Create with full config, update to min config, then delete
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
-			// Test 1: Create with full config
+			// Step 1: Create with full config
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_full"),
 				Check: resource.ComposeTestCheckFunc(
@@ -137,7 +136,7 @@ func testInfinityConferenceAlias(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "description", "Test Conference Alias Description"),
 				),
 			},
-			// Test 2: Update to min config (then delete)
+			// Step 2: Update to min config
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
 				Check: resource.ComposeTestCheckFunc(
@@ -146,14 +145,12 @@ func testInfinityConferenceAlias(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
 				),
 			},
-		},
-	})
-
-	// Test 3 & 4: Create with min config, update to full config
-	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
-		Steps: []resource.TestStep{
-			// Test 3: Create with min config
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
 				Check: resource.ComposeTestCheckFunc(
@@ -162,7 +159,7 @@ func testInfinityConferenceAlias(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
 				),
 			},
-			// Test 4: Update to full config
+			// Step 5: Update to full config
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_full"),
 				Check: resource.ComposeTestCheckFunc(
