@@ -9,4 +9,4 @@ dist/
 .terraform.lock.hcl
 **/terraform.tfvars
 terraform.tfstate**
-CLAUDE.md
+.claude/**
