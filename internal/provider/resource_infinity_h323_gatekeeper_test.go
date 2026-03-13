@@ -27,57 +27,75 @@ func TestInfinityH323Gatekeeper(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateH323Gatekeeper API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
+	// Shared state for mocking - initialize with defaults
 	defaultPort := 1719
 	mockState := &config.H323Gatekeeper{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/123/",
-		Name:        "h323_gatekeeper-test",
-		Description: "Test H323Gatekeeper",
-		Address:     "192.168.1.100",
+		ID:          1,
+		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/1/",
+		Name:        "tf-test-h323-gatekeeper",
+		Description: "",
+		Address:     "192.168.1.101",
 		Port:        &defaultPort,
 	}
 
-	// Mock the GetH323Gatekeeper API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/h323_gatekeeper/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		h323_gatekeeper := args.Get(3).(*config.H323Gatekeeper)
-		*h323_gatekeeper = *mockState
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.H323GatekeeperCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.Address = req.Address
+		mockState.Port = req.Port
+	}).Once()
+
+	// Step 2: Update to min config
+	client.On("PutJSON", mock.Anything, "configuration/v1/h323_gatekeeper/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.H323GatekeeperUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.Address = req.Address
+		mockState.Port = req.Port
+		if args.Get(3) != nil {
+			gatekeeper := args.Get(3).(*config.H323Gatekeeper)
+			*gatekeeper = *mockState
+		}
+	}).Once()
+
+	// Step 3: Delete
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/h323_gatekeeper/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate with min config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/h323_gatekeeper/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/h323_gatekeeper/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.H323GatekeeperCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.Address = req.Address
+		mockState.Port = req.Port
+	}).Once()
+
+	// Step 5: Update to full config
+	client.On("PutJSON", mock.Anything, "configuration/v1/h323_gatekeeper/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.H323GatekeeperUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.Address = req.Address
+		mockState.Port = req.Port
+		if args.Get(3) != nil {
+			gatekeeper := args.Get(3).(*config.H323Gatekeeper)
+			*gatekeeper = *mockState
+		}
+	}).Once()
+
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/h323_gatekeeper/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		gatekeeper := args.Get(3).(*config.H323Gatekeeper)
+		*gatekeeper = *mockState
 	}).Maybe()
-
-	// Mock the UpdateH323Gatekeeper API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/h323_gatekeeper/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.H323GatekeeperUpdateRequest)
-		h323_gatekeeper := args.Get(3).(*config.H323Gatekeeper)
-
-		// Update mock state based on request
-		if updateRequest.Name != "" {
-			mockState.Name = updateRequest.Name
-		}
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
-		if updateRequest.Address != "" {
-			mockState.Address = updateRequest.Address
-		}
-		if updateRequest.Port != nil {
-			mockState.Port = updateRequest.Port
-		}
-
-		// Return updated state
-		*h323_gatekeeper = *mockState
-	}).Maybe()
-
-	// Mock the DeleteH323Gatekeeper API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/h323_gatekeeper/123/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityH323Gatekeeper(t, client)
 }
@@ -87,21 +105,56 @@ func testInfinityH323Gatekeeper(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "name", "h323_gatekeeper-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "description", "Test H323Gatekeeper"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "name", "tf-test-h323-gatekeeper"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "description", "tf-test H323 Gatekeeper Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "port", "1720"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_basic_updated"),
+				// Step 2: Update to min config (clear optional fields, reset to defaults)
+				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "name", "h323_gatekeeper-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.h323_gatekeeper-test", "description", "Updated Test H323Gatekeeper"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "name", "tf-test-h323-gatekeeper"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "address", "192.168.1.101"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "port", "1719"),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "name", "tf-test-h323-gatekeeper"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "address", "192.168.1.101"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "port", "1719"),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_h323_gatekeeper_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "name", "tf-test-h323-gatekeeper"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "description", "tf-test H323 Gatekeeper Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_h323_gatekeeper.tf-test-h323-gatekeeper", "port", "1720"),
 				),
 			},
 		},
