@@ -26,48 +26,68 @@ func TestInfinityDNSServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateDNSServer API call
-	createResponse := &types.PostResponse{
+	// Shared mock state for the DNS server
+	mockDNS := &config.DNSServer{
+		ID:          1,
+		ResourceURI: "/api/admin/configuration/v1/dns_server/1/",
+		Address:     "4.2.2.2",
+		Description: "",
+	}
+
+	// Step 1: Create DNS server with full config (4.2.2.2 with description)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
+		ResourceURI: "/api/admin/configuration/v1/dns_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.DNSServerCreateRequest)
+		mockDNS.Address = req.Address
+		mockDNS.Description = req.Description
+	}).Once()
 
-	// Shared state for mocking
-	mockState := &config.DNSServer{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/dns_server/123/",
-		Address:     "192.168.1.50",
-		Description: "Cloudflare DNS",
-	}
-
-	// Mock the GetDNSServer API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/dns_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		dns_server := args.Get(3).(*config.DNSServer)
-		*dns_server = *mockState
-	}).Maybe()
-
-	// Mock the UpdateDNSServer API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/dns_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.DNSServerUpdateRequest)
-		dns_server := args.Get(3).(*config.DNSServer)
-
-		// Update mock state based on request
-		if updateRequest.Address != "" {
-			mockState.Address = updateRequest.Address
+	// Step 2: Update to min config (4.2.2.1, clear description)
+	client.On("PutJSON", mock.Anything, "configuration/v1/dns_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.DNSServerUpdateRequest)
+		// Update the shared mock state
+		mockDNS.Address = req.Address
+		mockDNS.Description = req.Description
+		// Also update the response object if provided
+		if args.Get(3) != nil {
+			dns := args.Get(3).(*config.DNSServer)
+			*dns = *mockDNS
 		}
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
+	}).Once()
+
+	// Step 3: Delete DNS server (and final cleanup after test)
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/dns_server/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate DNS server with min config (4.2.2.1, no description)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/dns_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/dns_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.DNSServerCreateRequest)
+		mockDNS.Address = req.Address
+		mockDNS.Description = req.Description
+	}).Once()
+
+	// Step 5: Update to full config (4.2.2.2, add description)
+	client.On("PutJSON", mock.Anything, "configuration/v1/dns_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.DNSServerUpdateRequest)
+		// Update the shared mock state
+		mockDNS.Address = req.Address
+		mockDNS.Description = req.Description
+		// Also update the response object if provided
+		if args.Get(3) != nil {
+			dns := args.Get(3).(*config.DNSServer)
+			*dns = *mockDNS
 		}
+	}).Once()
 
-		// Return updated state
-		*dns_server = *mockState
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/dns_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		dns := args.Get(3).(*config.DNSServer)
+		*dns = *mockDNS
 	}).Maybe()
-
-	// Mock the DeleteDNSServer API call - use mock.MatchedBy to match dynamic ID
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/dns_server/123/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityDNSServer(t, client)
 }
@@ -77,21 +97,48 @@ func testInfinityDNSServer(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "192.168.1.50"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "description", "Cloudflare DNS"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "address", "4.2.2.2"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "description", "tf-test Level 3 DNS Server"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_basic_updated"),
+				// Step 2: Update to min config (clear description)
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.cloudflare-dns", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "address", "192.168.1.50"),
-					resource.TestCheckResourceAttr("pexip_infinity_dns_server.cloudflare-dns", "description", "Cloudflare DNS - updated"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "address", "4.2.2.1"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "description", ""),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_dns_server_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "address", "4.2.2.1"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "description", ""),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_dns_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_dns_server.tf-test-dns", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "address", "4.2.2.2"),
+					resource.TestCheckResourceAttr("pexip_infinity_dns_server.tf-test-dns", "description", "tf-test Level 3 DNS Server"),
 				),
 			},
 		},
