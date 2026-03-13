@@ -7,6 +7,7 @@
 package provider
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -32,14 +33,17 @@ func TestInfinityRole(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/role/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/role/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/role/", mock.Anything, mock.Anything).Return(createResponse, nil).Maybe()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with full config
 	mockState := &config.Role{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/role/123/",
-		Name:        "role-test",
-		Permissions: []config.Permission{}, // Empty permissions list
+		Name:        "tf-test-role",
+		Permissions: []config.Permission{
+			{ID: 1, Name: "permission1"},
+			{ID: 2, Name: "permission2"},
+		},
 	}
 
 	// Mock the GetRole API call for Read operations
@@ -55,12 +59,21 @@ func TestInfinityRole(t *testing.T) {
 
 		// Update mock state based on request
 		mockState.Name = updateRequest.Name
+
+		// Handle permissions - if provided, update; if nil, clear
 		if updateRequest.Permissions != nil {
-			converted := make([]config.Permission, len(updateRequest.Permissions))
-			for i, perm := range updateRequest.Permissions {
-				converted[i] = config.Permission{Name: perm}
+			if len(updateRequest.Permissions) == 0 {
+				mockState.Permissions = []config.Permission{}
+			} else {
+				converted := make([]config.Permission, len(updateRequest.Permissions))
+				for i, perm := range updateRequest.Permissions {
+					// Extract ID from permission URI (e.g., "/api/admin/configuration/v1/permission/1/" -> 1)
+					var id int
+					fmt.Sscanf(perm, "/api/admin/configuration/v1/permission/%d/", &id)
+					converted[i] = config.Permission{ID: id, Name: fmt.Sprintf("permission%d", id)}
+				}
+				mockState.Permissions = converted
 			}
-			mockState.Permissions = converted
 		}
 
 		// Return updated state
@@ -70,7 +83,7 @@ func TestInfinityRole(t *testing.T) {
 	// Mock the DeleteRole API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/role/123/"
-	}), mock.Anything).Return(nil)
+	}), mock.Anything).Return(nil).Maybe()
 
 	testInfinityRole(t, client)
 }
@@ -79,20 +92,49 @@ func testInfinityRole(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_role_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_role_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_role.role-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_role.role-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_role.role-test", "name", "role-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "name", "tf-test-role"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "permissions.#", "2"),
 				),
 			},
+			// Step 2: Update to min config (clearing permissions)
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_role_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_role_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_role.role-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_role.role-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_role.role-test", "name", "role-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "name", "tf-test-role"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "permissions.#", "0"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_role_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_role_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "name", "tf-test-role"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "permissions.#", "0"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_role_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_role.tf-test-role", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "name", "tf-test-role"),
+					resource.TestCheckResourceAttr("pexip_infinity_role.tf-test-role", "permissions.#", "2"),
 				),
 			},
 		},
