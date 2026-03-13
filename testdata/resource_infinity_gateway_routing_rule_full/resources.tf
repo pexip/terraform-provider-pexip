@@ -27,7 +27,7 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule" {
   max_callrate_out                = 4096
 
   # Matching rules
-  match_incoming_calls            = true
+  match_incoming_calls            = false
   match_outgoing_calls            = true
   match_incoming_sip              = false
   match_incoming_h323             = false
@@ -40,4 +40,11 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule" {
   enable_participant_avatar_lookup = "yes"
   live_captions_enabled            = "yes"
   treat_as_trusted                 = true
+}
+
+resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule-registered" {
+  name                              = "tf-test-gateway-routing-rule-registered"
+  match_string                      = ".*@registered.com"
+  priority                          = 101
+  match_incoming_only_if_registered = true
 }

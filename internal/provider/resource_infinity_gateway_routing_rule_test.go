@@ -60,8 +60,43 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		MaxCallrateOut:                  nil,
 	}
 
-	// Step 1: Create with full config
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/gateway_routing_rule/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+	// Second resource state for match_incoming_only_if_registered test
+	mockState2 := &config.GatewayRoutingRule{
+		ID:                              2,
+		ResourceURI:                     "/api/admin/configuration/v1/gateway_routing_rule/2/",
+		Name:                            "tf-test-gateway-routing-rule-registered",
+		Description:                     "",
+		Priority:                        101,
+		Enable:                          true,
+		MatchString:                     ".*@registered.com",
+		ReplaceString:                   "",
+		CalledDeviceType:                "external",
+		OutgoingProtocol:                "sip",
+		CallType:                        "video",
+		DenoiseAudio:                    true,
+		ExternalParticipantAvatarLookup: test.StringPtr("default"),
+		LiveCaptionsEnabled:             "default",
+		MatchIncomingCalls:              true,
+		MatchIncomingH323:               true,
+		MatchIncomingMSSIP:              true,
+		MatchIncomingOnlyIfRegistered:   true,
+		MatchIncomingSIP:                true,
+		MatchIncomingTeams:              false,
+		MatchIncomingWebRTC:             true,
+		MatchOutgoingCalls:              false,
+		MatchStringFull:                 false,
+		Tag:                             "",
+		TreatAsTrusted:                  false,
+		CryptoMode:                      nil,
+		MaxPixelsPerSecond:              nil,
+		MaxCallrateIn:                   nil,
+		MaxCallrateOut:                  nil,
+	}
+
+	// Step 1: Create with full config (first resource)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/gateway_routing_rule/", mock.MatchedBy(func(req *config.GatewayRoutingRuleCreateRequest) bool {
+		return req.Name == "tf-test-gateway-routing-rule"
+	}), mock.Anything).Return(&types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/gateway_routing_rule/1/",
 	}, nil).Run(func(args mock.Arguments) {
@@ -94,6 +129,24 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.LiveCaptionsEnabled = req.LiveCaptionsEnabled
 		mockState.TreatAsTrusted = req.TreatAsTrusted
 	}).Once()
+
+	// Step 1: Create with full config (second resource)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/gateway_routing_rule/", mock.MatchedBy(func(req *config.GatewayRoutingRuleCreateRequest) bool {
+		return req.Name == "tf-test-gateway-routing-rule-registered"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/gateway_routing_rule/2/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.GatewayRoutingRuleCreateRequest)
+		mockState2.Name = req.Name
+		mockState2.Description = req.Description
+		mockState2.MatchString = req.MatchString
+		mockState2.Priority = req.Priority
+		mockState2.MatchIncomingOnlyIfRegistered = req.MatchIncomingOnlyIfRegistered
+	}).Once()
+
+	// Step 2: Delete second resource (not in min config)
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/gateway_routing_rule/2/", mock.Anything).Return(nil).Maybe()
 
 	// Step 2: Update to min config
 	client.On("PutJSON", mock.Anything, "configuration/v1/gateway_routing_rule/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -169,6 +222,21 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.TreatAsTrusted = req.TreatAsTrusted
 	}).Once()
 
+	// Step 5: Recreate second resource (back in full config)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/gateway_routing_rule/", mock.MatchedBy(func(req *config.GatewayRoutingRuleCreateRequest) bool {
+		return req.Name == "tf-test-gateway-routing-rule-registered"
+	}), mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/gateway_routing_rule/2/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.GatewayRoutingRuleCreateRequest)
+		mockState2.Name = req.Name
+		mockState2.Description = req.Description
+		mockState2.MatchString = req.MatchString
+		mockState2.Priority = req.Priority
+		mockState2.MatchIncomingOnlyIfRegistered = req.MatchIncomingOnlyIfRegistered
+	}).Once()
+
 	// Step 5: Update to full config
 	client.On("PutJSON", mock.Anything, "configuration/v1/gateway_routing_rule/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.GatewayRoutingRuleUpdateRequest)
@@ -211,6 +279,11 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		*rule = *mockState
 	}).Maybe()
 
+	client.On("GetJSON", mock.Anything, "configuration/v1/gateway_routing_rule/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		rule := args.Get(3).(*config.GatewayRoutingRule)
+		*rule = *mockState2
+	}).Maybe()
+
 	testInfinityGatewayRoutingRule(t, client)
 }
 
@@ -222,6 +295,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 				// Step 1: Create with full config
 				Config: test.LoadTestFolder(t, "resource_infinity_gateway_routing_rule_full"),
 				Check: resource.ComposeTestCheckFunc(
+					// First resource checks
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
@@ -240,7 +314,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_pixels_per_second", "fullhd"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_callrate_in", "2048"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_callrate_out", "4096"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_calls", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_calls", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_outgoing_calls", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_sip", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_h323", "false"),
@@ -251,6 +325,13 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable_participant_avatar_lookup", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "live_captions_enabled", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "treat_as_trusted", "true"),
+					// Second resource checks
+					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "name", "tf-test-gateway-routing-rule-registered"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_string", ".*@registered.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "101"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_incoming_only_if_registered", "true"),
 				),
 			},
 			{
@@ -307,6 +388,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 				// Step 5: Update to full config
 				Config: test.LoadTestFolder(t, "resource_infinity_gateway_routing_rule_full"),
 				Check: resource.ComposeTestCheckFunc(
+					// First resource checks
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
@@ -325,7 +407,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_pixels_per_second", "fullhd"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_callrate_in", "2048"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "max_callrate_out", "4096"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_calls", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_calls", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_outgoing_calls", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_sip", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_incoming_h323", "false"),
@@ -336,6 +418,13 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable_participant_avatar_lookup", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "live_captions_enabled", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "treat_as_trusted", "true"),
+					// Second resource checks
+					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "name", "tf-test-gateway-routing-rule-registered"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_string", ".*@registered.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "101"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_incoming_only_if_registered", "true"),
 				),
 			},
 		},
