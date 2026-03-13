@@ -129,7 +129,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
@@ -144,6 +143,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -408,7 +408,9 @@ func (r *InfinityGatewayRoutingRuleResource) Create(ctx context.Context, req res
 	// Only set optional fields if they are not null in the plan
 	if !plan.CryptoMode.IsNull() && !plan.CryptoMode.IsUnknown() {
 		value := plan.CryptoMode.ValueString()
-		createRequest.CryptoMode = &value
+		if value != "" {
+			createRequest.CryptoMode = &value
+		}
 	}
 	if !plan.DisabledCodecs.IsNull() && !plan.DisabledCodecs.IsUnknown() {
 		var disabledCodecs []config.CodecValue
@@ -648,7 +650,9 @@ func (r *InfinityGatewayRoutingRuleResource) Update(ctx context.Context, req res
 	// Only set optional fields if they are not null in the plan
 	if !plan.CryptoMode.IsNull() && !plan.CryptoMode.IsUnknown() {
 		value := plan.CryptoMode.ValueString()
-		updateRequest.CryptoMode = &value
+		if value != "" {
+			updateRequest.CryptoMode = &value
+		}
 	}
 	if !plan.DisabledCodecs.IsNull() && !plan.DisabledCodecs.IsUnknown() {
 		var disabledCodecs []config.CodecValue
