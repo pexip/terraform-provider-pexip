@@ -26,74 +26,115 @@ func TestInfinityNTPServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/ntp_server/123/",
+	// Shared state for mocking - initialize with defaults
+	mockState := &config.NTPServer{
+		ID:          1,
+		ResourceURI: "/api/admin/configuration/v1/ntp_server/1/",
+		Address:     "2.pool.ntp.org",
+		Description: "",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Track state to return different values before and after update
-	updated := false
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/ntp_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.NTPServerCreateRequest)
+		mockState.Address = req.Address
+		mockState.Description = req.Description
+	}).Once()
 
-	// Mock the API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/ntp_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		ntp := args.Get(3).(*config.NTPServer)
-		if updated {
-			*ntp = config.NTPServer{
-				ID:          123,
-				Address:     "2.pool.ntp.org",
-				Description: "NTP server 2 - updated",
-				ResourceURI: "/api/admin/configuration/v1/ntp_server/123/",
-			}
-		} else {
-			*ntp = config.NTPServer{
-				ID:          123,
-				Address:     "2.pool.ntp.org",
-				Description: "NTP server 2",
-				ResourceURI: "/api/admin/configuration/v1/ntp_server/123/",
-			}
+	// Step 2: Update to min config
+	client.On("PutJSON", mock.Anything, "configuration/v1/ntp_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.NTPServerUpdateRequest)
+		mockState.Address = req.Address
+		mockState.Description = req.Description
+		if args.Get(3) != nil {
+			ntp := args.Get(3).(*config.NTPServer)
+			*ntp = *mockState
 		}
-	}).Maybe() // Called multiple times for reads
+	}).Once()
 
-	// Mock the API call - use mock.MatchedBy to match dynamic ID
-	client.On("PutJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/ntp_server/123/"
-	}), mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updated = true // Mark as updated for subsequent reads
-		ntp := args.Get(3).(*config.NTPServer)
-		*ntp = config.NTPServer{
-			ID:          123,
-			Address:     "2.pool.ntp.org",
-			Description: "NTP server 2 - updated",
-			ResourceURI: "/api/admin/configuration/v1/ntp_server/123/",
+	// Step 3: Delete
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/ntp_server/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate with min config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ntp_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/ntp_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.NTPServerCreateRequest)
+		mockState.Address = req.Address
+		mockState.Description = req.Description
+	}).Once()
+
+	// Step 5: Update to full config
+	client.On("PutJSON", mock.Anything, "configuration/v1/ntp_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.NTPServerUpdateRequest)
+		mockState.Address = req.Address
+		mockState.Description = req.Description
+		if args.Get(3) != nil {
+			ntp := args.Get(3).(*config.NTPServer)
+			*ntp = *mockState
 		}
+	}).Once()
+
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/ntp_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		ntp := args.Get(3).(*config.NTPServer)
+		*ntp = *mockState
 	}).Maybe()
 
-	// Mock the API call - use mock.MatchedBy to match dynamic ID
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/ntp_server/123/"
-	}), mock.Anything).Return(nil)
+	testInfinityNTPServer(t, client)
+}
 
+func testInfinityNTPServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.ntp-2", "address", "2.pool.ntp.org"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.ntp-2", "description", "NTP server 2"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", "tf-test NTP Server Description"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_basic_updated"),
+				// Step 2: Update to min config (clear optional fields, reset to defaults)
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.ntp-2", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.ntp-2", "address", "2.pool.ntp.org"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.ntp-2", "description", "NTP server 2 - updated"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "2.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", ""),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_ntp_server_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "2.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", ""),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_ntp_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", "tf-test NTP Server Description"),
 				),
 			},
 		},
