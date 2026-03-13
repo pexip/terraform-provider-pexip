@@ -32,15 +32,15 @@ func TestInfinitySIPCredential(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/sip_credential/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/sip_credential/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/sip_credential/", mock.Anything, mock.Anything).Return(createResponse, nil).Maybe()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with full config
 	mockState := &config.SIPCredential{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/sip_credential/123/",
-		Username:    "sip_credential-test",
-		Realm:       "test-value",
-		Password:    "test-value",
+		Username:    "tf-test-sip-credential",
+		Realm:       "tf-test-realm",
+		Password:    "tf-test-password",
 	}
 
 	// Mock the GetSipcredential API call for Read operations
@@ -61,9 +61,8 @@ func TestInfinitySIPCredential(t *testing.T) {
 		if updateReq.Username != "" {
 			mockState.Username = updateReq.Username
 		}
-		if updateReq.Password != "" {
-			mockState.Password = updateReq.Password
-		}
+		// Password field always sent now (without omitempty)
+		mockState.Password = updateReq.Password
 
 		// Return updated state
 		*sip_credential = *mockState
@@ -72,7 +71,7 @@ func TestInfinitySIPCredential(t *testing.T) {
 	// Mock the DeleteSipcredential API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/sip_credential/123/"
-	}), mock.Anything).Return(nil)
+	}), mock.Anything).Return(nil).Maybe()
 
 	testInfinitySIPCredential(t, client)
 }
@@ -81,22 +80,53 @@ func testInfinitySIPCredential(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.sip_credential-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.sip_credential-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.sip_credential-test", "username", "sip_credential-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "realm", "tf-test-realm"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "username", "tf-test-sip-credential"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "password", "tf-test-password"),
 				),
 			},
+			// Step 2: Update to min config (clearing password)
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.sip_credential-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.sip_credential-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.sip_credential-test", "username", "sip_credential-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.sip_credential-test", "realm", "updated-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.sip_credential-test", "password", "updated-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "realm", "tf-test-realm"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "username", "tf-test-sip-credential"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "password", ""),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_sip_credential_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "realm", "tf-test-realm"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "username", "tf-test-sip-credential"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "password", ""),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_sip_credential_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_sip_credential.tf-test-sip-credential", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "realm", "tf-test-realm"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "username", "tf-test-sip-credential"),
+					resource.TestCheckResourceAttr("pexip_infinity_sip_credential.tf-test-sip-credential", "password", "tf-test-password"),
 				),
 			},
 		},
