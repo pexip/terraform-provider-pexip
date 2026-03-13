@@ -26,71 +26,106 @@ func TestInfinityEventSink(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateEventSink API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/event_sink/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
-	description := "Test Event Sink"
-	username := "testuser"
-	password := "testpassword"
 	mockState := &config.EventSink{
-		ID:                   123,
-		ResourceURI:          "/api/admin/configuration/v1/event_sink/123/",
-		Name:                 "test-event-sink",
-		Description:          &description,
-		URL:                  "https://test-event-sink.dev.pexip.network",
-		Username:             &username,
-		Password:             &password,
+		ID:                   1,
+		ResourceURI:          "/api/admin/configuration/v1/event_sink/1/",
+		Name:                 "tf-test-event-sink",
+		Description:          nil,
+		URL:                  "https://tf-test-webhook.example.com/events",
+		Username:             nil,
+		Password:             nil,
 		BulkSupport:          false,
 		VerifyTLSCertificate: false,
 		Version:              1,
 	}
 
-	// Mock the GetEventSink API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/event_sink/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/event_sink/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EventSinkCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		mockState.BulkSupport = req.BulkSupport
+		mockState.VerifyTLSCertificate = req.VerifyTLSCertificate
+		mockState.Version = req.Version
+	}).Once()
+
+	// Step 2: Update to min config (clear all optional fields)
+	client.On("PutJSON", mock.Anything, "configuration/v1/event_sink/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EventSinkUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		if req.BulkSupport != nil {
+			mockState.BulkSupport = *req.BulkSupport
+		}
+		if req.VerifyTLSCertificate != nil {
+			mockState.VerifyTLSCertificate = *req.VerifyTLSCertificate
+		}
+		if req.Version != nil {
+			mockState.Version = *req.Version
+		}
+		if args.Get(3) != nil {
+			eventSink := args.Get(3).(*config.EventSink)
+			*eventSink = *mockState
+		}
+	}).Once()
+
+	// Step 3: Delete
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/event_sink/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate with min config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/event_sink/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/event_sink/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EventSinkCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		mockState.BulkSupport = req.BulkSupport
+		mockState.VerifyTLSCertificate = req.VerifyTLSCertificate
+		mockState.Version = req.Version
+	}).Once()
+
+	// Step 5: Update to full config
+	client.On("PutJSON", mock.Anything, "configuration/v1/event_sink/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EventSinkUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		if req.BulkSupport != nil {
+			mockState.BulkSupport = *req.BulkSupport
+		}
+		if req.VerifyTLSCertificate != nil {
+			mockState.VerifyTLSCertificate = *req.VerifyTLSCertificate
+		}
+		if req.Version != nil {
+			mockState.Version = *req.Version
+		}
+		if args.Get(3) != nil {
+			eventSink := args.Get(3).(*config.EventSink)
+			*eventSink = *mockState
+		}
+	}).Once()
+
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/event_sink/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		eventSink := args.Get(3).(*config.EventSink)
 		*eventSink = *mockState
 	}).Maybe()
-
-	// Mock the UpdateEventSink API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/event_sink/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.EventSinkUpdateRequest)
-		eventSink := args.Get(3).(*config.EventSink)
-
-		// Update mock state
-		mockState.Name = updateRequest.Name
-		mockState.URL = updateRequest.URL
-		if updateRequest.Description != nil {
-			mockState.Description = updateRequest.Description
-		}
-		if updateRequest.Username != nil {
-			mockState.Username = updateRequest.Username
-		}
-		if updateRequest.Password != nil {
-			mockState.Password = updateRequest.Password
-		}
-		if updateRequest.BulkSupport != nil {
-			mockState.BulkSupport = *updateRequest.BulkSupport
-		}
-		if updateRequest.VerifyTLSCertificate != nil {
-			mockState.VerifyTLSCertificate = *updateRequest.VerifyTLSCertificate
-		}
-		if updateRequest.Version != nil {
-			mockState.Version = *updateRequest.Version
-		}
-
-		// Return updated state
-		*eventSink = *mockState
-	}).Maybe()
-
-	// Mock the DeleteEventSink API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/event_sink/123/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityEventSink(t, client)
 }
@@ -100,27 +135,72 @@ func testInfinityEventSink(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.event-sink-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.event-sink-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "name", "test-event-sink"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "description", "Test Event Sink"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "url", "https://test-event-sink.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "username", "testuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "password", "testpassword"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "name", "tf-test-event-sink"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "description", "tf-test Event Sink Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "url", "https://tf-test-webhook.example.com/events"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "username", "tf-test-user"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "bulk_support", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "verify_tls_certificate", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "version", "2"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_basic_updated"),
+				// Step 2: Update to min config (clear all optional fields)
+				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.event-sink-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.event-sink-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "name", "test-event-sink"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "description", "Test Event Sink"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "url", "https://test-event-sink.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "username", "testuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_event_sink.event-sink-test", "password", "updatedpassword"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "name", "tf-test-event-sink"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "url", "https://tf-test-webhook.example.com/events"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "bulk_support", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "verify_tls_certificate", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "version", "1"),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_event_sink_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "name", "tf-test-event-sink"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "url", "https://tf-test-webhook.example.com/events"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "bulk_support", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "verify_tls_certificate", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "version", "1"),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_event_sink_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_event_sink.tf-test-event-sink", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "name", "tf-test-event-sink"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "description", "tf-test Event Sink Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "url", "https://tf-test-webhook.example.com/events"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "username", "tf-test-user"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "bulk_support", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "verify_tls_certificate", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_event_sink.tf-test-event-sink", "version", "2"),
 				),
 			},
 		},
