@@ -30,9 +30,9 @@ func TestInfinityStunServer(t *testing.T) {
 	mockState := &config.STUNServer{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/stun_server/123/",
-		Name:        "tf-test-stun-server",
+		Name:        "tf-test-stun-server-full",
 		Description: "tf-test STUN server description",
-		Address:     "stun.example.com",
+		Address:     "stun-full.example.com",
 		Port:        5349,
 	}
 
@@ -96,9 +96,9 @@ func testInfinityStunServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server-full"),
 					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", "tf-test STUN server description"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun-full.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "5349"),
 				),
 			},
@@ -137,9 +137,9 @@ func testInfinityStunServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server-full"),
 					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", "tf-test STUN server description"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun-full.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "5349"),
 				),
 			},
