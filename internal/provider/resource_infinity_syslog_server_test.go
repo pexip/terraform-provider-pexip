@@ -31,7 +31,7 @@ func TestInfinitySyslogServer(t *testing.T) {
 	mockState := &config.SyslogServer{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/syslog_server/123/",
-		Address:     "syslog.example.com",
+		Address:     "syslog-full.example.com",
 		Port:        1514,
 		Description: "tf-test syslog server description",
 		Transport:   "tls",
@@ -112,7 +112,7 @@ func testInfinitySyslogServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog-full.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", "tf-test syslog server description"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "1514"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "tls"),
@@ -162,7 +162,7 @@ func testInfinitySyslogServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog-full.example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", "tf-test syslog server description"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "1514"),
 					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "tls"),
