@@ -34,11 +34,11 @@ func TestInfinityStaticRoute(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/static_route/", mock.Anything, mock.Anything).Return(createResponse, nil)
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with min config
 	mockState := &config.StaticRoute{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/static_route/123/",
-		Name:        "static_route-test",
+		Name:        "tf-test-static-route",
 		Address:     "192.168.1.0",
 		Prefix:      24,
 		Gateway:     "192.168.1.1",
@@ -56,6 +56,9 @@ func TestInfinityStaticRoute(t *testing.T) {
 		static_route := args.Get(3).(*config.StaticRoute)
 
 		// Update mock state based on request
+		if updateReq.Name != "" {
+			mockState.Name = updateReq.Name
+		}
 		if updateReq.Address != "" {
 			mockState.Address = updateReq.Address
 		}
@@ -82,20 +85,28 @@ func testInfinityStaticRoute(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_static_route_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_static_route_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.static_route-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.static_route-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_static_route.static_route-test", "name", "static_route-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.tf-test-static-route", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.tf-test-static-route", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "name", "tf-test-static-route"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "address", "192.168.1.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "prefix", "24"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "gateway", "192.168.1.1"),
 				),
 			},
+			// Step 2: Update to full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_static_route_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_static_route_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.static_route-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.static_route-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_static_route.static_route-test", "name", "static_route-test"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.tf-test-static-route", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_static_route.tf-test-static-route", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "name", "tf-test-static-route-updated"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "address", "10.0.0.0"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "prefix", "16"),
+					resource.TestCheckResourceAttr("pexip_infinity_static_route.tf-test-static-route", "gateway", "10.0.0.1"),
 				),
 			},
 		},
