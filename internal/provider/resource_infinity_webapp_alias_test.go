@@ -27,22 +27,29 @@ func TestInfinityWebappAlias(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking - starts with full config
+	mockState := &config.WebappAlias{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/webapp_alias/123/",
+		Slug:        "tf-test-alias-full",
+		Description: "tf-test webapp alias description",
+		WebappType:  "webapp3",
+		IsEnabled:   true,
+	}
+
 	// Mock the CreateWebappalias API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/webapp_alias/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_alias/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.WebappAlias{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/webapp_alias/123/",
-		Slug:        "test-alias",
-		Description: "Test WebappAlias",
-		WebappType:  "webapp1",
-		IsEnabled:   true,
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/webapp_alias/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.WebappAliasCreateRequest)
+		// Update mock state based on create request
+		mockState.Slug = createReq.Slug
+		mockState.Description = createReq.Description
+		mockState.WebappType = createReq.WebappType
+		mockState.IsEnabled = createReq.IsEnabled
+	}).Maybe()
 
 	// Mock the GetWebappalias API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_alias/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -59,9 +66,8 @@ func TestInfinityWebappAlias(t *testing.T) {
 		if updateReq.Slug != "" {
 			mockState.Slug = updateReq.Slug
 		}
-		if updateReq.Description != "" {
-			mockState.Description = updateReq.Description
-		}
+		// Description can be empty string, so always update
+		mockState.Description = updateReq.Description
 		if updateReq.WebappType != "" {
 			mockState.WebappType = updateReq.WebappType
 		}
@@ -88,24 +94,57 @@ func testInfinityWebappAlias(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "description", "Test WebappAlias"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "is_enabled", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "slug", "tf-test-alias-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "description", "tf-test webapp alias description"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "webapp_type", "webapp3"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "is_enabled", "true"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.webapp_alias-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "slug", "updated-alias"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "description", "Updated Test WebappAlias"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "webapp_type", "webapp2"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.webapp_alias-test", "is_enabled", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "slug", "tf-test-alias"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "webapp_type", "webapp1"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "is_enabled", "false"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_webapp_alias_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "slug", "tf-test-alias"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "webapp_type", "webapp1"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "is_enabled", "false"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_alias_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_alias.tf-test-webapp-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "slug", "tf-test-alias-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "description", "tf-test webapp alias description"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "webapp_type", "webapp3"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_alias.tf-test-webapp-alias", "is_enabled", "true"),
 				),
 			},
 		},
