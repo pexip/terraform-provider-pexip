@@ -12,8 +12,10 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -70,9 +72,10 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The resource integer identifier for the SSH authorized key in Infinity",
 			},
 			"keytype": schema.StringAttribute{
-				Computed:  true,
+				Required:            true,
 				MarkdownDescription: "SSH authorized key type.",
 			},
+			// key is the only attribute actaully required by the api, but in order for this resource to be compatible with the api, keytype and comment are also required.
 			"key": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
@@ -81,8 +84,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The SSH public key content (base64 encoded key data).",
 			},
 			"comment": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -92,6 +94,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				MarkdownDescription: "List of node resource URIs where this SSH key is authorized.",
 			},
 		},
@@ -107,22 +110,18 @@ func (r *InfinitySSHAuthorizedKeyResource) Create(ctx context.Context, req resou
 		return
 	}
 
+	// Convert nodes
+	nodes, diags := getStringList(ctx, plan.Nodes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	createRequest := &config.SSHAuthorizedKeyCreateRequest{
 		Keytype: plan.Keytype.ValueString(),
 		Key:     plan.Key.ValueString(),
-	}
-
-	// Set optional fields
-	if !plan.Comment.IsNull() {
-		createRequest.Comment = plan.Comment.ValueString()
-	}
-	if !plan.Nodes.IsNull() && !plan.Nodes.IsUnknown() {
-		var nodes []string
-		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.Nodes = nodes
+		Comment: plan.Comment.ValueString(),
+		Nodes:   nodes,
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateSSHAuthorizedKey(ctx, createRequest)
@@ -227,22 +226,18 @@ func (r *InfinitySSHAuthorizedKeyResource) Update(ctx context.Context, req resou
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
+	// Convert nodes
+	nodes, diags := getStringList(ctx, plan.Nodes)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	updateRequest := &config.SSHAuthorizedKeyUpdateRequest{
 		Keytype: plan.Keytype.ValueString(),
 		Key:     plan.Key.ValueString(),
-	}
-
-	// Set optional fields
-	if !plan.Comment.IsNull() {
-		updateRequest.Comment = plan.Comment.ValueString()
-	}
-	if !plan.Nodes.IsNull() && !plan.Nodes.IsUnknown() {
-		var nodes []string
-		resp.Diagnostics.Append(plan.Nodes.ElementsAs(ctx, &nodes, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.Nodes = nodes
+		Comment: plan.Comment.ValueString(),
+		Nodes:   nodes,
 	}
 
 	_, err := r.InfinityClient.Config().UpdateSSHAuthorizedKey(ctx, resourceID, updateRequest)
