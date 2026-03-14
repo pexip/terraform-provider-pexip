@@ -86,6 +86,8 @@ func (r *InfinitySyslogServerResource) Schema(ctx context.Context, req resource.
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
