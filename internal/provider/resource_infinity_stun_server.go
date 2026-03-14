@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -81,6 +82,7 @@ func (r *InfinitySTUNServerResource) Schema(ctx context.Context, req resource.Sc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -116,14 +118,10 @@ func (r *InfinitySTUNServerResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	createRequest := &config.STUNServerCreateRequest{
-		Name:    plan.Name.ValueString(),
-		Address: plan.Address.ValueString(),
-		Port:    int(plan.Port.ValueInt32()),
-	}
-
-	// Only set optional fields if they are not null in the plan
-	if !plan.Description.IsNull() {
-		createRequest.Description = plan.Description.ValueString()
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		Address:     plan.Address.ValueString(),
+		Port:        int(plan.Port.ValueInt32()),
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateSTUNServer(ctx, createRequest)
@@ -220,9 +218,10 @@ func (r *InfinitySTUNServerResource) Update(ctx context.Context, req resource.Up
 
 	port := int(plan.Port.ValueInt32())
 	updateRequest := &config.STUNServerUpdateRequest{
-		Name:    plan.Name.ValueString(),
-		Address: plan.Address.ValueString(),
-		Port:    &port,
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		Address:     plan.Address.ValueString(),
+		Port:        &port,
 	}
 
 	if !plan.Description.IsNull() {

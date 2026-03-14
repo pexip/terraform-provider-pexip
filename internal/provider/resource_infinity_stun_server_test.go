@@ -26,22 +26,29 @@ func TestInfinityStunServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking - starts with full config
+	mockState := &config.STUNServer{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/stun_server/123/",
+		Name:        "tf-test-stun-server",
+		Description: "tf-test STUN server description",
+		Address:     "stun.example.com",
+		Port:        5349,
+	}
+
 	// Mock the CreateSTUNServer API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/stun_server/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.STUNServer{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/stun_server/123/",
-		Name:        "stun-server-test",
-		Description: "Test STUN server",
-		Address:     "test-stun-server.dev.pexip.network",
-		Port:        8080,
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/stun_server/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.STUNServerCreateRequest)
+		// Update mock state based on create request
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.Address = createReq.Address
+		mockState.Port = createReq.Port
+	}).Maybe()
 
 	// Mock the GetSTUNServer API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/stun_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -54,11 +61,12 @@ func TestInfinityStunServer(t *testing.T) {
 		updateRequest := args.Get(2).(*config.STUNServerUpdateRequest)
 		stunServer := args.Get(3).(*config.STUNServer)
 
-		// Update mock state
-		mockState.Name = updateRequest.Name
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
+		// Update mock state based on request
+		if updateRequest.Name != "" {
+			mockState.Name = updateRequest.Name
 		}
+		// Description always sent now (without omitempty)
+		mockState.Description = updateRequest.Description
 		if updateRequest.Address != "" {
 			mockState.Address = updateRequest.Address
 		}
@@ -82,26 +90,57 @@ func testInfinityStunServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.stun-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.stun-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "name", "stun-server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "description", "Test STUN server"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "address", "test-stun-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "port", "8080"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", "tf-test STUN server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "5349"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.stun-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.stun-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "name", "stun-server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "description", "Test STUN server"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "address", "test-stun-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_stun_server.stun-server-test", "port", "8081"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "3478"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_stun_server_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "3478"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_stun_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_stun_server.tf-test-stun-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "name", "tf-test-stun-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "description", "tf-test STUN server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "address", "stun.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_stun_server.tf-test-stun-server", "port", "5349"),
 				),
 			},
 		},
