@@ -27,25 +27,35 @@ func TestInfinitySyslogServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking - starts with full config
+	mockState := &config.SyslogServer{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/syslog_server/123/",
+		Address:     "syslog.example.com",
+		Port:        1514,
+		Description: "tf-test syslog server description",
+		Transport:   "tls",
+		AuditLog:    true,
+		SupportLog:  true,
+		WebLog:      true,
+	}
+
 	// Mock the CreateSyslogserver API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/syslog_server/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/syslog_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.SyslogServer{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/syslog_server/123/",
-		Address:     "192.168.1.50",
-		Port:        514,
-		Description: "Test SyslogServer",
-		Transport:   "udp",
-		AuditLog:    true,
-		SupportLog:  true,
-		WebLog:      true,
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/syslog_server/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.SyslogServerCreateRequest)
+		// Update mock state based on create request
+		mockState.Address = createReq.Address
+		mockState.Description = createReq.Description
+		mockState.Port = createReq.Port
+		mockState.Transport = createReq.Transport
+		mockState.AuditLog = createReq.AuditLog
+		mockState.SupportLog = createReq.SupportLog
+		mockState.WebLog = createReq.WebLog
+	}).Maybe()
 
 	// Mock the GetSyslogserver API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/syslog_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -65,9 +75,8 @@ func TestInfinitySyslogServer(t *testing.T) {
 		if updateReq.Port != 0 {
 			mockState.Port = updateReq.Port
 		}
-		if updateReq.Description != "" {
-			mockState.Description = updateReq.Description
-		}
+		// Description can be empty string, so always update
+		mockState.Description = updateReq.Description
 		if updateReq.Transport != "" {
 			mockState.Transport = updateReq.Transport
 		}
@@ -97,29 +106,69 @@ func testInfinitySyslogServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.syslog_server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.syslog_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "description", "Test SyslogServer"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "audit_log", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "support_log", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "web_log", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", "tf-test syslog server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "1514"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "tls"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "audit_log", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "support_log", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "web_log", "true"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.syslog_server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.syslog_server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "address", "10.1.1.50"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "port", "1514"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "description", "Updated Test SyslogServer"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "transport", "tcp"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "audit_log", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "support_log", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.syslog_server-test", "web_log", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "514"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "udp"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "audit_log", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "support_log", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "web_log", "false"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_syslog_server_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "514"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "udp"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "audit_log", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "support_log", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "web_log", "false"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_syslog_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_syslog_server.tf-test-syslog-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "address", "syslog.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "description", "tf-test syslog server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "port", "1514"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "transport", "tls"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "audit_log", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "support_log", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_syslog_server.tf-test-syslog-server", "web_log", "true"),
 				),
 			},
 		},
