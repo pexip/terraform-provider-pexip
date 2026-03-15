@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_system_tuneable" "system_tuneable-test" {
-  name    = "system_tuneable-test"
+  name    = "tf-test-system-tuneable"
   setting = "test-value"
 }
