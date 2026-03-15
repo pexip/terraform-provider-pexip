@@ -26,21 +26,30 @@ import (
 func TestInfinityIvrThemeIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
+	// Base transport configuration
+	baseTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true, // We need this because default certificate is not trusted
+			MinVersion:         tls.VersionTLS12,
+		},
+		MaxIdleConns:        30,
+		MaxIdleConnsPerHost: 5,
+		IdleConnTimeout:     60 * time.Second,
+	}
+
+	// Conditionally wrap with logging transport if DEBUG_HTTP is set
+	var transport http.RoundTripper = baseTransport
+	if os.Getenv("DEBUG_HTTP") != "" {
+		transport = &log.LoggingTransport{
+			Base: baseTransport,
+		}
+	}
+
 	client, err := infinity.New(
 		infinity.WithBaseURL(test.INFINITY_BASE_URL),
 		infinity.WithBasicAuth(test.INFINITY_USERNAME, test.INFINITY_PASSWORD),
 		infinity.WithMaxRetries(2),
-		infinity.WithTransport(&log.LoggingTransport{
-			Base: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // We need this because default certificate is not trusted
-					MinVersion:         tls.VersionTLS12,
-				},
-				MaxIdleConns:        30,
-				MaxIdleConnsPerHost: 5,
-				IdleConnTimeout:     60 * time.Second,
-			},
-		}),
+		infinity.WithTransport(transport),
 	)
 	require.NoError(t, err)
 

@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_ivr_theme" "ivr_theme-test" {
-  name    = "ivr_theme-test"
+  name    = "tf-test-ivr-theme"
   package = "${path.module}/pexip-test-theme.zip"
 }

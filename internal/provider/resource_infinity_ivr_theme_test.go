@@ -24,20 +24,14 @@ func TestInfinityIvrTheme(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
-	// Register cleanup function to remove test artifacts
-	t.Cleanup(func() {
-		_ = os.Remove("pexip-test-theme.zip")
-		_ = os.Remove("pexip-test-theme-updated.zip")
-	})
-
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with min config
 	mockState := &config.IVRTheme{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/ivr_theme/123/",
-		Name:        "ivr_theme-test",
+		Name:        "tf-test-ivr-theme",
 	}
 
 	// Mock the CreateIVRTheme API call (two-step process)
@@ -47,15 +41,12 @@ func TestInfinityIvrTheme(t *testing.T) {
 		ResourceURI: "/api/admin/configuration/v1/ivr_theme/123/",
 	}
 	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/",
-		mock.MatchedBy(func(fields map[string]string) bool {
-			return fields["name"] == "ivr_theme-test"
-		}), "", "", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Step 2: PATCH with package file
-	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/123/",
-		mock.Anything, "package", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
-		ivr_theme := args.Get(6).(*config.IVRTheme)
-		*ivr_theme = *mockState
+		mock.Anything, "", "", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		fields := args.Get(2).(map[string]string)
+		// Update mock state based on create request
+		if name, ok := fields["name"]; ok {
+			mockState.Name = name
+		}
 	}).Maybe()
 
 	// Mock the GetIVRTheme API call for Read operations
@@ -64,7 +55,7 @@ func TestInfinityIvrTheme(t *testing.T) {
 		*ivr_theme = *mockState
 	}).Maybe()
 
-	// Mock the UpdateIVRTheme API call (now using multipart form with PATCH)
+	// Step 2: PATCH with package file (used for both create finalization and updates)
 	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/123/",
 		mock.Anything, "package", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
 		fields := args.Get(2).(map[string]string)
@@ -91,20 +82,22 @@ func testInfinityIvrTheme(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ivr_theme_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ivr_theme_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ivr_theme.ivr_theme-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ivr_theme.ivr_theme-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ivr_theme.ivr_theme-test", "name", "ivr_theme-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ivr_theme.ivr_theme-test", "name", "tf-test-ivr-theme"),
 				),
 			},
+			// Step 2: Update to full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ivr_theme_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ivr_theme_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ivr_theme.ivr_theme-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ivr_theme.ivr_theme-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ivr_theme.ivr_theme-test", "name", "ivr_theme-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ivr_theme.ivr_theme-test", "name", "tf-test-ivr-theme-full"),
 				),
 			},
 		},
