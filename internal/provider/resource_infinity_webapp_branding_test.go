@@ -24,12 +24,6 @@ func TestInfinityWebappBranding(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
-	// Register cleanup function to remove test artifacts
-	t.Cleanup(func() {
-		_ = os.Remove("webapp2-brand.zip")
-		_ = os.Remove("webapp3-brand.zip")
-	})
-
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
@@ -37,8 +31,8 @@ func TestInfinityWebappBranding(t *testing.T) {
 	createdUUID := "12345678-1234-1234-1234-123456789012"
 	mockState := &config.WebappBranding{
 		ResourceURI: "/api/admin/configuration/v1/webapp_branding/" + createdUUID + "/",
-		Name:        "webapp_branding-test",
-		Description: "Test WebappBranding",
+		Name:        "tf-test-webapp-branding",
+		Description: "",
 		UUID:        createdUUID,
 		WebappType:  "webapp2",
 		IsDefault:   false,
@@ -53,9 +47,11 @@ func TestInfinityWebappBranding(t *testing.T) {
 		fields := args.Get(2).(map[string]string)
 		// Update mock state based on create request fields
 		mockState.Name = fields["name"]
-		mockState.Description = fields["description"]
+		if desc, ok := fields["description"]; ok {
+			mockState.Description = desc
+		}
 		mockState.WebappType = fields["webapp_type"]
-	})
+	}).Maybe()
 
 	// Mock the GetWebappBranding API call for Read operations (uses UUID)
 	client.On("GetJSON", mock.Anything, "configuration/v1/webapp_branding/"+createdUUID+"/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -69,6 +65,9 @@ func TestInfinityWebappBranding(t *testing.T) {
 		result := args.Get(3).(*config.WebappBranding)
 
 		// Update mock state based on update request
+		if req.Name != "" {
+			mockState.Name = req.Name
+		}
 		if req.Description != "" {
 			mockState.Description = req.Description
 		}
@@ -87,24 +86,26 @@ func testInfinityWebappBranding(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_webapp_branding_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_branding_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "uuid"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "webapp_branding-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "Test WebappBranding"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "tf-test-webapp-branding"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "webapp2"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "last_updated"),
 				),
 			},
+			// Step 2: Update to full config (webapp_type and branding_file force replacement)
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_webapp_branding_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_webapp_branding_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "uuid"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "webapp_branding-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "Updated Test WebappBranding"),
-					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "webapp2"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "name", "tf-test-webapp-branding-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "description", "tf-test webapp branding description"),
+					resource.TestCheckResourceAttr("pexip_infinity_webapp_branding.webapp_branding-test", "webapp_type", "webapp3"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "branding_file"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_webapp_branding.webapp_branding-test", "last_updated"),
 				),
