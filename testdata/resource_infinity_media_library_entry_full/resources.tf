@@ -5,7 +5,7 @@
  */
 
 resource "pexip_infinity_media_library_entry" "media_library_entry-test" {
-  name        = "media_library_entry-test"
-  description = "Test MediaLibraryEntry"
-  media_file  = "${path.module}/earth.mp4"
+  name        = "tf-test-media-library-entry-full"
+  description = "tf-test media library entry description"
+  media_file  = "${path.module}/rain.mp4"
 }
