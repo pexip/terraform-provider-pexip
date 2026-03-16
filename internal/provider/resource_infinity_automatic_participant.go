@@ -113,7 +113,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 			"call_type": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				Default: stringdefault.StaticString("video"),
+				Default:  stringdefault.StaticString("video"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("audio", "video", "video-only"),
 				},
@@ -122,7 +122,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 			"role": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString("guest"),
+				Default:  stringdefault.StaticString("guest"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("guest", "chair"),
 				},
@@ -139,7 +139,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 			"keep_conference_alive": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString("keep_conference_alive_if_multiple"),
+				Default:  stringdefault.StaticString("keep_conference_alive_if_multiple"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("keep_conference_alive", "keep_conference_alive_if_multiple", "keep_conference_alive_never"),
 				},

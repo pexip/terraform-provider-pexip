@@ -109,7 +109,7 @@ func (r *InfinitySnmpNetworkManagementSystemResource) Schema(ctx context.Context
 				Computed:  true,
 				Optional:  true,
 				Sensitive: true,
-				Default: stringdefault.StaticString("public"),
+				Default:   stringdefault.StaticString("public"),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(16),
 				},

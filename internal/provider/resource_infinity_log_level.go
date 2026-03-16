@@ -79,7 +79,7 @@ func (r *InfinityLogLevelResource) Schema(ctx context.Context, req resource.Sche
 			"level": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				Default: stringdefault.StaticString("NOTSET"),
+				Default:  stringdefault.StaticString("NOTSET"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
 				},
