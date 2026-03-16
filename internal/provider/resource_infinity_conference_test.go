@@ -336,9 +336,21 @@ func TestInfinityConference(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
 		*mockParticipant1 = config.AutomaticParticipant{
-			ID:          1,
-			ResourceURI: "/api/admin/configuration/v1/automatic_participant/1/",
-			Alias:       req.Alias,
+			ID:                  1,
+			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/1/",
+			Alias:               req.Alias,
+			Description:         req.Description,
+			Conference:          req.Conference,
+			Protocol:            req.Protocol,
+			CallType:            req.CallType,
+			Role:                req.Role,
+			DTMFSequence:        req.DTMFSequence,
+			KeepConferenceAlive: req.KeepConferenceAlive,
+			Routing:             req.Routing,
+			SystemLocation:      req.SystemLocation,
+			Streaming:           req.Streaming,
+			RemoteDisplayName:   req.RemoteDisplayName,
+			PresentationURL:     req.PresentationURL,
 		}
 		// Update the conference's automatic participants
 		if mockState.AutomaticParticipants == nil {
@@ -356,9 +368,21 @@ func TestInfinityConference(t *testing.T) {
 	}, nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
 		*mockParticipant1 = config.AutomaticParticipant{
-			ID:          1,
-			ResourceURI: "/api/admin/configuration/v1/automatic_participant/1/",
-			Alias:       req.Alias,
+			ID:                  1,
+			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/1/",
+			Alias:               req.Alias,
+			Description:         req.Description,
+			Conference:          req.Conference,
+			Protocol:            req.Protocol,
+			CallType:            req.CallType,
+			Role:                req.Role,
+			DTMFSequence:        req.DTMFSequence,
+			KeepConferenceAlive: req.KeepConferenceAlive,
+			Routing:             req.Routing,
+			SystemLocation:      req.SystemLocation,
+			Streaming:           req.Streaming,
+			RemoteDisplayName:   req.RemoteDisplayName,
+			PresentationURL:     req.PresentationURL,
 		}
 		// Update the conference's automatic participants
 		if mockState.AutomaticParticipants == nil {
