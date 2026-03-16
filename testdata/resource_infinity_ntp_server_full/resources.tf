@@ -5,6 +5,6 @@
  */
 
 resource "pexip_infinity_ntp_server" "tf-test-ntp" {
-  address     = "1.pool.ntp.org"
+  address     = "1.europe.pool.ntp.org"
   description = "tf-test NTP Server Description"
 }
