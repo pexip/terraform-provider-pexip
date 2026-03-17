@@ -24,21 +24,15 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
-	// Register cleanup function to remove test artifacts
-	t.Cleanup(func() {
-		_ = os.Remove("earth.mp4")
-		_ = os.Remove("rain.mp4")
-	})
-
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with min config
 	mockState := &config.MediaLibraryEntry{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/media_library_entry/123/",
-		Name:        "media_library_entry-test",
-		Description: "Test MediaLibraryEntry",
+		Name:        "tf-test-media-library-entry",
+		Description: "",
 		UUID:        "test-value",
 		FileName:    "earth.mp4",
 	}
@@ -49,9 +43,18 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 		ResourceURI: "/api/admin/configuration/v1/media_library_entry/123/",
 	}
 	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/",
-		mock.MatchedBy(func(fields map[string]string) bool {
-			return fields["name"] == "media_library_entry-test" && fields["description"] == "Test MediaLibraryEntry"
-		}), "media_file", mock.Anything, mock.Anything, mock.Anything).Return(createResponse, nil)
+		mock.Anything, "media_file", mock.Anything, mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		fields := args.Get(2).(map[string]string)
+		// Update mock state based on create request fields
+		mockState.Name = fields["name"]
+		if desc, ok := fields["description"]; ok {
+			mockState.Description = desc
+		}
+		// Update filename from the file parameter
+		if filename, ok := args.Get(4).(string); ok {
+			mockState.FileName = filename
+		}
+	}).Maybe()
 
 	// Mock the GetMediaLibraryEntry API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_entry/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -61,14 +64,15 @@ func TestInfinityMediaLibraryEntry(t *testing.T) {
 
 	// Mock the UpdateMediaLibraryEntry API call (now using multipart form with PATCH)
 	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/123/",
-		mock.MatchedBy(func(fields map[string]string) bool {
-			return fields["description"] == "Updated Test MediaLibraryEntry"
-		}), "media_file", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
+		mock.Anything, "media_file", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
 		fields := args.Get(2).(map[string]string)
 		media_library_entry := args.Get(6).(*config.MediaLibraryEntry)
 
 		// Update mock state based on fields
-		if desc, ok := fields["description"]; ok && desc != "" {
+		if name, ok := fields["name"]; ok && name != "" {
+			mockState.Name = name
+		}
+		if desc, ok := fields["description"]; ok {
 			mockState.Description = desc
 		}
 		if uuid, ok := fields["uuid"]; ok && uuid != "" {
@@ -95,23 +99,25 @@ func testInfinityMediaLibraryEntry(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_library_entry_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_entry_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "media_library_entry-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", "Test MediaLibraryEntry"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "tf-test-media-library-entry"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "earth.mp4"),
 				),
 			},
+			// Step 2: Update to full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_library_entry_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_entry_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_entry.media_library_entry-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "media_library_entry-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", "Updated Test MediaLibraryEntry"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "name", "tf-test-media-library-entry-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "description", "tf-test media library entry description"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_entry.media_library_entry-test", "file_name", "rain.mp4"),
 				),
 			},

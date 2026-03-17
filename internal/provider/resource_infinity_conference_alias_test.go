@@ -38,7 +38,7 @@ func TestInfinityConferenceAlias(t *testing.T) {
 	conferenceState := &config.Conference{
 		ID:                              1,
 		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
-		Name:                            "test-conference",
+		Name:                            "tf-test-conference",
 		Description:                     "Test Conference",
 		ServiceType:                     "conference",
 		AllowGuests:                     false,
@@ -89,8 +89,8 @@ func TestInfinityConferenceAlias(t *testing.T) {
 	mockState := &config.ConferenceAlias{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/conference_alias/123/",
-		Alias:       "test-alias",
-		Description: "Test ConferenceAlias",
+		Alias:       "tf-test-alias",
+		Description: "Test Conference Alias Description",
 		Conference:  "/api/admin/configuration/v1/conference/1/",
 	}
 
@@ -126,20 +126,47 @@ func testInfinityConferenceAlias(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.conference_alias-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.conference_alias-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.conference_alias-test", "description", "Test ConferenceAlias"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "description", "Test Conference Alias Description"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.conference_alias-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.conference_alias-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.conference_alias-test", "description", "Updated Test ConferenceAlias"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_conference_alias_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-conference-alias", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "alias", "tf-test-alias"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-conference-alias", "description", "Test Conference Alias Description"),
 				),
 			},
 		},

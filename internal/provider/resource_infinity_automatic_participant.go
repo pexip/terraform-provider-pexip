@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -96,33 +96,37 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "An optional description of the Automatically Dialed Participant. Maximum length: 250 characters.",
 			},
 			"conference": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(stringvalidator.LengthAtMost(250)),
-				},
-				MarkdownDescription: "List of conference URIs or references. Maximum length: 250 characters.",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The conference to which the Automatically Dialed Participant belongs.",
 			},
 			"protocol": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("sip"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("sip", "h323", "rtmp", "webrtc"),
+					stringvalidator.OneOf("teams", "gms", "h323", "sip", "mssip", "rtmp"),
 				},
-				MarkdownDescription: "The protocol for the automatic participant. Valid choices: sip, h323, rtmp, webrtc.",
+				MarkdownDescription: "The protocol to use when dialing the participant. Note that if the call is to a registered device, Pexip Infinity will instead use the protocol that the device used to make the registration. Valid choices: teams, gms, h323, sip, mssip, rtmp.",
 			},
 			"call_type": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("video"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("audio", "video"),
+					stringvalidator.OneOf("audio", "video", "video-only"),
 				},
-				MarkdownDescription: "The call type. Valid choices: audio, video.",
+				MarkdownDescription: "Maximum media content of the call. The participant being called will not be able to escalate beyond the selected capability. Valid choices: audio, video, video-only.",
 			},
 			"role": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("guest"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("guest", "chair"),
 				},
-				MarkdownDescription: "The role of the automatic participant. Valid choices: guest, chair.",
+				MarkdownDescription: "The level of privileges the participant will have in the conference. host: The participant will have full privileges. guest: The participant will have restricted privileges. Valid choices: guest, chair.",
 			},
 			"dtmf_sequence": schema.StringAttribute{
 				Optional: true,
@@ -130,31 +134,35 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The DTMF sequence to be transmitted after the call to the automatically dialed participant has been established. Maximum length: 250 characters.",
+				MarkdownDescription: "The DTMF sequence to be transmitted after the call to the automatically dialed participant starts. Insert a comma for a 2 second pause. Maximum length: 250 characters.",
 			},
 			"keep_conference_alive": schema.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("keep_conference_alive_if_multiple"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("keep_conference_alive", "keep_conference_alive_if_multiple", "keep_conference_alive_never"),
 				},
-				MarkdownDescription: "Conference behavior when only this participant remains. Valid choices: keep_conference_alive, keep_conference_alive_if_multiple or keep_conference_alive_never.",
+				MarkdownDescription: "Determines whether the conference will continue when all other participants have disconnected. Yes: the conference will continue to run until this participant has disconnected (applies to Hosts only). If multiple: the conference will continue to run as long as there are two or more If multiple participants and at least one of them is a Host. No: the conference will be terminated automatically if this is the only remaining participant.",
 			},
 			"routing": schema.StringAttribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  stringdefault.StaticString("manual"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("auto", "manual"),
+					stringvalidator.OneOf("manual", "routing_rule"),
 				},
-				MarkdownDescription: "Route this call manually using the defaults for the specified location - or route using the system location policy. Valid choices: auto, manual.",
+				MarkdownDescription: "Route this call manually using the defaults for the specified location - or route this call automatically using Call Routing Rules. Valid choices: manual, routing_rule.",
 			},
 			"system_location": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Reference to system location resource URI.",
+				MarkdownDescription: "For manually routed Automatically Dialed Participants (ADPs), this is the location of the Conferencing Node from which the call to the ADP will be initiated. For automatically routed ADPs, this is the notional source location used when considering if a routing rule applies or not - however the routing rule itself determines the location of the node that dials the ADP. To allow Pexip Infinity to automatically select the Conferencing Node to initiate the outgoing call, select Automatic.",
 			},
 			"streaming": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Whether streaming is enabled. Defaults to false.",
+				MarkdownDescription: "Identify the dialed participant as a streaming or recording device.",
 			},
 			"remote_display_name": schema.StringAttribute{
 				Optional: true,
@@ -162,7 +170,7 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The remote display name. Maximum length: 250 characters.",
+				MarkdownDescription: "The optional user-facing display name for this participant, which will be shown in the participant lists. Maximum length: 250 characters.",
 			},
 			"presentation_url": schema.StringAttribute{
 				Optional: true,
@@ -170,11 +178,11 @@ func (r *InfinityAutomaticParticipantResource) Schema(ctx context.Context, req r
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
-				MarkdownDescription: "The presentation URL. Maximum length: 250 characters.",
+				MarkdownDescription: "The optional RTMP URL for the second (presentation) stream. Maximum length: 250 characters.",
 			},
 			"creation_time": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The creation timestamp of the automatic participant.",
+				MarkdownDescription: "The time at which the Automatically Dialed Participant was created.",
 			},
 		},
 		MarkdownDescription: "Manages an automatic participant configuration with the Infinity service.",
@@ -210,7 +218,7 @@ func (r *InfinityAutomaticParticipantResource) Create(ctx context.Context, req r
 	if !plan.DTMFSequence.IsNull() {
 		createRequest.DTMFSequence = plan.DTMFSequence.ValueString()
 	}
-	if !plan.SystemLocation.IsNull() {
+	if !plan.SystemLocation.IsNull() && plan.SystemLocation.ValueString() != "" {
 		systemLocation := plan.SystemLocation.ValueString()
 		createRequest.SystemLocation = &systemLocation
 	}
@@ -327,9 +335,11 @@ func (r *InfinityAutomaticParticipantResource) Read(ctx context.Context, req res
 func (r *InfinityAutomaticParticipantResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	plan := &InfinityAutomaticParticipantResourceModel{}
 	state := &InfinityAutomaticParticipantResourceModel{}
+	rawConfig := &InfinityAutomaticParticipantResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, rawConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -362,9 +372,13 @@ func (r *InfinityAutomaticParticipantResource) Update(ctx context.Context, req r
 	if !plan.DTMFSequence.IsNull() {
 		updateRequest.DTMFSequence = plan.DTMFSequence.ValueString()
 	}
-	if !plan.SystemLocation.IsNull() {
+	// SystemLocation must always be set (even to nil) to allow clearing
+	// Check the config to see if the user specified it, rather than the plan which might have computed values
+	if !rawConfig.SystemLocation.IsNull() && rawConfig.SystemLocation.ValueString() != "" {
 		systemLocation := plan.SystemLocation.ValueString()
 		updateRequest.SystemLocation = &systemLocation
+	} else {
+		updateRequest.SystemLocation = nil
 	}
 	if !plan.RemoteDisplayName.IsNull() {
 		updateRequest.RemoteDisplayName = plan.RemoteDisplayName.ValueString()

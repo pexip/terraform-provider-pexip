@@ -27,93 +27,120 @@ func TestInfinityEndUser(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateEndUser API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/end_user/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/end_user/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
 	// Shared state for mocking
 	mockState := &config.EndUser{
-		ID:                  123,
-		ResourceURI:         "/api/admin/configuration/v1/end_user/123/",
-		PrimaryEmailAddress: "user@example.com",
-		FirstName:           "John",
-		LastName:            "Doe",
-		DisplayName:         "John Doe",
-		TelephoneNumber:     "+1234567890",
-		MobileNumber:        "+0987654321",
-		Title:               "Software Engineer",
-		Department:          "Engineering",
-		AvatarURL:           "https://example.com/avatar.jpg",
+		ID:                  1,
+		ResourceURI:         "/api/admin/configuration/v1/end_user/1/",
+		PrimaryEmailAddress: "tf-test-user@example.com",
+		FirstName:           "",
+		LastName:            "",
+		DisplayName:         "",
+		TelephoneNumber:     "",
+		MobileNumber:        "",
+		Title:               "",
+		Department:          "",
+		AvatarURL:           "",
 		UserGroups:          []string{},
 		UserOID:             test.StringPtr("user-oid-123"),
 		ExchangeUserID:      test.StringPtr("exchange-123"),
-		MSExchangeGUID:      test.StringPtr("11111111-2222-3333-4444-555555555555"),
-		SyncTag:             "sync-tag",
+		MSExchangeGUID:      nil,
+		SyncTag:             "",
 	}
 
-	// Mock the GetEndUser API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/end_user/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/end_user/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/end_user/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EndUserCreateRequest)
+		mockState.PrimaryEmailAddress = req.PrimaryEmailAddress
+		mockState.FirstName = req.FirstName
+		mockState.LastName = req.LastName
+		mockState.DisplayName = req.DisplayName
+		mockState.TelephoneNumber = req.TelephoneNumber
+		mockState.MobileNumber = req.MobileNumber
+		mockState.Title = req.Title
+		mockState.Department = req.Department
+		mockState.AvatarURL = req.AvatarURL
+		mockState.MSExchangeGUID = req.MSExchangeGUID
+		mockState.SyncTag = req.SyncTag
+		mockState.UserGroups = req.UserGroups
+	}).Once()
+
+	// Step 2: Update to min config (clear all optional fields)
+	client.On("PutJSON", mock.Anything, "configuration/v1/end_user/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EndUserUpdateRequest)
+		mockState.PrimaryEmailAddress = req.PrimaryEmailAddress
+		mockState.FirstName = req.FirstName
+		mockState.LastName = req.LastName
+		mockState.DisplayName = req.DisplayName
+		mockState.TelephoneNumber = req.TelephoneNumber
+		mockState.MobileNumber = req.MobileNumber
+		mockState.Title = req.Title
+		mockState.Department = req.Department
+		mockState.AvatarURL = req.AvatarURL
+		mockState.MSExchangeGUID = req.MSExchangeGUID
+		mockState.SyncTag = req.SyncTag
+		if req.UserGroups != nil {
+			mockState.UserGroups = req.UserGroups
+		}
+		if args.Get(3) != nil {
+			endUser := args.Get(3).(*config.EndUser)
+			*endUser = *mockState
+		}
+	}).Once()
+
+	// Step 3: Delete
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/end_user/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate with min config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/end_user/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/end_user/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EndUserCreateRequest)
+		mockState.PrimaryEmailAddress = req.PrimaryEmailAddress
+		mockState.FirstName = req.FirstName
+		mockState.LastName = req.LastName
+		mockState.DisplayName = req.DisplayName
+		mockState.TelephoneNumber = req.TelephoneNumber
+		mockState.MobileNumber = req.MobileNumber
+		mockState.Title = req.Title
+		mockState.Department = req.Department
+		mockState.AvatarURL = req.AvatarURL
+		mockState.MSExchangeGUID = req.MSExchangeGUID
+		mockState.SyncTag = req.SyncTag
+		mockState.UserGroups = req.UserGroups
+	}).Once()
+
+	// Step 5: Update to full config
+	client.On("PutJSON", mock.Anything, "configuration/v1/end_user/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.EndUserUpdateRequest)
+		mockState.PrimaryEmailAddress = req.PrimaryEmailAddress
+		mockState.FirstName = req.FirstName
+		mockState.LastName = req.LastName
+		mockState.DisplayName = req.DisplayName
+		mockState.TelephoneNumber = req.TelephoneNumber
+		mockState.MobileNumber = req.MobileNumber
+		mockState.Title = req.Title
+		mockState.Department = req.Department
+		mockState.AvatarURL = req.AvatarURL
+		mockState.MSExchangeGUID = req.MSExchangeGUID
+		mockState.SyncTag = req.SyncTag
+		if req.UserGroups != nil {
+			mockState.UserGroups = req.UserGroups
+		}
+		if args.Get(3) != nil {
+			endUser := args.Get(3).(*config.EndUser)
+			*endUser = *mockState
+		}
+	}).Once()
+
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/end_user/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		endUser := args.Get(3).(*config.EndUser)
 		*endUser = *mockState
 	}).Maybe()
-
-	// Mock the UpdateEndUser API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/end_user/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.EndUserUpdateRequest)
-		endUser := args.Get(3).(*config.EndUser)
-
-		// Update mock state
-		if updateRequest.PrimaryEmailAddress != "" {
-			mockState.PrimaryEmailAddress = updateRequest.PrimaryEmailAddress
-		}
-		if updateRequest.FirstName != "" {
-			mockState.FirstName = updateRequest.FirstName
-		}
-		if updateRequest.LastName != "" {
-			mockState.LastName = updateRequest.LastName
-		}
-		if updateRequest.DisplayName != "" {
-			mockState.DisplayName = updateRequest.DisplayName
-		}
-		if updateRequest.TelephoneNumber != "" {
-			mockState.TelephoneNumber = updateRequest.TelephoneNumber
-		}
-		if updateRequest.MobileNumber != "" {
-			mockState.MobileNumber = updateRequest.MobileNumber
-		}
-		if updateRequest.Title != "" {
-			mockState.Title = updateRequest.Title
-		}
-		if updateRequest.Department != "" {
-			mockState.Department = updateRequest.Department
-		}
-		if updateRequest.AvatarURL != "" {
-			mockState.AvatarURL = updateRequest.AvatarURL
-		}
-		if updateRequest.UserOID != nil && *updateRequest.UserOID != "" {
-			mockState.UserOID = updateRequest.UserOID
-		}
-		if updateRequest.ExchangeUserID != nil && *updateRequest.ExchangeUserID != "" {
-			mockState.ExchangeUserID = updateRequest.ExchangeUserID
-		}
-		if updateRequest.MSExchangeGUID != nil && *updateRequest.MSExchangeGUID != "" {
-			mockState.MSExchangeGUID = updateRequest.MSExchangeGUID
-		}
-		if updateRequest.SyncTag != "" {
-			mockState.SyncTag = updateRequest.SyncTag
-		}
-
-		// Return updated state
-		*endUser = *mockState
-	}).Maybe()
-
-	// Mock the DeleteEndUser API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/end_user/123/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityEndUser(t, client)
 }
@@ -123,39 +150,82 @@ func testInfinityEndUser(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_end_user_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_end_user_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.end-user-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.end-user-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "primary_email_address", "user@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "first_name", "John"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "last_name", "Doe"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "display_name", "John Doe"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "telephone_number", "+1234567890"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "mobile_number", "+0987654321"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "title", "Software Engineer"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "department", "Engineering"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "avatar_url", "https://example.com/avatar.jpg"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "ms_exchange_guid", "11111111-2222-3333-4444-555555555555"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "sync_tag", "sync-tag"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "primary_email_address", "tf-test-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "first_name", "tf-test John"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "last_name", "tf-test Doe"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "display_name", "tf-test John Doe"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "telephone_number", "+1234567890"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "mobile_number", "+0987654321"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "title", "tf-test Software Engineer"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "department", "tf-test Engineering"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "avatar_url", "https://example.com/avatar.jpg"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "ms_exchange_guid", "11111111-2222-3333-4444-555555555555"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "sync_tag", "tf-test-sync-tag"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_end_user_basic_updated"),
+				// Step 2: Update to min config (clear all optional fields)
+				Config: test.LoadTestFolder(t, "resource_infinity_end_user_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.end-user-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.end-user-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "primary_email_address", "updated@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "first_name", "Jane"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "last_name", "Smith"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "display_name", "Jane Smith"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "telephone_number", "+1111111111"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "mobile_number", "+2222222222"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "title", "Senior Engineer"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "department", "Product"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "avatar_url", "https://example.com/updated-avatar.jpg"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "ms_exchange_guid", "66666666-7777-8888-9999-aaaaaaaaaaaa"),
-					resource.TestCheckResourceAttr("pexip_infinity_end_user.end-user-test", "sync_tag", "updated-sync-tag"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "primary_email_address", "tf-test-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "first_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "last_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "display_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "telephone_number", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "mobile_number", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "title", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "department", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "avatar_url", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "sync_tag", ""),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_end_user_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_end_user_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "primary_email_address", "tf-test-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "first_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "last_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "display_name", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "telephone_number", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "mobile_number", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "title", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "department", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "avatar_url", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "sync_tag", ""),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_end_user_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_end_user.tf-test-end-user", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "primary_email_address", "tf-test-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "first_name", "tf-test John"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "last_name", "tf-test Doe"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "display_name", "tf-test John Doe"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "telephone_number", "+1234567890"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "mobile_number", "+0987654321"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "title", "tf-test Software Engineer"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "department", "tf-test Engineering"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "avatar_url", "https://example.com/avatar.jpg"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "ms_exchange_guid", "11111111-2222-3333-4444-555555555555"),
+					resource.TestCheckResourceAttr("pexip_infinity_end_user.tf-test-end-user", "sync_tag", "tf-test-sync-tag"),
 				),
 			},
 		},

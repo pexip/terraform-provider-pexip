@@ -37,8 +37,8 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 	conferenceState := &config.Conference{
 		ID:                              1,
 		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
-		Name:                            "test-conference",
-		Description:                     "Test Conference",
+		Name:                            "tf-test-adp-conference",
+		Description:                     "",
 		ServiceType:                     "conference",
 		AllowGuests:                     false,
 		BreakoutRooms:                   false,
@@ -87,9 +87,9 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 	locationState := &config.SystemLocation{
 		ID:                        1,
 		ResourceURI:               "/api/admin/configuration/v1/system_location/1/",
-		Name:                      "test-location",
-		Description:               "Test Location",
-		MTU:                       1460,
+		Name:                      "tf-test-adp-location",
+		Description:               "",
+		MTU:                       1500,
 		SignallingQoS:             test.IntPtr(0),
 		MediaQoS:                  test.IntPtr(0),
 		BDPMPinChecksEnabled:      "GLOBAL",
@@ -114,19 +114,19 @@ func TestInfinityAutomaticParticipant(t *testing.T) {
 	mockState := &config.AutomaticParticipant{
 		ID:                  123,
 		ResourceURI:         "/api/admin/configuration/v1/automatic_participant/123/",
-		Alias:               "automatic-participant-test",
-		Description:         "Test AutomaticParticipant",
+		Alias:               "tf-test-adp",
+		Description:         "Test AutomaticParticipant Full Config",
 		Conference:          []string{"/api/admin/configuration/v1/conference/1/"},
-		Protocol:            "sip",
-		CallType:            "video",
-		Role:                "guest",
-		DTMFSequence:        "123#",
+		Protocol:            "h323",
+		CallType:            "audio",
+		Role:                "chair",
+		DTMFSequence:        "456*",
 		KeepConferenceAlive: "keep_conference_alive",
-		Routing:             "manual",
+		Routing:             "routing_rule",
 		SystemLocation:      test.StringPtr("/api/admin/configuration/v1/system_location/1/"),
 		Streaming:           true,
-		RemoteDisplayName:   "automatic_participant-test",
-		PresentationURL:     "https://example.com",
+		RemoteDisplayName:   "tf-test-adp-display",
+		PresentationURL:     "https://example.com/presentation",
 	}
 
 	client.On("GetJSON", mock.Anything, "configuration/v1/automatic_participant/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -170,22 +170,65 @@ func testInfinityAutomaticParticipant(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Test 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "automatic-participant-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Test AutomaticParticipant"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "tf-test-adp"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Test AutomaticParticipant Full Config"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "protocol", "h323"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "call_type", "audio"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "role", "chair"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "dtmf_sequence", "456*"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "keep_conference_alive", "keep_conference_alive"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "routing", "routing_rule"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "streaming", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "remote_display_name", "tf-test-adp-display"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "presentation_url", "https://example.com/presentation"),
 				),
 			},
+			// Test 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "automatic-participant-updated"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Updated Test AutomaticParticipant"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "tf-test-adp"),
+				),
+			},
+			// Step 3: Delete (destroy)
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_automatic_participant_min"),
+				Destroy: true,
+			},
+			// Test 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "tf-test-adp"),
+				),
+			},
+			// Test 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_automatic_participant_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.automatic-participant-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "alias", "tf-test-adp"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "description", "Test AutomaticParticipant Full Config"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "protocol", "h323"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "call_type", "audio"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "role", "chair"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "dtmf_sequence", "456*"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "keep_conference_alive", "keep_conference_alive"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "routing", "routing_rule"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "streaming", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "remote_display_name", "tf-test-adp-display"),
+					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.automatic-participant-test", "presentation_url", "https://example.com/presentation"),
 				),
 			},
 		},

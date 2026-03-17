@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -87,6 +88,7 @@ func (r *InfinityEventSinkResource) Schema(ctx context.Context, req resource.Sch
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -102,6 +104,7 @@ func (r *InfinityEventSinkResource) Schema(ctx context.Context, req resource.Sch
 			"username": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -111,6 +114,7 @@ func (r *InfinityEventSinkResource) Schema(ctx context.Context, req resource.Sch
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
+				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -289,6 +293,7 @@ func (r *InfinityEventSinkResource) Update(ctx context.Context, req resource.Upd
 		Version:              &version,
 	}
 
+	// Handle optional pointer fields - always set them (even if empty) to allow clearing
 	if !plan.Description.IsNull() {
 		description := plan.Description.ValueString()
 		updateRequest.Description = &description

@@ -202,12 +202,9 @@ func (r *InfinityConferenceAliasResource) Update(ctx context.Context, req resour
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.ConferenceAliasUpdateRequest{
-		Alias:      plan.Alias.ValueString(),
-		Conference: plan.Conference.ValueString(),
-	}
-
-	if !plan.Description.IsNull() {
-		updateRequest.Description = plan.Description.ValueString()
+		Alias:       plan.Alias.ValueString(),
+		Conference:  plan.Conference.ValueString(),
+		Description: plan.Description.ValueString(),
 	}
 
 	_, err := r.InfinityClient.Config().UpdateConferenceAlias(ctx, resourceID, updateRequest)

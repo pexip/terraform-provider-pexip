@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -48,11 +49,8 @@ type InfinityPolicyServerResourceModel struct {
 	EnableInternalParticipantPolicy     types.Bool   `tfsdk:"enable_internal_participant_policy"`
 	EnableInternalMediaLocationPolicy   types.Bool   `tfsdk:"enable_internal_media_location_policy"`
 	PreferLocalAvatarConfiguration      types.Bool   `tfsdk:"prefer_local_avatar_configuration"`
-	ServiceConfigurationTemplate        types.String `tfsdk:"service_configuration_template"`
-	ParticipantConfigurationTemplate    types.String `tfsdk:"participant_configuration_template"`
-	RegistrationConfigurationTemplate   types.String `tfsdk:"registration_configuration_template"`
-	DirectorySearchTemplate             types.String `tfsdk:"directory_search_template"`
-	AvatarConfigurationTemplate         types.String `tfsdk:"avatar_configuration_template"`
+	InternalServicePolicyTemplate       types.String `tfsdk:"internal_service_policy_template"`
+	InternalParticipantPolicyTemplate   types.String `tfsdk:"internal_participant_policy_template"`
 	InternalMediaLocationPolicyTemplate types.String `tfsdk:"internal_media_location_policy_template"`
 }
 
@@ -98,6 +96,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -106,6 +105,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 			"url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
@@ -114,6 +114,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 			"username": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -123,6 +124,7 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
+				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -188,49 +190,28 @@ func (r *InfinityPolicyServerResource) Schema(ctx context.Context, req resource.
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "If enabled, requests are sent to the Avatar URL configured on the user when logging into the Pexip Infinity web app. Note: Avatar URL for Pexip Infinity web app (conference control) is not currently supported, so avatars are not displayed in the conference roster or in self-view. ",
 			},
-			"service_configuration_template": schema.StringAttribute{
+			"internal_service_policy_template": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(49152),
 				},
 				MarkdownDescription: "A Jinja2 script that takes the existing service configuration (if any) and optionally modifies or overrides service settings. Maximum length: 49152 characters.",
 			},
-			"participant_configuration_template": schema.StringAttribute{
+			"internal_participant_policy_template": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
+					stringvalidator.LengthAtMost(49152),
 				},
-				MarkdownDescription: "Participant configuration template. Maximum length: 1000 characters.",
-			},
-			"registration_configuration_template": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
-				},
-				MarkdownDescription: "Registration configuration template. Maximum length: 1000 characters.",
-			},
-			"directory_search_template": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
-				},
-				MarkdownDescription: "Directory search template. Maximum length: 1000 characters.",
-			},
-			"avatar_configuration_template": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
-				},
-				MarkdownDescription: "Avatar configuration template. Maximum length: 1000 characters.",
+				MarkdownDescription: "A Jinja2 script that takes the existing participant configuration and optionally modifies or overrides participant settings. Maximum length: 49152 characters.",
 			},
 			"internal_media_location_policy_template": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(49152),
 				},
@@ -276,11 +257,11 @@ func (r *InfinityPolicyServerResource) Create(ctx context.Context, req resource.
 	if !plan.Password.IsNull() {
 		createRequest.Password = plan.Password.ValueString()
 	}
-	if !plan.ServiceConfigurationTemplate.IsNull() {
-		createRequest.InternalServicePolicyTemplate = plan.ServiceConfigurationTemplate.ValueString()
+	if !plan.InternalServicePolicyTemplate.IsNull() {
+		createRequest.InternalServicePolicyTemplate = plan.InternalServicePolicyTemplate.ValueString()
 	}
-	if !plan.ParticipantConfigurationTemplate.IsNull() {
-		createRequest.InternalParticipantPolicyTemplate = plan.ParticipantConfigurationTemplate.ValueString()
+	if !plan.InternalParticipantPolicyTemplate.IsNull() {
+		createRequest.InternalParticipantPolicyTemplate = plan.InternalParticipantPolicyTemplate.ValueString()
 	}
 	if !plan.InternalMediaLocationPolicyTemplate.IsNull() {
 		createRequest.InternalMediaLocationPolicyTemplate = plan.InternalMediaLocationPolicyTemplate.ValueString()
@@ -347,11 +328,8 @@ func (r *InfinityPolicyServerResource) read(ctx context.Context, resourceID int,
 	data.EnableInternalParticipantPolicy = types.BoolValue(srv.EnableInternalParticipantPolicy)
 	data.EnableInternalMediaLocationPolicy = types.BoolValue(srv.EnableInternalMediaLocationPolicy)
 	data.PreferLocalAvatarConfiguration = types.BoolValue(srv.PreferLocalAvatarConfiguration)
-	data.ServiceConfigurationTemplate = types.StringValue(srv.InternalServicePolicyTemplate)
-	data.ParticipantConfigurationTemplate = types.StringValue(srv.InternalParticipantPolicyTemplate)
-	data.RegistrationConfigurationTemplate = types.StringNull()
-	data.DirectorySearchTemplate = types.StringNull()
-	data.AvatarConfigurationTemplate = types.StringNull()
+	data.InternalServicePolicyTemplate = types.StringValue(srv.InternalServicePolicyTemplate)
+	data.InternalParticipantPolicyTemplate = types.StringValue(srv.InternalParticipantPolicyTemplate)
 	data.InternalMediaLocationPolicyTemplate = types.StringValue(srv.InternalMediaLocationPolicyTemplate)
 
 	return &data, nil
@@ -433,11 +411,11 @@ func (r *InfinityPolicyServerResource) Update(ctx context.Context, req resource.
 	if !plan.Password.IsNull() {
 		updateRequest.Password = plan.Password.ValueString()
 	}
-	if !plan.ServiceConfigurationTemplate.IsNull() {
-		updateRequest.InternalServicePolicyTemplate = plan.ServiceConfigurationTemplate.ValueString()
+	if !plan.InternalServicePolicyTemplate.IsNull() {
+		updateRequest.InternalServicePolicyTemplate = plan.InternalServicePolicyTemplate.ValueString()
 	}
-	if !plan.ParticipantConfigurationTemplate.IsNull() {
-		updateRequest.InternalParticipantPolicyTemplate = plan.ParticipantConfigurationTemplate.ValueString()
+	if !plan.InternalParticipantPolicyTemplate.IsNull() {
+		updateRequest.InternalParticipantPolicyTemplate = plan.InternalParticipantPolicyTemplate.ValueString()
 	}
 	if !plan.InternalMediaLocationPolicyTemplate.IsNull() {
 		updateRequest.InternalMediaLocationPolicyTemplate = plan.InternalMediaLocationPolicyTemplate.ValueString()

@@ -3,10 +3,11 @@
 build/
 dist/
 .vscode/
+*.test
 
 .terraform/**
 .terraform/
 .terraform.lock.hcl
 **/terraform.tfvars
 terraform.tfstate**
-CLAUDE.md
+.claude/**

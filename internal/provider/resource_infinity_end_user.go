@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -89,6 +90,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"first_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -97,6 +99,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"last_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -105,6 +108,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"display_name": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -113,6 +117,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"telephone_number": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -121,6 +126,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"mobile_number": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -129,6 +135,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"title": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(128),
 				},
@@ -137,6 +144,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"department": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -145,6 +153,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"avatar_url": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
@@ -175,6 +184,7 @@ func (r *InfinityEndUserResource) Schema(ctx context.Context, req resource.Schem
 			"sync_tag": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},

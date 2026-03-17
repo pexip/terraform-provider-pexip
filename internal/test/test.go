@@ -74,6 +74,7 @@ func LoadTestData(t *testing.T, files ...string) string {
 func copyTestFiles(t *testing.T, files ...string) {
 	t.Helper()
 
+	var copiedFiles []string
 	for _, file := range files {
 		// copy file to current working directory
 		srcPath, err := GetTestdataLocation()
@@ -89,7 +90,15 @@ func copyTestFiles(t *testing.T, files ...string) {
 		if err != nil {
 			t.Fatalf("failed to write test file %s: %v", destPath, err)
 		}
+		copiedFiles = append(copiedFiles, destPath)
 	}
+
+	// Register cleanup to remove copied files after test completes
+	t.Cleanup(func() {
+		for _, file := range copiedFiles {
+			_ = os.Remove(file)
+		}
+	})
 }
 
 func loadTestFiles(t *testing.T, baseDir string, files ...string) string {

@@ -26,58 +26,184 @@ func TestInfinityPolicyServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreatePolicyServer API call
-	createResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/policy_server/123/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
+	// Shared state for mocking - initialize with defaults
 	mockState := &config.PolicyServer{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/policy_server/123/",
-		Name:        "test-policy-server",
-		Description: "Test Policy Server",
-		URL:         "https://test-policy-server.dev.pexip.network",
-		Username:    "testuser",
-		Password:    "testpassword",
+		ID:                                  1,
+		ResourceURI:                         "/api/admin/configuration/v1/policy_server/1/",
+		Name:                                "tf-test-policy-server",
+		Description:                         "",
+		URL:                                 "",
+		Username:                            "",
+		Password:                            "",
+		EnableServiceLookup:                 false,
+		EnableParticipantLookup:             false,
+		EnableRegistrationLookup:            false,
+		EnableDirectoryLookup:               false,
+		EnableAvatarLookup:                  false,
+		EnableMediaLocationLookup:           false,
+		EnableInternalServicePolicy:         false,
+		EnableInternalParticipantPolicy:     false,
+		EnableInternalMediaLocationPolicy:   false,
+		InternalServicePolicyTemplate:       "",
+		InternalParticipantPolicyTemplate:   "",
+		InternalMediaLocationPolicyTemplate: "",
+		PreferLocalAvatarConfiguration:      false,
 	}
 
-	// Mock the GetPolicyServer API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/policy_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/policy_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.PolicyServerCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		mockState.EnableServiceLookup = req.EnableServiceLookup
+		mockState.EnableParticipantLookup = req.EnableParticipantLookup
+		mockState.EnableRegistrationLookup = req.EnableRegistrationLookup
+		mockState.EnableDirectoryLookup = req.EnableDirectoryLookup
+		mockState.EnableAvatarLookup = req.EnableAvatarLookup
+		mockState.EnableMediaLocationLookup = req.EnableMediaLocationLookup
+		mockState.EnableInternalServicePolicy = req.EnableInternalServicePolicy
+		mockState.EnableInternalParticipantPolicy = req.EnableInternalParticipantPolicy
+		mockState.EnableInternalMediaLocationPolicy = req.EnableInternalMediaLocationPolicy
+		mockState.InternalServicePolicyTemplate = req.InternalServicePolicyTemplate
+		mockState.InternalParticipantPolicyTemplate = req.InternalParticipantPolicyTemplate
+		mockState.InternalMediaLocationPolicyTemplate = req.InternalMediaLocationPolicyTemplate
+		mockState.PreferLocalAvatarConfiguration = req.PreferLocalAvatarConfiguration
+	}).Once()
+
+	// Step 2: Update to min config
+	client.On("PutJSON", mock.Anything, "configuration/v1/policy_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.PolicyServerUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		if req.EnableServiceLookup != nil {
+			mockState.EnableServiceLookup = *req.EnableServiceLookup
+		}
+		if req.EnableParticipantLookup != nil {
+			mockState.EnableParticipantLookup = *req.EnableParticipantLookup
+		}
+		if req.EnableRegistrationLookup != nil {
+			mockState.EnableRegistrationLookup = *req.EnableRegistrationLookup
+		}
+		if req.EnableDirectoryLookup != nil {
+			mockState.EnableDirectoryLookup = *req.EnableDirectoryLookup
+		}
+		if req.EnableAvatarLookup != nil {
+			mockState.EnableAvatarLookup = *req.EnableAvatarLookup
+		}
+		if req.EnableMediaLocationLookup != nil {
+			mockState.EnableMediaLocationLookup = *req.EnableMediaLocationLookup
+		}
+		if req.EnableInternalServicePolicy != nil {
+			mockState.EnableInternalServicePolicy = *req.EnableInternalServicePolicy
+		}
+		if req.EnableInternalParticipantPolicy != nil {
+			mockState.EnableInternalParticipantPolicy = *req.EnableInternalParticipantPolicy
+		}
+		if req.EnableInternalMediaLocationPolicy != nil {
+			mockState.EnableInternalMediaLocationPolicy = *req.EnableInternalMediaLocationPolicy
+		}
+		mockState.InternalServicePolicyTemplate = req.InternalServicePolicyTemplate
+		mockState.InternalParticipantPolicyTemplate = req.InternalParticipantPolicyTemplate
+		mockState.InternalMediaLocationPolicyTemplate = req.InternalMediaLocationPolicyTemplate
+		if req.PreferLocalAvatarConfiguration != nil {
+			mockState.PreferLocalAvatarConfiguration = *req.PreferLocalAvatarConfiguration
+		}
+		if args.Get(3) != nil {
+			policyServer := args.Get(3).(*config.PolicyServer)
+			*policyServer = *mockState
+		}
+	}).Once()
+
+	// Step 3: Delete
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/policy_server/1/", mock.Anything).Return(nil).Maybe()
+
+	// Step 4: Recreate with min config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/policy_server/", mock.Anything, mock.Anything).Return(&types.PostResponse{
+		Body:        []byte(""),
+		ResourceURI: "/api/admin/configuration/v1/policy_server/1/",
+	}, nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.PolicyServerCreateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		mockState.EnableServiceLookup = req.EnableServiceLookup
+		mockState.EnableParticipantLookup = req.EnableParticipantLookup
+		mockState.EnableRegistrationLookup = req.EnableRegistrationLookup
+		mockState.EnableDirectoryLookup = req.EnableDirectoryLookup
+		mockState.EnableAvatarLookup = req.EnableAvatarLookup
+		mockState.EnableMediaLocationLookup = req.EnableMediaLocationLookup
+		mockState.EnableInternalServicePolicy = req.EnableInternalServicePolicy
+		mockState.EnableInternalParticipantPolicy = req.EnableInternalParticipantPolicy
+		mockState.EnableInternalMediaLocationPolicy = req.EnableInternalMediaLocationPolicy
+		mockState.InternalServicePolicyTemplate = req.InternalServicePolicyTemplate
+		mockState.InternalParticipantPolicyTemplate = req.InternalParticipantPolicyTemplate
+		mockState.InternalMediaLocationPolicyTemplate = req.InternalMediaLocationPolicyTemplate
+		mockState.PreferLocalAvatarConfiguration = req.PreferLocalAvatarConfiguration
+	}).Once()
+
+	// Step 5: Update to full config
+	client.On("PutJSON", mock.Anything, "configuration/v1/policy_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.PolicyServerUpdateRequest)
+		mockState.Name = req.Name
+		mockState.Description = req.Description
+		mockState.URL = req.URL
+		mockState.Username = req.Username
+		mockState.Password = req.Password
+		if req.EnableServiceLookup != nil {
+			mockState.EnableServiceLookup = *req.EnableServiceLookup
+		}
+		if req.EnableParticipantLookup != nil {
+			mockState.EnableParticipantLookup = *req.EnableParticipantLookup
+		}
+		if req.EnableRegistrationLookup != nil {
+			mockState.EnableRegistrationLookup = *req.EnableRegistrationLookup
+		}
+		if req.EnableDirectoryLookup != nil {
+			mockState.EnableDirectoryLookup = *req.EnableDirectoryLookup
+		}
+		if req.EnableAvatarLookup != nil {
+			mockState.EnableAvatarLookup = *req.EnableAvatarLookup
+		}
+		if req.EnableMediaLocationLookup != nil {
+			mockState.EnableMediaLocationLookup = *req.EnableMediaLocationLookup
+		}
+		if req.EnableInternalServicePolicy != nil {
+			mockState.EnableInternalServicePolicy = *req.EnableInternalServicePolicy
+		}
+		if req.EnableInternalParticipantPolicy != nil {
+			mockState.EnableInternalParticipantPolicy = *req.EnableInternalParticipantPolicy
+		}
+		if req.EnableInternalMediaLocationPolicy != nil {
+			mockState.EnableInternalMediaLocationPolicy = *req.EnableInternalMediaLocationPolicy
+		}
+		mockState.InternalServicePolicyTemplate = req.InternalServicePolicyTemplate
+		mockState.InternalParticipantPolicyTemplate = req.InternalParticipantPolicyTemplate
+		mockState.InternalMediaLocationPolicyTemplate = req.InternalMediaLocationPolicyTemplate
+		if req.PreferLocalAvatarConfiguration != nil {
+			mockState.PreferLocalAvatarConfiguration = *req.PreferLocalAvatarConfiguration
+		}
+		if args.Get(3) != nil {
+			policyServer := args.Get(3).(*config.PolicyServer)
+			*policyServer = *mockState
+		}
+	}).Once()
+
+	// Mock Read operations (GetJSON) - used throughout all steps
+	client.On("GetJSON", mock.Anything, "configuration/v1/policy_server/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		policyServer := args.Get(3).(*config.PolicyServer)
 		*policyServer = *mockState
 	}).Maybe()
-
-	// Mock the UpdatePolicyServer API call
-	client.On("PutJSON", mock.Anything, "configuration/v1/policy_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.PolicyServerUpdateRequest)
-		policyServer := args.Get(3).(*config.PolicyServer)
-
-		// Update mock state
-		mockState.Name = updateRequest.Name
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
-		if updateRequest.URL != "" {
-			mockState.URL = updateRequest.URL
-		}
-		if updateRequest.Username != "" {
-			mockState.Username = updateRequest.Username
-		}
-		if updateRequest.Password != "" {
-			mockState.Password = updateRequest.Password
-		}
-
-		// Return updated state
-		*policyServer = *mockState
-	}).Maybe()
-
-	// Mock the DeletePolicyServer API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/policy_server/123/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityPolicyServer(t, client)
 }
@@ -87,27 +213,112 @@ func testInfinityPolicyServer(t *testing.T, client InfinityClient) {
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_basic"),
+				// Step 1: Create with full config
+				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.policy-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.policy-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "name", "test-policy-server"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "description", "Test Policy Server"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "url", "https://test-policy-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "username", "testuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "password", "testpassword"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "name", "tf-test-policy-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "description", "tf-test Policy Server Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "url", "https://policy.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "username", "tf-test-user"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_service_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_participant_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_registration_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_directory_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_avatar_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_media_location_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_service_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_participant_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_media_location_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "prefer_local_avatar_configuration", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_service_policy_template", "tf-test service template"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_participant_policy_template", "tf-test participant template"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_media_location_policy_template", "tf-test media location template"),
 				),
 			},
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_basic_updated"),
+				// Step 2: Update to min config (clear optional fields, reset to defaults)
+				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.policy-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.policy-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "name", "test-policy-server"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "description", "Test Policy Server"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "url", "https://test-policy-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "username", "testuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_policy_server.policy-server-test", "password", "updatedpassword"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "name", "tf-test-policy-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "url", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_service_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_participant_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_registration_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_directory_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_avatar_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_media_location_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_service_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_participant_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_media_location_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "prefer_local_avatar_configuration", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_service_policy_template", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_participant_policy_template", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_media_location_policy_template", ""),
+				),
+			},
+			{
+				// Step 3: Destroy
+				Config:  test.LoadTestFolder(t, "resource_infinity_policy_server_min"),
+				Destroy: true,
+			},
+			{
+				// Step 4: Create with min config (after destroy)
+				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "name", "tf-test-policy-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "url", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_service_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_participant_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_registration_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_directory_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_avatar_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_media_location_lookup", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_service_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_participant_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_media_location_policy", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "prefer_local_avatar_configuration", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_service_policy_template", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_participant_policy_template", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_media_location_policy_template", ""),
+				),
+			},
+			{
+				// Step 5: Update to full config
+				Config: test.LoadTestFolder(t, "resource_infinity_policy_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_policy_server.tf-test-policy-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "name", "tf-test-policy-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "description", "tf-test Policy Server Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "url", "https://policy.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "username", "tf-test-user"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_service_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_participant_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_registration_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_directory_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_avatar_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_media_location_lookup", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_service_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_participant_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "enable_internal_media_location_policy", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "prefer_local_avatar_configuration", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_service_policy_template", "tf-test service template"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_participant_policy_template", "tf-test participant template"),
+					resource.TestCheckResourceAttr("pexip_infinity_policy_server.tf-test-policy-server", "internal_media_location_policy_template", "tf-test media location template"),
 				),
 			},
 		},

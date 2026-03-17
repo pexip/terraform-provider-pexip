@@ -37,8 +37,8 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	userGroupState := &config.UserGroup{
 		ID:                      1,
 		ResourceURI:             "/api/admin/configuration/v1/user_group/1/",
-		Name:                    "test-user-group",
-		Description:             "Test User Group",
+		Name:                    "tf-test-user-group-full",
+		Description:             "",
 		Users:                   []string{},
 		UserGroupEntityMappings: &[]config.UserGroupEntityMapping{},
 	}
@@ -51,9 +51,10 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	client.On("PutJSON", mock.Anything, "configuration/v1/user_group/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateReq := args.Get(2).(*config.UserGroupUpdateRequest)
 		userGroup := args.Get(3).(*config.UserGroup)
-		if updateReq.Description != "" {
-			userGroupState.Description = updateReq.Description
+		if updateReq.Name != "" {
+			userGroupState.Name = updateReq.Name
 		}
+		userGroupState.Description = updateReq.Description
 		*userGroup = *userGroupState
 	}).Maybe()
 
@@ -70,8 +71,8 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	conferenceState := &config.Conference{
 		ID:                              1,
 		ResourceURI:                     "/api/admin/configuration/v1/conference/1/",
-		Name:                            "test-conference",
-		Description:                     "Test Conference",
+		Name:                            "tf-test-conference-full",
+		Description:                     "",
 		ServiceType:                     "conference",
 		AllowGuests:                     false,
 		BreakoutRooms:                   false,
@@ -111,29 +112,35 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 	client.On("PutJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateReq := args.Get(2).(*config.ConferenceUpdateRequest)
 		conference := args.Get(3).(*config.Conference)
-		if updateReq.Description != "" {
-			conferenceState.Description = updateReq.Description
+		if updateReq.Name != "" {
+			conferenceState.Name = updateReq.Name
 		}
+		conferenceState.Description = updateReq.Description
 		*conference = *conferenceState
 	}).Maybe()
 
 	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference/1/", mock.Anything).Return(nil)
+
+	// Shared state for mocking - starts with full config
+	mockState := &config.UserGroupEntityMapping{
+		ID:                123,
+		ResourceURI:       "/api/admin/configuration/v1/user_group_entity_mapping/123/",
+		Description:       "tf-test user group entity mapping description",
+		EntityResourceURI: "/api/admin/configuration/v1/conference/1/",
+		UserGroup:         "/api/admin/configuration/v1/user_group/1/",
+	}
 
 	// Mock the CreateUsergroupentitymapping API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/user_group_entity_mapping/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/user_group_entity_mapping/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.UserGroupEntityMapping{
-		ID:                123,
-		ResourceURI:       "/api/admin/configuration/v1/user_group_entity_mapping/123/",
-		Description:       "Test UserGroupEntityMapping",
-		EntityResourceURI: "/api/admin/configuration/v1/conference/1/",
-		UserGroup:         "/api/admin/configuration/v1/user_group/1/",
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/user_group_entity_mapping/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.UserGroupEntityMappingCreateRequest)
+		mockState.Description = createReq.Description
+		mockState.EntityResourceURI = createReq.EntityResourceURI
+		mockState.UserGroup = createReq.UserGroup
+	}).Maybe()
 
 	// Mock the GetUsergroupentitymapping API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/user_group_entity_mapping/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -147,9 +154,7 @@ func TestInfinityUserGroupEntityMapping(t *testing.T) {
 		user_group_entity_mapping := args.Get(3).(*config.UserGroupEntityMapping)
 
 		// Update mock state based on request
-		if updateReq.Description != "" {
-			mockState.Description = updateReq.Description
-		}
+		mockState.Description = updateReq.Description
 		if updateReq.EntityResourceURI != "" {
 			mockState.EntityResourceURI = updateReq.EntityResourceURI
 		}
@@ -173,24 +178,53 @@ func testInfinityUserGroupEntityMapping(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "description", "Test UserGroupEntityMapping"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "description", "tf-test user group entity mapping description"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "user_group"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "description", "Updated Test UserGroupEntityMapping"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "entity_resource_uri"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.user_group_entity_mapping-test", "user_group"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "description", ""),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "user_group"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "description", ""),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "user_group"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_user_group_entity_mapping_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "description", "tf-test user group entity mapping description"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "entity_resource_uri"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_user_group_entity_mapping.tf-test-mapping", "user_group"),
 				),
 			},
 		},

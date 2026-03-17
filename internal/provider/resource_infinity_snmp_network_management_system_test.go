@@ -32,17 +32,17 @@ func TestInfinitySnmpNetworkManagementSystem(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/snmp_network_management_system/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/snmp_network_management_system/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/snmp_network_management_system/", mock.Anything, mock.Anything).Return(createResponse, nil).Maybe()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with full config
 	mockState := &config.SnmpNetworkManagementSystem{
 		ID:                123,
 		ResourceURI:       "/api/admin/configuration/v1/snmp_network_management_system/123/",
-		Name:              "snmp_network_management_system-test",
-		Description:       "Test SnmpNetworkManagementSystem",
+		Name:              "tf-test-snmp-nms",
+		Description:       "tf-test SNMP NMS Description",
 		Address:           "192.168.1.100",
 		Port:              162,
-		SnmpTrapCommunity: "test-value",
+		SnmpTrapCommunity: "tf-test-comm",
 	}
 
 	// Mock the GetSnmpnetworkmanagementsystem API call for Read operations
@@ -57,17 +57,15 @@ func TestInfinitySnmpNetworkManagementSystem(t *testing.T) {
 		snmp_network_management_system := args.Get(3).(*config.SnmpNetworkManagementSystem)
 
 		// Update mock state based on request
-		if updateReq.Description != "" {
-			mockState.Description = updateReq.Description
-		}
+		// Description and SnmpTrapCommunity always sent now (without omitempty)
+		mockState.Description = updateReq.Description
+		mockState.SnmpTrapCommunity = updateReq.SnmpTrapCommunity
+
 		if updateReq.Address != "" {
 			mockState.Address = updateReq.Address
 		}
 		if updateReq.Port != nil {
 			mockState.Port = *updateReq.Port
-		}
-		if updateReq.SnmpTrapCommunity != "" {
-			mockState.SnmpTrapCommunity = updateReq.SnmpTrapCommunity
 		}
 
 		// Return updated state
@@ -77,7 +75,7 @@ func TestInfinitySnmpNetworkManagementSystem(t *testing.T) {
 	// Mock the DeleteSnmpnetworkmanagementsystem API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/snmp_network_management_system/123/"
-	}), mock.Anything).Return(nil)
+	}), mock.Anything).Return(nil).Maybe()
 
 	testInfinitySnmpNetworkManagementSystem(t, client)
 }
@@ -86,25 +84,61 @@ func testInfinitySnmpNetworkManagementSystem(t *testing.T, client InfinityClient
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "name", "snmp_network_management_system-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "description", "Test SnmpNetworkManagementSystem"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "name", "tf-test-snmp-nms"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "description", "tf-test SNMP NMS Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "port", "162"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "snmp_trap_community", "tf-test-comm"),
 				),
 			},
+			// Step 2: Update to min config (clearing optional fields)
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "name", "snmp_network_management_system-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "description", "Updated Test SnmpNetworkManagementSystem"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "address", "192.168.1.200"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "port", "161"),
-					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.snmp_network_management_system-test", "snmp_trap_community", "updated-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "name", "tf-test-snmp-nms"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "port", "161"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "snmp_trap_community", "public"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "name", "tf-test-snmp-nms"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "port", "161"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "snmp_trap_community", "public"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_snmp_network_management_system_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "name", "tf-test-snmp-nms"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "description", "tf-test SNMP NMS Description"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "address", "192.168.1.100"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "port", "162"),
+					resource.TestCheckResourceAttr("pexip_infinity_snmp_network_management_system.tf-test-snmp-nms", "snmp_trap_community", "tf-test-comm"),
 				),
 			},
 		},

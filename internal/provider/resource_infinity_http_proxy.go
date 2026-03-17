@@ -109,6 +109,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 			"username": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -118,6 +119,7 @@ func (r *InfinityHTTPProxyResource) Schema(ctx context.Context, req resource.Sch
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
+				Default:   stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},

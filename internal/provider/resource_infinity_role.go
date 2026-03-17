@@ -211,17 +211,16 @@ func (r *InfinityRoleResource) Update(ctx context.Context, req resource.UpdateRe
 
 	resourceID := int(state.ResourceID.ValueInt32())
 
-	updateRequest := &config.RoleUpdateRequest{
-		Name: plan.Name.ValueString(),
+	// Convert permissions
+	permissions, diags := getStringList(ctx, plan.Permissions)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if !plan.Permissions.IsNull() {
-		var permissions []string
-		resp.Diagnostics.Append(plan.Permissions.ElementsAs(ctx, &permissions, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.Permissions = permissions
+	updateRequest := &config.RoleUpdateRequest{
+		Name:        plan.Name.ValueString(),
+		Permissions: permissions,
 	}
 
 	_, err := r.InfinityClient.Config().UpdateRole(ctx, resourceID, updateRequest)

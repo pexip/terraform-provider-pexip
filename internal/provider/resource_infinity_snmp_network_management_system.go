@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -80,6 +82,7 @@ func (r *InfinitySnmpNetworkManagementSystemResource) Schema(ctx context.Context
 				MarkdownDescription: "The name of the SNMP network management system. Maximum length: 250 characters.",
 			},
 			"description": schema.StringAttribute{
+				Computed: true,
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(500),
@@ -94,16 +97,23 @@ func (r *InfinitySnmpNetworkManagementSystemResource) Schema(ctx context.Context
 				MarkdownDescription: "The IP address or FQDN of the SNMP Network Management System. Maximum length: 255 characters.",
 			},
 			"port": schema.Int64Attribute{
-				Required: true,
+				Computed: true,
+				Optional: true,
+				Default:  int64default.StaticInt64(161),
 				Validators: []validator.Int64{
 					int64validator.Between(1, 65535),
 				},
 				MarkdownDescription: "The port number for SNMP communications. Valid range: 1-65535.",
 			},
 			"snmp_trap_community": schema.StringAttribute{
-				Required:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The SNMP trap community string for authentication. This field is sensitive.",
+				Computed:  true,
+				Optional:  true,
+				Sensitive: true,
+				Default:   stringdefault.StaticString("public"),
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(16),
+				},
+				MarkdownDescription: "The SNMP trap community name. Maximum length: 16 characters.",
 			},
 		},
 		MarkdownDescription: "Manages an SNMP network management system with the Infinity service. SNMP network management systems receive SNMP traps and notifications from Pexip Infinity for monitoring and alerting purposes.",

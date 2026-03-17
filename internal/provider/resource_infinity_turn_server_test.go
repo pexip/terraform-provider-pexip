@@ -27,26 +27,37 @@ func TestInfinityTurnServer(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking - starts with full config
+	mockState := &config.TURNServer{
+		ID:            123,
+		ResourceURI:   "/api/admin/configuration/v1/turn_server/123/",
+		Name:          "tf-test-turn-server-full",
+		Description:   "tf-test TURN server description",
+		Address:       "turn-full.example.com",
+		Port:          func() *int { port := 5349; return &port }(),
+		ServerType:    "coturn_shared",
+		TransportType: "tls",
+		Username:      "tf-test-username",
+		SecretKey:     "tf-test-secret-key",
+	}
+
 	// Mock the CreateTURNServer API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/turn_server/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.Anything, mock.Anything).Return(createResponse, nil)
-
-	// Shared state for mocking
-	mockState := &config.TURNServer{
-		ID:            123,
-		ResourceURI:   "/api/admin/configuration/v1/turn_server/123/",
-		Name:          "turn-server-test",
-		Description:   "Test TURN server",
-		Address:       "test-turn-server.dev.pexip.network",
-		Port:          func() *int { port := 8080; return &port }(),
-		ServerType:    "namepsw",
-		TransportType: "udp",
-		Username:      "turnuser",
-		SecretKey:     "turnsecretkey",
-	}
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/turn_server/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.TURNServerCreateRequest)
+		// Update mock state based on create request
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.Address = createReq.Address
+		mockState.Port = createReq.Port
+		mockState.ServerType = createReq.ServerType
+		mockState.TransportType = createReq.TransportType
+		mockState.Username = createReq.Username
+		mockState.SecretKey = createReq.SecretKey
+	}).Maybe()
 
 	// Mock the GetTURNServer API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/turn_server/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -59,11 +70,12 @@ func TestInfinityTurnServer(t *testing.T) {
 		updateRequest := args.Get(2).(*config.TURNServerUpdateRequest)
 		turnServer := args.Get(3).(*config.TURNServer)
 
-		// Update mock state
-		mockState.Name = updateRequest.Name
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
+		// Update mock state based on request
+		if updateRequest.Name != "" {
+			mockState.Name = updateRequest.Name
 		}
+		// Description can be empty string, so always update
+		mockState.Description = updateRequest.Description
 		if updateRequest.Address != "" {
 			mockState.Address = updateRequest.Address
 		}
@@ -76,12 +88,9 @@ func TestInfinityTurnServer(t *testing.T) {
 		if updateRequest.TransportType != "" {
 			mockState.TransportType = updateRequest.TransportType
 		}
-		if updateRequest.Username != "" {
-			mockState.Username = updateRequest.Username
-		}
-		if updateRequest.SecretKey != "" {
-			mockState.SecretKey = updateRequest.SecretKey
-		}
+		// Username, password, and secret_key can be empty strings, so always update
+		mockState.Username = updateRequest.Username
+		mockState.SecretKey = updateRequest.SecretKey
 
 		// Return updated state
 		*turnServer = *mockState
@@ -99,36 +108,77 @@ func testInfinityTurnServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.turn-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.turn-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "name", "turn-server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "description", "Test TURN server"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "address", "test-turn-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "port", "8080"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "server_type", "namepsw"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "transport_type", "udp"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "username", "turnuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "password", "turnpassword"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "secret_key", "turnsecretkey"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "name", "tf-test-turn-server-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "description", "tf-test TURN server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "address", "turn-full.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "port", "5349"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "server_type", "coturn_shared"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "transport_type", "tls"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "username", "tf-test-username"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "secret_key", "tf-test-secret-key"),
 				),
 			},
+			// Step 2: Update to min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.turn-server-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.turn-server-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "name", "turn-server-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "description", "Test TURN server"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "address", "test-turn-server.dev.pexip.network"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "port", "8081"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "server_type", "namepsw"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "transport_type", "udp"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "username", "turnuser"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "password", "updatedturnpassword"),
-					resource.TestCheckResourceAttr("pexip_infinity_turn_server.turn-server-test", "secret_key", "updatedturnsecretkey"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "name", "tf-test-turn-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "address", "turn.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "port", "3478"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "server_type", "namepsw"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "transport_type", "udp"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "secret_key", ""),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_turn_server_min"),
+				Destroy: true,
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "name", "tf-test-turn-server"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "address", "turn.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "port", "3478"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "server_type", "namepsw"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "transport_type", "udp"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "password", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "secret_key", ""),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_turn_server_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_turn_server.tf-test-turn-server", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "name", "tf-test-turn-server-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "description", "tf-test TURN server description"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "address", "turn-full.example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "port", "5349"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "server_type", "coturn_shared"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "transport_type", "tls"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "username", "tf-test-username"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "password", "tf-test-password"),
+					resource.TestCheckResourceAttr("pexip_infinity_turn_server.tf-test-turn-server", "secret_key", "tf-test-secret-key"),
 				),
 			},
 		},

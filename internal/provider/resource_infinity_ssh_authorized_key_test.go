@@ -32,15 +32,15 @@ func TestInfinitySSHAuthorizedKey(t *testing.T) {
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/ssh_authorized_key/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/ssh_authorized_key/", mock.Anything, mock.Anything).Return(createResponse, nil).Maybe()
 
-	// Shared state for mocking
+	// Shared state for mocking - starts with min config
 	mockState := &config.SSHAuthorizedKey{
 		ID:          123,
 		ResourceURI: "/api/admin/configuration/v1/ssh_authorized_key/123/",
-		Keytype:     "ssh-rsa",
-		Key:         "test-value",
-		Comment:     "test-value",
+		Keytype:     "ssh-ed25519",
+		Key:         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKTj7PIu5ycIpVVxMYlnHmVKlhG4ALxqryNSfy59XIGf tf-test",
+		Comment:     "tf-test",
 		Nodes:       []string{},
 	}
 
@@ -62,21 +62,18 @@ func TestInfinitySSHAuthorizedKey(t *testing.T) {
 		if updateReq.Key != "" {
 			mockState.Key = updateReq.Key
 		}
-		if updateReq.Comment != "" {
-			mockState.Comment = updateReq.Comment
-		}
-		if updateReq.Nodes != nil {
-			mockState.Nodes = updateReq.Nodes
-		}
+		// Comment and Nodes always sent now (without omitempty)
+		mockState.Comment = updateReq.Comment
+		mockState.Nodes = updateReq.Nodes
 
-		// Return updated state
+		// Return updated state - note the API returns the full key with keytype prefix
 		*ssh_authorized_key = *mockState
 	}).Maybe()
 
 	// Mock the DeleteSshauthorizedkey API call
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/ssh_authorized_key/123/"
-	}), mock.Anything).Return(nil)
+	}), mock.Anything).Return(nil).Maybe()
 
 	testInfinitySSHAuthorizedKey(t, client)
 }
@@ -85,24 +82,28 @@ func testInfinitySSHAuthorizedKey(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ssh_authorized_key_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ssh_authorized_key_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "keytype", "ssh-rsa"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "key", "test-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "comment", "test-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "keytype", "ssh-ed25519"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "key", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKTj7PIu5ycIpVVxMYlnHmVKlhG4ALxqryNSfy59XIGf tf-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "comment", "tf-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "nodes.#", "0"),
 				),
 			},
+			// Step 2: Update to full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_ssh_authorized_key_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_ssh_authorized_key_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "keytype", "ssh-ed25519"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "key", "updated-value"),
-					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.ssh_authorized_key-test", "comment", "updated-value"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "keytype", "ssh-rsa"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "key", "AAAAB3NzaC1yc2EAAAADAQABAAACAQDGWIGMczXIMRNassH/IuFPSoyryEyn3uhUqn1s3tSSDOV0b3xogwejZJZKZfUo+oFoYKLbeD70CuZCSIHOx5uZmTYk04vN8r4fX0nzEfHYSCty5ZSvPXevdxyZD+CLnTEtYxbBq4k3xIsmprRKWz70MoVXQqM9jZpR5sOc1LarW24HJhM22iVVghrDX6tsI13Kvld3QRg6Y+jh6rZnH8k3EBwqP+BndSp4ECUM+XA5OEFN4ylZSlk/VS6V9XcVnERFbA3m+qkIhx/K8dc5XmGDGO1Aayn78z2lBtdUul4YdQnUYczu6hpJa2Swasatip0CL6o3vJX344MwkU3MMzJ+ynPdOMOLqQjFgX1gNboWa5udNNdzKdLmRYd3//Fwx9ZE6lPlPrApb6C1VZNgqvFl7yz0F0eSVOJZ7iEL6WzYybbtPbrWi0kO5bYpB/muP2jficXwCqaVxG9Qj/at6ALGPAgkZWbLh0MZFlH0fQzQYxnq2aLRe0KPdgoWXOW1gU7fycR/0j28yBYX5XAI1DMvwB+6vONuEo27Ty6etwHHJWYpVzmzwoElBcqfeBRxtdAgB4Rbq+SX3kNE4J5bsWxY0D6UkUuZ0xdRAgjcRwWxcJsTwIMKSyjUWzoihtIaANQE2sX/6LuR8xI3tI7ckSpY9QZzci6W/o6PuOWeP/Njkw=="),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "comment", "tf-test SSH Key"),
+					resource.TestCheckResourceAttr("pexip_infinity_ssh_authorized_key.tf-test-ssh-key", "nodes.#", "0"),
 				),
 			},
 		},

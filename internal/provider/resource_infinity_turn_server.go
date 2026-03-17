@@ -88,6 +88,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(250),
 				},
@@ -130,6 +131,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 			"username": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
@@ -138,6 +140,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 			"password": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
+				Default:   stringdefault.StaticString(""),
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
@@ -147,6 +150,7 @@ func (r *InfinityTURNServerResource) Schema(ctx context.Context, req resource.Sc
 			"secret_key": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
+				Default:   stringdefault.StaticString(""),
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(256),
