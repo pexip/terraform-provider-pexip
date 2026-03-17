@@ -66,9 +66,15 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
       - name: Run acceptance tests
         env:
           TF_ACC: "1"
+          TF_ACC_TERRAFORM_PATH: terraform
           PEXIP_ADDRESS: ${{ vars.PEXIP_ADDRESS }}
           PEXIP_USERNAME: ${{ vars.PEXIP_USERNAME }}
           PEXIP_PASSWORD: ${{ secrets.PEXIP_PASSWORD }}
