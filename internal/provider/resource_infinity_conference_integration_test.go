@@ -49,7 +49,7 @@ func testInfinityConferenceIntegration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
-			// Test 1: Create with full configuration
+			// Step 1: Create with full configuration
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_full_integration"),
 				Check: resource.ComposeTestCheckFunc(
@@ -59,7 +59,7 @@ func testInfinityConferenceIntegration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "breakout_rooms", "true"),
 				),
 			},
-			// Test 2: Update to min configuration
+			// Step 2: Update to min configuration
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
 				Check: resource.ComposeTestCheckFunc(
@@ -68,7 +68,13 @@ func testInfinityConferenceIntegration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "name", "tf-test-conference"),
 				),
 			},
-			// Test 3: Create with min configuration (after destroy)
+			// Step 3: Destroy resources before recreate-from-scratch test
+ 			{
+ 				Config:       test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
+ 				ResourceName: "pexip_infinity_conference.tf-test-conference",
+ 				Destroy:      true,
+ 			},
+			// Step 4: Create with min configuration (after destroy)
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
 				Check: resource.ComposeTestCheckFunc(
@@ -77,7 +83,7 @@ func testInfinityConferenceIntegration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "name", "tf-test-conference"),
 				),
 			},
-			// Test 4: Update to full configuration
+			// Step 5: Update to full configuration
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_full_integration"),
 				Check: resource.ComposeTestCheckFunc(
