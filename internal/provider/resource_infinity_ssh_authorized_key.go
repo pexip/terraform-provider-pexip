@@ -73,7 +73,7 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				Required:            true,
 				MarkdownDescription: "SSH authorized key type.",
 			},
-			// key is the only attribute actaully required by the api, but in order for this resource to be compatible with the api, keytype and comment are also required.
+			// key is the only attribute actually required by the api, but in order for this resource to be compatible with the api, keytype and comment are also required.
 			"key": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
