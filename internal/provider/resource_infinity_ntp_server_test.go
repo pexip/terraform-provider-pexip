@@ -30,7 +30,7 @@ func TestInfinityNTPServer(t *testing.T) {
 	mockState := &config.NTPServer{
 		ID:          1,
 		ResourceURI: "/api/admin/configuration/v1/ntp_server/1/",
-		Address:     "2.pool.ntp.org",
+		Address:     "0.europe.pool.ntp.org",
 		Description: "",
 	}
 
@@ -98,7 +98,7 @@ func testInfinityNTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.europe.pool.ntp.org"),
 					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", "tf-test NTP Server Description"),
 				),
 			},
@@ -108,7 +108,7 @@ func testInfinityNTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "2.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "0.europe.pool.ntp.org"),
 					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", ""),
 				),
 			},
@@ -123,7 +123,7 @@ func testInfinityNTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "2.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "0.europe.pool.ntp.org"),
 					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", ""),
 				),
 			},
@@ -133,7 +133,7 @@ func testInfinityNTPServer(t *testing.T, client InfinityClient) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_ntp_server.tf-test-ntp", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.pool.ntp.org"),
+					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "address", "1.europe.pool.ntp.org"),
 					resource.TestCheckResourceAttr("pexip_infinity_ntp_server.tf-test-ntp", "description", "tf-test NTP Server Description"),
 				),
 			},
