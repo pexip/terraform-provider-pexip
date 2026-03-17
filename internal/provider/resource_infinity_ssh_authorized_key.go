@@ -12,10 +12,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -94,7 +92,6 @@ func (r *InfinitySSHAuthorizedKeyResource) Schema(ctx context.Context, req resou
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				MarkdownDescription: "List of node resource URIs where this SSH key is authorized.",
 			},
 		},
