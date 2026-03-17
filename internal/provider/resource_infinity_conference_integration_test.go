@@ -69,11 +69,11 @@ func testInfinityConferenceIntegration(t *testing.T, client InfinityClient) {
 				),
 			},
 			// Step 3: Destroy resources before recreate-from-scratch test
- 			{
- 				Config:       test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
- 				ResourceName: "pexip_infinity_conference.tf-test-conference",
- 				Destroy:      true,
- 			},
+			{
+				Config:       test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
+				ResourceName: "pexip_infinity_conference.tf-test-conference",
+				Destroy:      true,
+			},
 			// Step 4: Create with min configuration (after destroy)
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_conference_min_integration"),
