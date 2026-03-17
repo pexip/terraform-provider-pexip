@@ -45,26 +45,22 @@ resource "pexip_infinity_conference" "tf-test-conference" {
   softmute_enabled                    = true
   sync_tag                            = "sync-123"
   two_stage_dial_type                 = "regular"
-}
+
+  depends_on = [
+    pexip_infinity_global_configuration.config
+  ]
+}  
 
 resource "pexip_infinity_conference_alias" "tf-test-alias1" {
   alias       = "tf-test-alias1"
   description = "Test alias 1"
   conference  = pexip_infinity_conference.tf-test-conference.id
-
-  depends_on = [
-    pexip_infinity_conference.tf-test-conference
-  ]
 }
 
 resource "pexip_infinity_conference_alias" "tf-test-alias2" {
   alias       = "tf-test-alias2"
   description = "Test alias 2"
   conference  = pexip_infinity_conference.tf-test-conference.id
-
-  depends_on = [
-    pexip_infinity_conference.tf-test-conference
-  ]
 }
 
 resource "pexip_infinity_automatic_participant" "tf-test-participant1" {
