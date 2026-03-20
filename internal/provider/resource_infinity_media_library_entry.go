@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -85,15 +86,15 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Default: stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},
 				MarkdownDescription: "A description of this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "UUID for the media library entry.",
+				MarkdownDescription: "UUID for the media library entry (read-only, assigned by the API).",
 			},
 			"file_name": schema.StringAttribute{
 				Computed:            true,
@@ -134,7 +135,6 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 	createRequest := &config.MediaLibraryEntryCreateRequest{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
-		UUID:        plan.UUID.ValueString(),
 	}
 
 	// Open the media file
@@ -258,13 +258,8 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 	resourceID := int(state.ResourceID.ValueInt32())
 
 	updateRequest := &config.MediaLibraryEntryUpdateRequest{
-		Name: plan.Name.ValueString(),
-		UUID: plan.UUID.ValueString(),
-	}
-
-	// Only update description if it's specified
-	if !plan.Description.IsNull() && !plan.Description.IsUnknown() {
-		updateRequest.Description = plan.Description.ValueString()
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
 	}
 
 	// Open the media file
