@@ -187,7 +187,7 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) read(ctx context.Context, re
 	data.ID = types.StringValue(srv.ResourceURI)
 	data.ResourceID = types.Int32Value(int32(resourceID)) // #nosec G115 -- API values are expected to be within int32 range
 	data.EntryType = types.StringValue(srv.EntryType)
-	data.Position = types.Int32Value(int32(srv.Position)) // #nosec G115 -- API values are expected to be within int32 range
+	data.Position = types.Int32Value(int32(srv.Position))   // #nosec G115 -- API values are expected to be within int32 range
 	data.Playcount = types.Int32Value(int32(srv.Playcount)) // #nosec G115 -- API values are expected to be within int32 range
 
 	// Handle optional media field

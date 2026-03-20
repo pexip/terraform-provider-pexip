@@ -86,7 +86,7 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default: stringdefault.StaticString(""),
+				Default:  stringdefault.StaticString(""),
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},

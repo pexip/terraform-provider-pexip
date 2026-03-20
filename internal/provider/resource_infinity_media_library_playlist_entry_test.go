@@ -1,10 +1,10 @@
+//go:build unit
+
 /*
  * SPDX-FileCopyrightText: 2025 Pexip AS
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-//go:build unit
 
 package provider
 
