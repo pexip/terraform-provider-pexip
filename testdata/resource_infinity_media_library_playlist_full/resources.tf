@@ -5,8 +5,8 @@
  */
 
 resource "pexip_infinity_media_library_playlist" "media_library_playlist-test" {
-  name        = "media_library_playlist-test"
-  description = "Test MediaLibraryPlaylist"
+  name        = "tf-test-media-library-playlist"
+  description = "tf-test media library playlist description"
   loop        = true
   shuffle     = true
 }

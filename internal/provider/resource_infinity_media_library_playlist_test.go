@@ -27,22 +27,38 @@ func TestInfinityMediaLibraryPlaylist(t *testing.T) {
 	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
+	// Shared state for mocking - starts with full config
+	mockState := &config.MediaLibraryPlaylist{
+		ID:          123,
+		ResourceURI: "/api/admin/configuration/v1/media_library_playlist/123/",
+		Name:        "tf-test-media-library-playlist",
+		Description: "tf-test media library playlist description",
+		Loop:        true,
+		Shuffle:     true,
+	}
+
 	// Mock the CreateMedialibraryplaylist API call
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/media_library_playlist/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_playlist/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	// Step 1: Create with full config
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_playlist/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.MediaLibraryPlaylistCreateRequest)
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.Loop = createReq.Loop
+		mockState.Shuffle = createReq.Shuffle
+	}).Once()
 
-	// Shared state for mocking
-	mockState := &config.MediaLibraryPlaylist{
-		ID:          123,
-		ResourceURI: "/api/admin/configuration/v1/media_library_playlist/123/",
-		Name:        "media_library_playlist-test",
-		Description: "Test MediaLibraryPlaylist",
-		Loop:        true,
-		Shuffle:     true,
-	}
+	// Step 4: Create with min config (after delete)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_playlist/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.MediaLibraryPlaylistCreateRequest)
+		mockState.Name = createReq.Name
+		mockState.Description = createReq.Description
+		mockState.Loop = createReq.Loop
+		mockState.Shuffle = createReq.Shuffle
+	}).Once()
 
 	// Mock the GetMedialibraryplaylist API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_playlist/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -56,9 +72,11 @@ func TestInfinityMediaLibraryPlaylist(t *testing.T) {
 		media_library_playlist := args.Get(3).(*config.MediaLibraryPlaylist)
 
 		// Update mock state based on request
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
+		if updateRequest.Name != "" {
+			mockState.Name = updateRequest.Name
 		}
+		// Description can be cleared by sending empty string
+		mockState.Description = updateRequest.Description
 		if updateRequest.Loop != nil {
 			mockState.Loop = *updateRequest.Loop
 		}
@@ -68,12 +86,13 @@ func TestInfinityMediaLibraryPlaylist(t *testing.T) {
 
 		// Return updated state
 		*media_library_playlist = *mockState
-	}).Maybe()
+	}).Times(2) // Step 2: Update to min, Step 5: Update to full
 
 	// Mock the DeleteMedialibraryplaylist API call
+	// Step 3: Delete, and final cleanup at end of test
 	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
 		return path == "configuration/v1/media_library_playlist/123/"
-	}), mock.Anything).Return(nil)
+	}), mock.Anything).Return(nil).Times(2)
 
 	testInfinityMediaLibraryPlaylist(t, client)
 }
@@ -82,26 +101,56 @@ func testInfinityMediaLibraryPlaylist(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "media_library_playlist-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "Test MediaLibraryPlaylist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "tf-test media library playlist description"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "true"),
 				),
 			},
+			// Step 2: Update to min config (description cleared, loop/shuffle reset to defaults)
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_min"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "media_library_playlist-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "Updated Test MediaLibraryPlaylist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "false"),
+				),
+			},
+			// Step 3: Delete the resource
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_delete"),
+			},
+			// Step 4: Create with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "false"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "tf-test media library playlist description"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "true"),
 				),
 			},
 		},
