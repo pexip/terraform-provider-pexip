@@ -84,6 +84,7 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) Schema(ctx context.Context, 
 			},
 			"media": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Resource URI of the media library entry to include in the playlist.",
 			},
 			"playlist": schema.StringAttribute{
@@ -252,18 +253,12 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) Update(ctx context.Context, 
 	if !plan.Media.IsNull() && !plan.Media.IsUnknown() {
 		media := plan.Media.ValueString()
 		updateRequest.Media = &media
-	} else if plan.Media.IsNull() {
-		// Explicitly set to nil to clear the field
-		updateRequest.Media = nil
 	}
 
 	// Handle optional playlist field
 	if !plan.Playlist.IsNull() && !plan.Playlist.IsUnknown() {
 		playlist := plan.Playlist.ValueString()
 		updateRequest.Playlist = &playlist
-	} else if plan.Playlist.IsNull() {
-		// Explicitly set to nil to clear the field
-		updateRequest.Playlist = nil
 	}
 
 	// Handle position

@@ -27,76 +27,6 @@ func TestInfinityMediaLibraryPlaylistEntry(t *testing.T) {
 
 	client := infinity.NewClientMock()
 
-	// Mock Media Library Entry (for "media" field reference)
-	mockMediaEntry := &config.MediaLibraryEntry{}
-	mediaEntryCreateResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/media_library_entry/1/",
-	}
-	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mediaEntryCreateResponse, nil).Run(func(args mock.Arguments) {
-		fields := args.Get(2).(map[string]string)
-		*mockMediaEntry = config.MediaLibraryEntry{
-			ID:          1,
-			ResourceURI: "/api/admin/configuration/v1/media_library_entry/1/",
-			Name:        fields["name"],
-			Description: fields["description"],
-			UUID:        fields["uuid"],
-			FileName:    "test-file.mp4",
-			MediaType:   "video",
-			MediaFormat: "mp4",
-			MediaSize:   1024,
-		}
-	})
-	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_entry/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		entry := args.Get(3).(*config.MediaLibraryEntry)
-		*entry = *mockMediaEntry
-	}).Maybe()
-	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/media_library_entry/1/", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&types.PostResponse{}, nil).Run(func(args mock.Arguments) {
-		fields := args.Get(2).(map[string]string)
-		entry := args.Get(6).(*config.MediaLibraryEntry)
-		mockMediaEntry.Name = fields["name"]
-		mockMediaEntry.Description = fields["description"]
-		mockMediaEntry.UUID = fields["uuid"]
-		*entry = *mockMediaEntry
-	}).Maybe()
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/media_library_entry/1/", mock.Anything).Return(nil)
-
-	// Mock Media Library Playlist (for "playlist" field reference)
-	mockPlaylist := &config.MediaLibraryPlaylist{}
-	playlistCreateResponse := &types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/media_library_playlist/2/",
-	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_playlist/", mock.Anything, mock.Anything).Return(playlistCreateResponse, nil).Run(func(args mock.Arguments) {
-		createReq := args.Get(2).(*config.MediaLibraryPlaylistCreateRequest)
-		*mockPlaylist = config.MediaLibraryPlaylist{
-			ID:          2,
-			ResourceURI: "/api/admin/configuration/v1/media_library_playlist/2/",
-			Name:        createReq.Name,
-			Description: createReq.Description,
-			Loop:        createReq.Loop,
-			Shuffle:     createReq.Shuffle,
-		}
-	})
-	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_playlist/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		playlist := args.Get(3).(*config.MediaLibraryPlaylist)
-		*playlist = *mockPlaylist
-	}).Maybe()
-	client.On("PutJSON", mock.Anything, "configuration/v1/media_library_playlist/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateReq := args.Get(2).(*config.MediaLibraryPlaylistUpdateRequest)
-		playlist := args.Get(3).(*config.MediaLibraryPlaylist)
-		mockPlaylist.Name = updateReq.Name
-		mockPlaylist.Description = updateReq.Description
-		if updateReq.Loop != nil {
-			mockPlaylist.Loop = *updateReq.Loop
-		}
-		if updateReq.Shuffle != nil {
-			mockPlaylist.Shuffle = *updateReq.Shuffle
-		}
-		*playlist = *mockPlaylist
-	}).Maybe()
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/media_library_playlist/2/", mock.Anything).Return(nil)
-
 	// Shared mock state for the playlist entry
 	mockState := &config.MediaLibraryPlaylistEntry{}
 
@@ -107,6 +37,8 @@ func TestInfinityMediaLibraryPlaylistEntry(t *testing.T) {
 	}
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/media_library_playlist_entry/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
 		createReq := args.Get(2).(*config.MediaLibraryPlaylistEntryCreateRequest)
+
+		// Initialize the mock state with values from request
 		*mockState = config.MediaLibraryPlaylistEntry{
 			ID:          123,
 			ResourceURI: "/api/admin/configuration/v1/media_library_playlist_entry/123/",
@@ -116,7 +48,7 @@ func TestInfinityMediaLibraryPlaylistEntry(t *testing.T) {
 			Position:    createReq.Position,
 			Playcount:   createReq.Playcount,
 		}
-	})
+	}).Maybe()
 
 	// Mock GetMediaLibraryPlaylistEntry
 	client.On("GetJSON", mock.Anything, "configuration/v1/media_library_playlist_entry/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -162,14 +94,8 @@ func testInfinityMediaLibraryPlaylistEntry(t *testing.T, client InfinityClient) 
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "entry_type", "MEDIA"),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "media",
-						"pexip_infinity_media_library_entry.test", "id",
-					),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "playlist",
-						"pexip_infinity_media_library_playlist.test", "id",
-					),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "media", "/api/admin/configuration/v1/media_library_entry/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playlist", "/api/admin/configuration/v1/media_library_playlist/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "position", "5"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playcount", "3"),
 				),
@@ -181,10 +107,7 @@ func testInfinityMediaLibraryPlaylistEntry(t *testing.T, client InfinityClient) 
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "entry_type", "MEDIA"),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "playlist",
-						"pexip_infinity_media_library_playlist.test", "id",
-					),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playlist", "/api/admin/configuration/v1/media_library_playlist/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "position", "1"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playcount", "1"),
 				),
@@ -201,10 +124,7 @@ func testInfinityMediaLibraryPlaylistEntry(t *testing.T, client InfinityClient) 
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "entry_type", "MEDIA"),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "playlist",
-						"pexip_infinity_media_library_playlist.test", "id",
-					),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playlist", "/api/admin/configuration/v1/media_library_playlist/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "position", "1"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playcount", "1"),
 				),
@@ -216,14 +136,8 @@ func testInfinityMediaLibraryPlaylistEntry(t *testing.T, client InfinityClient) 
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist_entry.test", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "entry_type", "MEDIA"),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "media",
-						"pexip_infinity_media_library_entry.test", "id",
-					),
-					resource.TestCheckResourceAttrPair(
-						"pexip_infinity_media_library_playlist_entry.test", "playlist",
-						"pexip_infinity_media_library_playlist.test", "id",
-					),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "media", "/api/admin/configuration/v1/media_library_entry/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playlist", "/api/admin/configuration/v1/media_library_playlist/2/"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "position", "5"),
 					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist_entry.test", "playcount", "3"),
 				),
