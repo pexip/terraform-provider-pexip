@@ -135,6 +135,7 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) Create(ctx context.Context, 
 	}
 
 	// Handle required playlist field
+	// Playlist is required, but according to the SDK schema it is nullable
 	if !plan.Playlist.IsNull() && !plan.Playlist.IsUnknown() {
 		playlist := plan.Playlist.ValueString()
 		createRequest.Playlist = &playlist
@@ -198,6 +199,7 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) read(ctx context.Context, re
 	}
 
 	// Handle optional playlist field
+	// Playlist is required, but according to the SDK schema it is nullable
 	if srv.Playlist != nil {
 		data.Playlist = types.StringValue(*srv.Playlist)
 	} else {
@@ -256,6 +258,7 @@ func (r *InfinityMediaLibraryPlaylistEntryResource) Update(ctx context.Context, 
 	}
 
 	// Handle optional playlist field
+	// Playlist is required, but according to the SDK schema it is nullable
 	if !plan.Playlist.IsNull() && !plan.Playlist.IsUnknown() {
 		playlist := plan.Playlist.ValueString()
 		updateRequest.Playlist = &playlist
