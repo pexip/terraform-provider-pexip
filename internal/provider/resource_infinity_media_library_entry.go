@@ -93,9 +93,8 @@ func (r *InfinityMediaLibraryEntryResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "A description of this Media Library Item. Maximum length: 1024 characters.",
 			},
 			"uuid": schema.StringAttribute{
-				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "UUID for the media library entry.",
+				MarkdownDescription: "UUID for the media library entry (read-only, assigned by the API).",
 			},
 			"file_name": schema.StringAttribute{
 				Computed:            true,
@@ -136,7 +135,6 @@ func (r *InfinityMediaLibraryEntryResource) Create(ctx context.Context, req reso
 	createRequest := &config.MediaLibraryEntryCreateRequest{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
-		UUID:        plan.UUID.ValueString(),
 	}
 
 	// Open the media file
@@ -262,7 +260,6 @@ func (r *InfinityMediaLibraryEntryResource) Update(ctx context.Context, req reso
 	updateRequest := &config.MediaLibraryEntryUpdateRequest{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
-		UUID:        plan.UUID.ValueString(),
 	}
 
 	// Open the media file

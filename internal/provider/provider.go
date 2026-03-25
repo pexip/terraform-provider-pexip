@@ -199,6 +199,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityUserGroupEntityMappingResource{} },
 		func() resource.Resource { return &InfinityLogLevelResource{} },
 		func() resource.Resource { return &InfinityMediaLibraryPlaylistResource{} },
+		func() resource.Resource { return &InfinityMediaLibraryPlaylistEntryResource{} },
 		func() resource.Resource { return &InfinityManagementVMResource{} },
 		func() resource.Resource { return &InfinityMsExchangeConnectorResource{} },
 		func() resource.Resource { return &InfinitySnmpNetworkManagementSystemResource{} },

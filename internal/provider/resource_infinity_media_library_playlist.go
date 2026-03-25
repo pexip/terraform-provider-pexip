@@ -188,9 +188,13 @@ func (r *InfinityMediaLibraryPlaylistResource) read(ctx context.Context, resourc
 	data.Loop = types.BoolValue(srv.Loop)
 	data.Shuffle = types.BoolValue(srv.Shuffle)
 
-	// Handle playlist entries
-	if srv.PlaylistEntries != nil {
-		entriesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.PlaylistEntries)
+	// Handle playlist entries - extract URIs from objects
+	if len(srv.PlaylistEntries) > 0 {
+		entryURIs := make([]string, len(srv.PlaylistEntries))
+		for i, entry := range srv.PlaylistEntries {
+			entryURIs[i] = entry.ResourceURI
+		}
+		entriesSet, diags := types.SetValueFrom(ctx, types.StringType, entryURIs)
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to convert playlist entries: %s", diags.Errors())
 		}

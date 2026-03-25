@@ -15,11 +15,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/require"
 
-	"github.com/pexip/terraform-provider-pexip/internal/test"
-
 	"github.com/pexip/go-infinity-sdk/v38"
+
+	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
 func TestInfinityMediaLibraryPlaylistIntegration(t *testing.T) {
@@ -41,5 +42,67 @@ func TestInfinityMediaLibraryPlaylistIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityMediaLibraryPlaylist(t, client)
+	testInfinityMediaLibraryPlaylistIntegration(t, client)
+}
+
+func testInfinityMediaLibraryPlaylistIntegration(t *testing.T, client InfinityClient) {
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			// Step 1: Create with full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_full_integration"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "tf-test media library playlist description"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "true"),
+				),
+			},
+			// Step 2: Update to min config (description cleared, loop/shuffle reset to defaults)
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_min_integration"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "false"),
+				),
+			},
+			// Step 3: Destroy resources before recreate-from-scratch test
+			{
+				Config:       test.LoadTestFolder(t, "resource_infinity_media_library_playlist_min_integration"),
+				ResourceName: "pexip_infinity_media_library_playlist.media_library_playlist-test",
+				Destroy:      true,
+			},
+			// Step 4: Create with min config (after destroy)
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_min_integration"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "false"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_media_library_playlist_full_integration"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_media_library_playlist.media_library_playlist-test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "name", "tf-test-media-library-playlist"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "description", "tf-test media library playlist description"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "loop", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_media_library_playlist.media_library_playlist-test", "shuffle", "true"),
+				),
+			},
+		},
+	})
 }
