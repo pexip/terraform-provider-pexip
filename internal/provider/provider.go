@@ -219,6 +219,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityWebappBrandingResource{} },
 		func() resource.Resource { return &InfinityBreakInAllowListAddressResource{} },
 		func() resource.Resource { return &InfinityMjxEndpointResource{} },
+		func() resource.Resource { return &InfinityMjxEndpointGroupResource{} },
 		func() resource.Resource { return &InfinityLdapSyncFieldResource{} },
 		func() resource.Resource { return &InfinityMediaProcessingServerResource{} },
 		func() resource.Resource { return &InfinityPexipStreamingCredentialResource{} },
