@@ -78,27 +78,13 @@ func TestInfinityMjxIntegration(t *testing.T) {
 		if updateRequest.Description != "" {
 			mockState.Description = updateRequest.Description
 		}
-		if updateRequest.StartBuffer != nil {
-			mockState.StartBuffer = *updateRequest.StartBuffer
-		}
-		if updateRequest.EndBuffer != nil {
-			mockState.EndBuffer = *updateRequest.EndBuffer
-		}
-		if updateRequest.DisplayUpcomingMeetings != nil {
-			mockState.DisplayUpcomingMeetings = *updateRequest.DisplayUpcomingMeetings
-		}
-		if updateRequest.EnableNonVideoMeetings != nil {
-			mockState.EnableNonVideoMeetings = *updateRequest.EnableNonVideoMeetings
-		}
-		if updateRequest.EnablePrivateMeetings != nil {
-			mockState.EnablePrivateMeetings = *updateRequest.EnablePrivateMeetings
-		}
-		if updateRequest.EPUseHTTPS != nil {
-			mockState.EPUseHTTPS = *updateRequest.EPUseHTTPS
-		}
-		if updateRequest.EPVerifyCertificate != nil {
-			mockState.EPVerifyCertificate = *updateRequest.EPVerifyCertificate
-		}
+		mockState.StartBuffer = updateRequest.StartBuffer
+		mockState.EndBuffer = updateRequest.EndBuffer
+		mockState.DisplayUpcomingMeetings = updateRequest.DisplayUpcomingMeetings
+		mockState.EnableNonVideoMeetings = updateRequest.EnableNonVideoMeetings
+		mockState.EnablePrivateMeetings = updateRequest.EnablePrivateMeetings
+		mockState.EPUseHTTPS = updateRequest.EPUseHTTPS
+		mockState.EPVerifyCertificate = updateRequest.EPVerifyCertificate
 		if updateRequest.ReplaceSubjectType != "" {
 			mockState.ReplaceSubjectType = updateRequest.ReplaceSubjectType
 		}
@@ -111,18 +97,12 @@ func TestInfinityMjxIntegration(t *testing.T) {
 		if updateRequest.GraphDeployment != nil {
 			mockState.GraphDeployment = updateRequest.GraphDeployment
 		}
-		if updateRequest.ProcessAliasPrivateMeetings != nil {
-			mockState.ProcessAliasPrivateMeetings = *updateRequest.ProcessAliasPrivateMeetings
-		}
-		if updateRequest.ReplaceEmptySubject != nil {
-			mockState.ReplaceEmptySubject = *updateRequest.ReplaceEmptySubject
-		}
+		mockState.ProcessAliasPrivateMeetings = updateRequest.ProcessAliasPrivateMeetings
+		mockState.ReplaceEmptySubject = updateRequest.ReplaceEmptySubject
 		if updateRequest.ReplaceSubjectTemplate != "" {
 			mockState.ReplaceSubjectTemplate = updateRequest.ReplaceSubjectTemplate
 		}
-		if updateRequest.UseWebex != nil {
-			mockState.UseWebex = *updateRequest.UseWebex
-		}
+		mockState.UseWebex = updateRequest.UseWebex
 		if updateRequest.WebexAPIDomain != "" {
 			mockState.WebexAPIDomain = updateRequest.WebexAPIDomain
 		}

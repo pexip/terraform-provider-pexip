@@ -482,41 +482,16 @@ func (r *InfinityMjxIntegrationResource) Update(ctx context.Context, req resourc
 		WebexAPIDomain:         plan.WebexAPIDomain.ValueString(),
 	}
 
-	// Handle optional pointer fields
-	if !plan.DisplayUpcomingMeetings.IsNull() && !plan.DisplayUpcomingMeetings.IsUnknown() {
-		meetings := int(plan.DisplayUpcomingMeetings.ValueInt64())
-		updateRequest.DisplayUpcomingMeetings = &meetings
-	}
-
-	if !plan.EnableNonVideoMeetings.IsNull() && !plan.EnableNonVideoMeetings.IsUnknown() {
-		enable := plan.EnableNonVideoMeetings.ValueBool()
-		updateRequest.EnableNonVideoMeetings = &enable
-	}
-
-	if !plan.EnablePrivateMeetings.IsNull() && !plan.EnablePrivateMeetings.IsUnknown() {
-		enable := plan.EnablePrivateMeetings.ValueBool()
-		updateRequest.EnablePrivateMeetings = &enable
-	}
-
-	if !plan.EndBuffer.IsNull() && !plan.EndBuffer.IsUnknown() {
-		buffer := int(plan.EndBuffer.ValueInt64())
-		updateRequest.EndBuffer = &buffer
-	}
-
-	if !plan.StartBuffer.IsNull() && !plan.StartBuffer.IsUnknown() {
-		buffer := int(plan.StartBuffer.ValueInt64())
-		updateRequest.StartBuffer = &buffer
-	}
-
-	if !plan.EPUseHTTPS.IsNull() && !plan.EPUseHTTPS.IsUnknown() {
-		useHTTPS := plan.EPUseHTTPS.ValueBool()
-		updateRequest.EPUseHTTPS = &useHTTPS
-	}
-
-	if !plan.EPVerifyCertificate.IsNull() && !plan.EPVerifyCertificate.IsUnknown() {
-		verify := plan.EPVerifyCertificate.ValueBool()
-		updateRequest.EPVerifyCertificate = &verify
-	}
+	updateRequest.DisplayUpcomingMeetings = int(plan.DisplayUpcomingMeetings.ValueInt64())
+	updateRequest.EnableNonVideoMeetings = plan.EnableNonVideoMeetings.ValueBool()
+	updateRequest.EnablePrivateMeetings = plan.EnablePrivateMeetings.ValueBool()
+	updateRequest.EndBuffer = int(plan.EndBuffer.ValueInt64())
+	updateRequest.StartBuffer = int(plan.StartBuffer.ValueInt64())
+	updateRequest.EPUseHTTPS = plan.EPUseHTTPS.ValueBool()
+	updateRequest.EPVerifyCertificate = plan.EPVerifyCertificate.ValueBool()
+	updateRequest.ProcessAliasPrivateMeetings = plan.ProcessAliasPrivateMeetings.ValueBool()
+	updateRequest.ReplaceEmptySubject = plan.ReplaceEmptySubject.ValueBool()
+	updateRequest.UseWebex = plan.UseWebex.ValueBool()
 
 	if !plan.ExchangeDeployment.IsNull() && !plan.ExchangeDeployment.IsUnknown() {
 		deployment := plan.ExchangeDeployment.ValueString()
@@ -531,21 +506,6 @@ func (r *InfinityMjxIntegrationResource) Update(ctx context.Context, req resourc
 	if !plan.GraphDeployment.IsNull() && !plan.GraphDeployment.IsUnknown() {
 		deployment := plan.GraphDeployment.ValueString()
 		updateRequest.GraphDeployment = &deployment
-	}
-
-	if !plan.ProcessAliasPrivateMeetings.IsNull() && !plan.ProcessAliasPrivateMeetings.IsUnknown() {
-		process := plan.ProcessAliasPrivateMeetings.ValueBool()
-		updateRequest.ProcessAliasPrivateMeetings = &process
-	}
-
-	if !plan.ReplaceEmptySubject.IsNull() && !plan.ReplaceEmptySubject.IsUnknown() {
-		replace := plan.ReplaceEmptySubject.ValueBool()
-		updateRequest.ReplaceEmptySubject = &replace
-	}
-
-	if !plan.UseWebex.IsNull() && !plan.UseWebex.IsUnknown() {
-		useWebex := plan.UseWebex.ValueBool()
-		updateRequest.UseWebex = &useWebex
 	}
 
 	if !plan.WebexClientID.IsNull() && !plan.WebexClientID.IsUnknown() {

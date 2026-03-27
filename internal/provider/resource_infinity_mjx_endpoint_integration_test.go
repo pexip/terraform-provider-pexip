@@ -23,7 +23,6 @@ import (
 )
 
 func TestInfinityMjxEndpointIntegration(t *testing.T) {
-	t.Skip("Skipping: Requires MJX endpoint")
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(

@@ -455,10 +455,7 @@ func (r *InfinityMjxEndpointResource) Update(ctx context.Context, req resource.U
 		updateRequest.PolyPassword = &password
 	}
 
-	if !plan.PolyRaiseAlarmsForThisEndpoint.IsNull() && !plan.PolyRaiseAlarmsForThisEndpoint.IsUnknown() {
-		alarms := plan.PolyRaiseAlarmsForThisEndpoint.ValueBool()
-		updateRequest.PolyRaiseAlarmsForThisEndpoint = &alarms
-	}
+	updateRequest.PolyRaiseAlarmsForThisEndpoint = plan.PolyRaiseAlarmsForThisEndpoint.ValueBool()
 
 	if !plan.WebexDeviceID.IsNull() && !plan.WebexDeviceID.IsUnknown() {
 		deviceID := plan.WebexDeviceID.ValueString()
