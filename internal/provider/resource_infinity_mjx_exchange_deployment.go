@@ -252,7 +252,7 @@ func (r *InfinityMjxExchangeDeploymentResource) Schema(ctx context.Context, req 
 				MarkdownDescription: "A unique state which is used during the OAuth sign-in flow.",
 			},
 			"autodiscover_urls": schema.SetAttribute{
-				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The Autodiscover URLs associated with this One-Touch Join Exchange Integration.",
 			},
@@ -303,15 +303,6 @@ func (r *InfinityMjxExchangeDeploymentResource) Create(ctx context.Context, req 
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		v := plan.OAuthState.ValueString()
 		createRequest.OAuthState = &v
-	}
-
-	if !plan.AutodiscoverURLs.IsNull() && !plan.AutodiscoverURLs.IsUnknown() {
-		urls, diags := getStringList(ctx, plan.AutodiscoverURLs)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.AutodiscoverURLs = &urls
 	}
 
 	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
@@ -407,7 +398,11 @@ func (r *InfinityMjxExchangeDeploymentResource) read(ctx context.Context, resour
 	}
 
 	if srv.AutodiscoverURLs != nil && len(*srv.AutodiscoverURLs) > 0 {
-		urls, diags := types.SetValueFrom(ctx, types.StringType, *srv.AutodiscoverURLs)
+		uris := make([]string, len(*srv.AutodiscoverURLs))
+		for i, ref := range *srv.AutodiscoverURLs {
+			uris[i] = ref.ResourceURI
+		}
+		urls, diags := types.SetValueFrom(ctx, types.StringType, uris)
 		if diags.HasError() {
 			return nil, fmt.Errorf("error converting autodiscover URLs: %v", diags)
 		}
@@ -437,8 +432,9 @@ func (r *InfinityMjxExchangeDeploymentResource) Read(ctx context.Context, req re
 		return
 	}
 
-	// Preserve service_account_password from existing state
+	// Preserve fields not returned by the API
 	serviceAccountPassword := state.ServiceAccountPassword
+	oauthRefreshToken := state.OAuthRefreshToken
 
 	resourceID := int(state.ResourceID.ValueInt32())
 	state, err := r.read(ctx, resourceID)
@@ -454,8 +450,9 @@ func (r *InfinityMjxExchangeDeploymentResource) Read(ctx context.Context, req re
 		return
 	}
 
-	// Restore service_account_password as it is not returned by the API
+	// Restore fields not returned consistently by the API
 	state.ServiceAccountPassword = serviceAccountPassword
+	state.OAuthRefreshToken = oauthRefreshToken
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -504,15 +501,6 @@ func (r *InfinityMjxExchangeDeploymentResource) Update(ctx context.Context, req 
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		v := plan.OAuthState.ValueString()
 		updateRequest.OAuthState = &v
-	}
-
-	if !plan.AutodiscoverURLs.IsNull() && !plan.AutodiscoverURLs.IsUnknown() {
-		urls, diags := getStringList(ctx, plan.AutodiscoverURLs)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.AutodiscoverURLs = &urls
 	}
 
 	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {

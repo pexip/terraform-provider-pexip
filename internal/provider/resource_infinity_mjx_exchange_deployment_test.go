@@ -56,7 +56,6 @@ func TestInfinityMjxExchangeDeployment(t *testing.T) {
 			OAuthTokenEndpoint:             createReq.OAuthTokenEndpoint,
 			OAuthRedirectURI:               createReq.OAuthRedirectURI,
 			OAuthState:                     createReq.OAuthState,
-			AutodiscoverURLs:               createReq.AutodiscoverURLs,
 			MjxIntegrations:                createReq.MjxIntegrations,
 		}
 	})
@@ -83,7 +82,6 @@ func TestInfinityMjxExchangeDeployment(t *testing.T) {
 		mockState.OAuthRedirectURI = updateReq.OAuthRedirectURI
 		mockState.OAuthClientID = updateReq.OAuthClientID
 		mockState.OAuthState = updateReq.OAuthState
-		mockState.AutodiscoverURLs = updateReq.AutodiscoverURLs
 		mockState.MjxIntegrations = updateReq.MjxIntegrations
 		if updateReq.FindItemsRequestQuota != 0 {
 			mockState.FindItemsRequestQuota = updateReq.FindItemsRequestQuota
