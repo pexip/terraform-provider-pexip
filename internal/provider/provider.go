@@ -230,6 +230,7 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityMjxGraphDeploymentResource{} },
 		func() resource.Resource { return &InfinityMjxGoogleDeploymentResource{} },
 		func() resource.Resource { return &InfinityMjxExchangeDeploymentResource{} },
+		func() resource.Resource { return &InfinityMjxExchangeAutodiscoverURLResource{} },
 		func() resource.Resource { return &InfinityExternalWebappHostResource{} },
 		func() resource.Resource { return &InfinityGoogleAuthServerResource{} },
 	}
