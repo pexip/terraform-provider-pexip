@@ -181,7 +181,7 @@ func (r *InfinityMjxGoogleDeploymentResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The maximum number of API requests that can be made by OTJ to your Google Workspace Domain in a 24-hour period. Minimum: 10000. Default: 900000.",
 			},
 			"mjx_integrations": schema.SetAttribute{
-				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The OTJ Google Workspace Integration associated with this One-Touch Join Profile.",
 			},
@@ -218,15 +218,6 @@ func (r *InfinityMjxGoogleDeploymentResource) Create(ctx context.Context, req re
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		oauthState := plan.OAuthState.ValueString()
 		createRequest.OAuthState = &oauthState
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.MjxIntegrations = &integrations
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateMjxGoogleDeployment(ctx, createRequest)
@@ -378,15 +369,6 @@ func (r *InfinityMjxGoogleDeploymentResource) Update(ctx context.Context, req re
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		oauthState := plan.OAuthState.ValueString()
 		updateRequest.OAuthState = &oauthState
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.MjxIntegrations = &integrations
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())

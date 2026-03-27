@@ -257,7 +257,7 @@ func (r *InfinityMjxExchangeDeploymentResource) Schema(ctx context.Context, req 
 				MarkdownDescription: "The Autodiscover URLs associated with this One-Touch Join Exchange Integration.",
 			},
 			"mjx_integrations": schema.SetAttribute{
-				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The One-Touch Join Profiles associated with this OTJ Exchange Integration.",
 			},
@@ -303,15 +303,6 @@ func (r *InfinityMjxExchangeDeploymentResource) Create(ctx context.Context, req 
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		v := plan.OAuthState.ValueString()
 		createRequest.OAuthState = &v
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.MjxIntegrations = &integrations
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateMjxExchangeDeployment(ctx, createRequest)
@@ -501,15 +492,6 @@ func (r *InfinityMjxExchangeDeploymentResource) Update(ctx context.Context, req 
 	if !plan.OAuthState.IsNull() && !plan.OAuthState.IsUnknown() {
 		v := plan.OAuthState.ValueString()
 		updateRequest.OAuthState = &v
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.MjxIntegrations = &integrations
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())

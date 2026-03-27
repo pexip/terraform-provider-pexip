@@ -139,7 +139,7 @@ func (r *InfinityMjxGraphDeploymentResource) Schema(ctx context.Context, req res
 				MarkdownDescription: "Bypass the web proxy (where configured for the system location) for outbound requests sent from this integration.",
 			},
 			"mjx_integrations": schema.SetAttribute{
-				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The One-Touch Join Profiles associated with this OTJ O365 Graph Integration.",
 			},
@@ -168,15 +168,6 @@ func (r *InfinityMjxGraphDeploymentResource) Create(ctx context.Context, req res
 
 	if !plan.ClientSecret.IsNull() && !plan.ClientSecret.IsUnknown() {
 		createRequest.ClientSecret = plan.ClientSecret.ValueString()
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createRequest.MjxIntegrations = &integrations
 	}
 
 	createResponse, err := r.InfinityClient.Config().CreateMjxGraphDeployment(ctx, createRequest)
@@ -307,15 +298,6 @@ func (r *InfinityMjxGraphDeploymentResource) Update(ctx context.Context, req res
 
 	if !plan.ClientSecret.IsNull() && !plan.ClientSecret.IsUnknown() {
 		updateRequest.ClientSecret = plan.ClientSecret.ValueString()
-	}
-
-	if !plan.MjxIntegrations.IsNull() && !plan.MjxIntegrations.IsUnknown() {
-		integrations, diags := getStringList(ctx, plan.MjxIntegrations)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		updateRequest.MjxIntegrations = &integrations
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
