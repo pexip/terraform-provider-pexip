@@ -20,116 +20,87 @@ import (
 	"github.com/pexip/terraform-provider-pexip/internal/test"
 )
 
+func stringToMjxIntegrationRef(s *string) *config.MjxIntegrationResourceReference {
+	if s == nil {
+		return nil
+	}
+	return &config.MjxIntegrationResourceReference{ResourceURI: *s}
+}
+
 func TestInfinityMjxIntegration(t *testing.T) {
+	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
-	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Mock the CreateMjxintegration API call
+	mockState := &config.MjxIntegration{}
+
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/mjx_integration/123/",
 	}
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/mjx_integration/", mock.Anything, mock.Anything).Return(createResponse, nil)
+	client.On("PostWithResponse", mock.Anything, "configuration/v1/mjx_integration/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		createReq := args.Get(2).(*config.MjxIntegrationCreateRequest)
+		*mockState = config.MjxIntegration{
+			ID:                          123,
+			ResourceURI:                 "/api/admin/configuration/v1/mjx_integration/123/",
+			Name:                        createReq.Name,
+			Description:                 createReq.Description,
+			DisplayUpcomingMeetings:     createReq.DisplayUpcomingMeetings,
+			EnableNonVideoMeetings:      createReq.EnableNonVideoMeetings,
+			EnablePrivateMeetings:       createReq.EnablePrivateMeetings,
+			EndBuffer:                   createReq.EndBuffer,
+			StartBuffer:                 createReq.StartBuffer,
+			EPUsername:                  createReq.EPUsername,
+			EPUseHTTPS:                  createReq.EPUseHTTPS,
+			EPVerifyCertificate:         createReq.EPVerifyCertificate,
+			ExchangeDeployment:          stringToMjxIntegrationRef(createReq.ExchangeDeployment),
+			GoogleDeployment:            stringToMjxIntegrationRef(createReq.GoogleDeployment),
+			GraphDeployment:             stringToMjxIntegrationRef(createReq.GraphDeployment),
+			ProcessAliasPrivateMeetings: createReq.ProcessAliasPrivateMeetings,
+			ReplaceEmptySubject:         createReq.ReplaceEmptySubject,
+			ReplaceSubjectType:          createReq.ReplaceSubjectType,
+			ReplaceSubjectTemplate:      createReq.ReplaceSubjectTemplate,
+			UseWebex:                    createReq.UseWebex,
+			WebexAPIDomain:              createReq.WebexAPIDomain,
+			WebexClientID:               createReq.WebexClientID,
+			WebexOAuthState:             createReq.WebexOAuthState,
+			WebexRedirectURI:            createReq.WebexRedirectURI,
+		}
+	})
 
-	// Shared state for mocking
-	mockState := &config.MjxIntegration{
-		ID:                          123,
-		ResourceURI:                 "/api/admin/configuration/v1/mjx_integration/123/",
-		Name:                        "mjx_integration-test",
-		Description:                 "Test MjxIntegration",
-		StartBuffer:                 30,
-		EndBuffer:                   30,
-		DisplayUpcomingMeetings:     12,
-		EnableNonVideoMeetings:      true,
-		EnablePrivateMeetings:       true,
-		EPUsername:                  "mjx_integration-test",
-		EPPassword:                  "test-value",
-		EPUseHTTPS:                  true,
-		EPVerifyCertificate:         true,
-		ExchangeDeployment:          test.StringPtr("test-value"),
-		GoogleDeployment:            test.StringPtr("test-value"),
-		GraphDeployment:             test.StringPtr("test-value"),
-		ProcessAliasPrivateMeetings: true,
-		ReplaceEmptySubject:         true,
-		ReplaceSubjectType:          "template",
-		ReplaceSubjectTemplate:      "test-value",
-		UseWebex:                    true,
-		WebexAPIDomain:              "test-value",
-		WebexClientID:               test.StringPtr("test-value"),
-		WebexClientSecret:           test.StringPtr("test-value"),
-		WebexRedirectURI:            test.StringPtr("test-value"),
-		WebexRefreshToken:           test.StringPtr("test-value"),
-	}
-
-	// Mock the GetMjxintegration API call for Read operations
 	client.On("GetJSON", mock.Anything, "configuration/v1/mjx_integration/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		mjxintegration := args.Get(3).(*config.MjxIntegration)
-		*mjxintegration = *mockState
+		integration := args.Get(3).(*config.MjxIntegration)
+		*integration = *mockState
 	}).Maybe()
 
-	// Mock the UpdateMjxintegration API call
 	client.On("PutJSON", mock.Anything, "configuration/v1/mjx_integration/123/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.MjxIntegrationUpdateRequest)
-		mjxintegration := args.Get(3).(*config.MjxIntegration)
-
-		// Update mock state based on request
-		if updateRequest.Description != "" {
-			mockState.Description = updateRequest.Description
-		}
-		mockState.StartBuffer = updateRequest.StartBuffer
-		mockState.EndBuffer = updateRequest.EndBuffer
-		mockState.DisplayUpcomingMeetings = updateRequest.DisplayUpcomingMeetings
-		mockState.EnableNonVideoMeetings = updateRequest.EnableNonVideoMeetings
-		mockState.EnablePrivateMeetings = updateRequest.EnablePrivateMeetings
-		mockState.EPUseHTTPS = updateRequest.EPUseHTTPS
-		mockState.EPVerifyCertificate = updateRequest.EPVerifyCertificate
-		if updateRequest.ReplaceSubjectType != "" {
-			mockState.ReplaceSubjectType = updateRequest.ReplaceSubjectType
-		}
-		if updateRequest.ExchangeDeployment != nil {
-			mockState.ExchangeDeployment = updateRequest.ExchangeDeployment
-		}
-		if updateRequest.GoogleDeployment != nil {
-			mockState.GoogleDeployment = updateRequest.GoogleDeployment
-		}
-		if updateRequest.GraphDeployment != nil {
-			mockState.GraphDeployment = updateRequest.GraphDeployment
-		}
-		mockState.ProcessAliasPrivateMeetings = updateRequest.ProcessAliasPrivateMeetings
-		mockState.ReplaceEmptySubject = updateRequest.ReplaceEmptySubject
-		if updateRequest.ReplaceSubjectTemplate != "" {
-			mockState.ReplaceSubjectTemplate = updateRequest.ReplaceSubjectTemplate
-		}
-		mockState.UseWebex = updateRequest.UseWebex
-		if updateRequest.WebexAPIDomain != "" {
-			mockState.WebexAPIDomain = updateRequest.WebexAPIDomain
-		}
-		if updateRequest.WebexClientID != nil {
-			mockState.WebexClientID = updateRequest.WebexClientID
-		}
-		if updateRequest.WebexClientSecret != nil {
-			mockState.WebexClientSecret = updateRequest.WebexClientSecret
-		}
-		if updateRequest.WebexRedirectURI != nil {
-			mockState.WebexRedirectURI = updateRequest.WebexRedirectURI
-		}
-		if updateRequest.WebexRefreshToken != nil {
-			mockState.WebexRefreshToken = updateRequest.WebexRefreshToken
-		}
-		if updateRequest.EPPassword != "" {
-			mockState.EPPassword = updateRequest.EPPassword
-		}
-
-		// Return updated state
-		*mjxintegration = *mockState
+		updateReq := args.Get(2).(*config.MjxIntegrationUpdateRequest)
+		mockState.Name = updateReq.Name
+		mockState.Description = updateReq.Description
+		mockState.DisplayUpcomingMeetings = updateReq.DisplayUpcomingMeetings
+		mockState.EnableNonVideoMeetings = updateReq.EnableNonVideoMeetings
+		mockState.EnablePrivateMeetings = updateReq.EnablePrivateMeetings
+		mockState.EndBuffer = updateReq.EndBuffer
+		mockState.StartBuffer = updateReq.StartBuffer
+		mockState.EPUsername = updateReq.EPUsername
+		mockState.EPUseHTTPS = updateReq.EPUseHTTPS
+		mockState.EPVerifyCertificate = updateReq.EPVerifyCertificate
+		mockState.ExchangeDeployment = stringToMjxIntegrationRef(updateReq.ExchangeDeployment)
+		mockState.GoogleDeployment = stringToMjxIntegrationRef(updateReq.GoogleDeployment)
+		mockState.GraphDeployment = stringToMjxIntegrationRef(updateReq.GraphDeployment)
+		mockState.ProcessAliasPrivateMeetings = updateReq.ProcessAliasPrivateMeetings
+		mockState.ReplaceEmptySubject = updateReq.ReplaceEmptySubject
+		mockState.ReplaceSubjectType = updateReq.ReplaceSubjectType
+		mockState.ReplaceSubjectTemplate = updateReq.ReplaceSubjectTemplate
+		mockState.UseWebex = updateReq.UseWebex
+		mockState.WebexAPIDomain = updateReq.WebexAPIDomain
+		mockState.WebexClientID = updateReq.WebexClientID
+		mockState.WebexOAuthState = updateReq.WebexOAuthState
+		mockState.WebexRedirectURI = updateReq.WebexRedirectURI
 	}).Maybe()
 
-	// Mock the DeleteMjxintegration API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/mjx_integration/123/"
-	}), mock.Anything).Return(nil)
+	client.On("DeleteJSON", mock.Anything, "configuration/v1/mjx_integration/123/", mock.Anything).Return(nil)
 
 	testInfinityMjxIntegration(t, client)
 }
@@ -138,38 +109,105 @@ func testInfinityMjxIntegration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Create with full config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_basic"),
+				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_full"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.mjx_integration-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.mjx_integration-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "name", "mjx_integration-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "description", "Test MjxIntegration"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "enable_non_video_meetings", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "enable_private_meetings", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_username", "mjx_integration-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_use_https", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_verify_certificate", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "process_alias_private_meetings", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "replace_empty_subject", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "use_webex", "true"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "name", "tf-test mjx-integration full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "description", "Test MJX integration description"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "display_upcoming_meetings", "14"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_non_video_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_private_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "end_buffer", "10"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "start_buffer", "10"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_username", "ep-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_password", "ep-password-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_use_https", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_verify_certificate", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "graph_deployment", "/api/admin/configuration/v1/mjx_graph_deployment/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "process_alias_private_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_empty_subject", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_type", "ALL"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_template", "Meeting: {{ subject }}"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "use_webex", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_api_domain", "custom.webexapis.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_client_id", "webex-client-id-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_client_secret", "webex-secret-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_redirect_uri", "https://pexip.example.com/admin/platform/mjxintegration/oauth_redirect/"),
 				),
 			},
+			// Step 2: Update with min config
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_min"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.mjx_integration-test", "id"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.mjx_integration-test", "resource_id"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "name", "mjx_integration-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "description", "Updated Test MjxIntegration"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "enable_non_video_meetings", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "enable_private_meetings", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_username", "mjx_integration-test"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_use_https", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "ep_verify_certificate", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "process_alias_private_meetings", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "replace_empty_subject", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.mjx_integration-test", "use_webex", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "name", "tf-test mjx-integration min"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "display_upcoming_meetings", "7"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_non_video_meetings", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_private_meetings", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "end_buffer", "0"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "start_buffer", "5"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_use_https", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_verify_certificate", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "graph_deployment", "/api/admin/configuration/v1/mjx_graph_deployment/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "process_alias_private_meetings", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_empty_subject", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_type", "PRIVATE"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_template", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "use_webex", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_api_domain", "webexapis.com"),
+				),
+			},
+			// Step 3: Destroy
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_mjx_integration_min"),
+				Destroy: true,
+			},
+			// Step 4: Recreate with min config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "name", "tf-test mjx-integration min"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "display_upcoming_meetings", "7"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "graph_deployment", "/api/admin/configuration/v1/mjx_graph_deployment/1/"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "use_webex", "false"),
+				),
+			},
+			// Step 5: Update to full config
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_mjx_integration_full"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "id"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_mjx_integration.test", "resource_id"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "name", "tf-test mjx-integration full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "description", "Test MJX integration description"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "display_upcoming_meetings", "14"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_non_video_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "enable_private_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "end_buffer", "10"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "start_buffer", "10"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_username", "ep-user@example.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_password", "ep-password-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_use_https", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "ep_verify_certificate", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "graph_deployment", "/api/admin/configuration/v1/mjx_graph_deployment/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "process_alias_private_meetings", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_empty_subject", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_type", "ALL"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "replace_subject_template", "Meeting: {{ subject }}"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "use_webex", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_api_domain", "custom.webexapis.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_client_id", "webex-client-id-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_client_secret", "webex-secret-full"),
+					resource.TestCheckResourceAttr("pexip_infinity_mjx_integration.test", "webex_redirect_uri", "https://pexip.example.com/admin/platform/mjxintegration/oauth_redirect/"),
 				),
 			},
 		},
