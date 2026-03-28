@@ -67,11 +67,11 @@ func (r *InfinityMjxEndpointGroupResource) Schema(ctx context.Context, req resou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Resource URI for the MJX endpoint integration group in Infinity.",
+				MarkdownDescription: "Resource URI for the MJX endpoint group in Infinity.",
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
-				MarkdownDescription: "The resource integer identifier for the MJX endpoint integration group in Infinity.",
+				MarkdownDescription: "The resource integer identifier for the MJX endpoint group in Infinity.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
@@ -110,7 +110,7 @@ func (r *InfinityMjxEndpointGroupResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The endpoints that belong to this Endpoint Group.",
 			},
 		},
-		MarkdownDescription: "Manages an MJX endpoint integration group in Infinity. An MJX endpoint integration group defines the system location and One-Touch Join Profile for a set of OTJ endpoints.",
+		MarkdownDescription: "Manages an MJX endpoint group in Infinity. An MJX endpoint group defines the system location and One-Touch Join Profile for a set of OTJ endpoints.",
 	}
 }
 
@@ -138,8 +138,8 @@ func (r *InfinityMjxEndpointGroupResource) Create(ctx context.Context, req resou
 	createResponse, err := r.InfinityClient.Config().CreateMjxEndpointGroup(ctx, createRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Creating Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not create Infinity MJX endpoint integration group: %s", err),
+			"Error Creating Infinity MJX endpoint group",
+			fmt.Sprintf("Could not create Infinity MJX endpoint group: %s", err),
 		)
 		return
 	}
@@ -147,8 +147,8 @@ func (r *InfinityMjxEndpointGroupResource) Create(ctx context.Context, req resou
 	resourceID, err := createResponse.ResourceID()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Retrieving Infinity MJX endpoint integration group ID",
-			fmt.Sprintf("Could not retrieve ID for created Infinity MJX endpoint integration group: %s", err),
+			"Error Retrieving Infinity MJX endpoint group ID",
+			fmt.Sprintf("Could not retrieve ID for created Infinity MJX endpoint group: %s", err),
 		)
 		return
 	}
@@ -156,13 +156,13 @@ func (r *InfinityMjxEndpointGroupResource) Create(ctx context.Context, req resou
 	model, err := r.read(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Created Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not read created Infinity MJX endpoint integration group with ID %d: %s", resourceID, err),
+			"Error Reading Created Infinity MJX endpoint group",
+			fmt.Sprintf("Could not read created Infinity MJX endpoint group with ID %d: %s", resourceID, err),
 		)
 		return
 	}
 
-	tflog.Trace(ctx, fmt.Sprintf("created Infinity MJX endpoint integration group with ID: %s, name: %s", model.ID, model.Name))
+	tflog.Trace(ctx, fmt.Sprintf("created Infinity MJX endpoint group with ID: %s, name: %s", model.ID, model.Name))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
@@ -176,7 +176,7 @@ func (r *InfinityMjxEndpointGroupResource) read(ctx context.Context, resourceID 
 	}
 
 	if srv.ResourceURI == "" {
-		return nil, fmt.Errorf("MJX endpoint integration group with ID %d not found", resourceID)
+		return nil, fmt.Errorf("MJX endpoint group with ID %d not found", resourceID)
 	}
 
 	data.ID = types.StringValue(srv.ResourceURI)
@@ -198,7 +198,11 @@ func (r *InfinityMjxEndpointGroupResource) read(ctx context.Context, resourceID 
 	}
 
 	if len(srv.Endpoints) > 0 {
-		endpoints, diags := types.SetValueFrom(ctx, types.StringType, srv.Endpoints)
+		endpointURIs := make([]string, len(srv.Endpoints))
+		for i, ep := range srv.Endpoints {
+			endpointURIs[i] = ep.ResourceURI
+		}
+		endpoints, diags := types.SetValueFrom(ctx, types.StringType, endpointURIs)
 		if diags.HasError() {
 			return nil, fmt.Errorf("error converting endpoints: %v", diags)
 		}
@@ -226,8 +230,8 @@ func (r *InfinityMjxEndpointGroupResource) Read(ctx context.Context, req resourc
 			return
 		}
 		resp.Diagnostics.AddError(
-			"Error Reading Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not read Infinity MJX endpoint integration group: %s", err),
+			"Error Reading Infinity MJX endpoint group",
+			fmt.Sprintf("Could not read Infinity MJX endpoint group: %s", err),
 		)
 		return
 	}
@@ -262,8 +266,8 @@ func (r *InfinityMjxEndpointGroupResource) Update(ctx context.Context, req resou
 	_, err := r.InfinityClient.Config().UpdateMjxEndpointGroup(ctx, resourceID, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not update Infinity MJX endpoint integration group: %s", err),
+			"Error Updating Infinity MJX endpoint group",
+			fmt.Sprintf("Could not update Infinity MJX endpoint group: %s", err),
 		)
 		return
 	}
@@ -271,8 +275,8 @@ func (r *InfinityMjxEndpointGroupResource) Update(ctx context.Context, req resou
 	model, err := r.read(ctx, resourceID)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading Updated Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not read updated Infinity MJX endpoint integration group with ID %d: %s", resourceID, err),
+			"Error Reading Updated Infinity MJX endpoint group",
+			fmt.Sprintf("Could not read updated Infinity MJX endpoint group with ID %d: %s", resourceID, err),
 		)
 		return
 	}
@@ -283,7 +287,7 @@ func (r *InfinityMjxEndpointGroupResource) Update(ctx context.Context, req resou
 func (r *InfinityMjxEndpointGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	state := &InfinityMjxEndpointGroupResourceModel{}
 
-	tflog.Info(ctx, "Deleting Infinity MJX endpoint integration group")
+	tflog.Info(ctx, "Deleting Infinity MJX endpoint group")
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -294,8 +298,8 @@ func (r *InfinityMjxEndpointGroupResource) Delete(ctx context.Context, req resou
 
 	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
-			"Error Deleting Infinity MJX endpoint integration group",
-			fmt.Sprintf("Could not delete Infinity MJX endpoint integration group with ID %s: %s", state.ID.ValueString(), err),
+			"Error Deleting Infinity MJX endpoint group",
+			fmt.Sprintf("Could not delete Infinity MJX endpoint group with ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
 	}
@@ -311,20 +315,20 @@ func (r *InfinityMjxEndpointGroupResource) ImportState(ctx context.Context, req 
 		return
 	}
 
-	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity MJX endpoint integration group with resource ID: %d", resourceID))
+	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity MJX endpoint group with resource ID: %d", resourceID))
 
 	model, err := r.read(ctx, resourceID)
 	if err != nil {
 		if isNotFoundError(err) {
 			resp.Diagnostics.AddError(
-				"Infinity MJX Endpoint Integration Group Not Found",
-				fmt.Sprintf("Infinity MJX endpoint integration group with resource ID %d not found.", resourceID),
+				"Infinity MJX endpoint group Not Found",
+				fmt.Sprintf("Infinity MJX endpoint group with resource ID %d not found.", resourceID),
 			)
 			return
 		}
 		resp.Diagnostics.AddError(
-			"Error Importing Infinity MJX Endpoint Integration Group",
-			fmt.Sprintf("Could not import Infinity MJX endpoint integration group with resource ID %d: %s", resourceID, err),
+			"Error Importing Infinity MJX endpoint group",
+			fmt.Sprintf("Could not import Infinity MJX endpoint group with resource ID %d: %s", resourceID, err),
 		)
 		return
 	}
