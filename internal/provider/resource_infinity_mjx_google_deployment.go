@@ -16,8 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -33,22 +36,22 @@ type InfinityMjxGoogleDeploymentResource struct {
 }
 
 type InfinityMjxGoogleDeploymentResourceModel struct {
-	ID                        types.String `tfsdk:"id"`
-	ResourceID                types.Int32  `tfsdk:"resource_id"`
-	Name                      types.String `tfsdk:"name"`
-	Description               types.String `tfsdk:"description"`
-	ClientEmail               types.String `tfsdk:"client_email"`
-	ClientID                  types.String `tfsdk:"client_id"`
-	ClientSecret              types.String `tfsdk:"client_secret"`
-	PrivateKey                types.String `tfsdk:"private_key"`
-	UseUserConsent            types.Bool   `tfsdk:"use_user_consent"`
-	AuthEndpoint              types.String `tfsdk:"auth_endpoint"`
-	TokenEndpoint             types.String `tfsdk:"token_endpoint"`
-	RedirectURI               types.String `tfsdk:"redirect_uri"`
-	RefreshToken              types.String `tfsdk:"refresh_token"`
-	OAuthState                types.String `tfsdk:"oauth_state"`
-	MaximumNumberOfAPIRequests types.Int64 `tfsdk:"maximum_number_of_api_requests"`
-	MjxIntegrations           types.Set   `tfsdk:"mjx_integrations"`
+	ID                         types.String `tfsdk:"id"`
+	ResourceID                 types.Int32  `tfsdk:"resource_id"`
+	Name                       types.String `tfsdk:"name"`
+	Description                types.String `tfsdk:"description"`
+	ClientEmail                types.String `tfsdk:"client_email"`
+	ClientID                   types.String `tfsdk:"client_id"`
+	ClientSecret               types.String `tfsdk:"client_secret"`
+	PrivateKey                 types.String `tfsdk:"private_key"`
+	UseUserConsent             types.Bool   `tfsdk:"use_user_consent"`
+	AuthEndpoint               types.String `tfsdk:"auth_endpoint"`
+	TokenEndpoint              types.String `tfsdk:"token_endpoint"`
+	RedirectURI                types.String `tfsdk:"redirect_uri"`
+	RefreshToken               types.String `tfsdk:"refresh_token"`
+	OAuthState                 types.String `tfsdk:"oauth_state"`
+	MaximumNumberOfAPIRequests types.Int64  `tfsdk:"maximum_number_of_api_requests"`
+	MjxIntegrations            types.Set    `tfsdk:"mjx_integrations"`
 }
 
 func (r *InfinityMjxGoogleDeploymentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,10 +81,16 @@ func (r *InfinityMjxGoogleDeploymentResource) Schema(ctx context.Context, req re
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Resource URI for the MJX Google deployment in Infinity.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The resource integer identifier for the MJX Google deployment in Infinity.",
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required: true,
@@ -117,8 +126,8 @@ func (r *InfinityMjxGoogleDeploymentResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The client ID of the application you created in the Google API Console, for use by OTJ. Maximum length: 250 characters.",
 			},
 			"client_secret": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Optional:            true,
+				Sensitive:           true,
 				MarkdownDescription: "The client secret for the application you created in the Google API Console, for use by OTJ.",
 			},
 			"private_key": schema.StringAttribute{
