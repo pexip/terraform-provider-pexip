@@ -70,6 +70,9 @@ func (r *InfinityWebappBrandingResource) Schema(ctx context.Context, req resourc
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Resource URI for the webapp branding package in Infinity",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required: true,
