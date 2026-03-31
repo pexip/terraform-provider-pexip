@@ -91,10 +91,7 @@ func (r *InfinityIvrThemeResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "UUID for the IVR theme.",
 			},
 			"package": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
+				Optional:            true,
 				MarkdownDescription: "Path to the IVR theme package file to upload (e.g., `package = \"path/to/theme.zip\"`).",
 			},
 		},
@@ -114,20 +111,22 @@ func (r *InfinityIvrThemeResource) Create(ctx context.Context, req resource.Crea
 		Name: plan.Name.ValueString(),
 	}
 
-	// Open the package file
-	packagePath := plan.Package.ValueString()
-	packageFile, err := os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Opening Package File",
-			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
-		)
-		return
+	var filename string
+	var packageFile *os.File
+	if !plan.Package.IsNull() && !plan.Package.IsUnknown() && plan.Package.ValueString() != "" {
+		packagePath := plan.Package.ValueString()
+		var err error
+		packageFile, err = os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Opening Package File",
+				fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
+			)
+			return
+		}
+		defer func() { _ = packageFile.Close() }()
+		filename = filepath.Base(packagePath)
 	}
-	defer func() { _ = packageFile.Close() }()
-
-	// Extract filename from the path
-	filename := filepath.Base(packagePath)
 
 	createResponse, err := r.InfinityClient.Config().CreateIVRTheme(ctx, createRequest, filename, packageFile)
 	if err != nil {
@@ -233,22 +232,24 @@ func (r *InfinityIvrThemeResource) Update(ctx context.Context, req resource.Upda
 		Name: plan.Name.ValueString(),
 	}
 
-	// Open the package file
-	packagePath := plan.Package.ValueString()
-	packageFile, err := os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error Opening Package File",
-			fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
-		)
-		return
+	var filename string
+	var packageFile *os.File
+	if !plan.Package.IsNull() && !plan.Package.IsUnknown() && plan.Package.ValueString() != "" {
+		packagePath := plan.Package.ValueString()
+		var err error
+		packageFile, err = os.Open(packagePath) // #nosec G304 -- File path provided by user in Terraform configuration
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Opening Package File",
+				fmt.Sprintf("Could not open package file at path '%s': %s", packagePath, err),
+			)
+			return
+		}
+		defer func() { _ = packageFile.Close() }()
+		filename = filepath.Base(packagePath)
 	}
-	defer func() { _ = packageFile.Close() }()
 
-	// Extract filename from the path
-	filename := filepath.Base(packagePath)
-
-	_, err = r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest, filename, packageFile)
+	_, err := r.InfinityClient.Config().UpdateIVRTheme(ctx, resourceID, updateRequest, filename, packageFile)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Infinity IVR theme",
