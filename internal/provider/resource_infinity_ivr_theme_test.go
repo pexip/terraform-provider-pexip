@@ -34,16 +34,14 @@ func TestInfinityIvrTheme(t *testing.T) {
 		Name:        "tf-test-ivr-theme",
 	}
 
-	// Mock the CreateIVRTheme API call (two-step process)
-	// Step 1: POST without file
+	// Mock the CreateIVRTheme API call (single multipart POST with file)
 	createResponse := &types.PostResponse{
 		Body:        []byte(""),
 		ResourceURI: "/api/admin/configuration/v1/ivr_theme/123/",
 	}
 	client.On("PostMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/",
-		mock.Anything, "", "", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
+		mock.Anything, "package", mock.Anything, mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
 		fields := args.Get(2).(map[string]string)
-		// Update mock state based on create request
 		if name, ok := fields["name"]; ok {
 			mockState.Name = name
 		}
@@ -55,18 +53,14 @@ func TestInfinityIvrTheme(t *testing.T) {
 		*ivr_theme = *mockState
 	}).Maybe()
 
-	// Step 2: PATCH with package file (used for both create finalization and updates)
+	// Mock the UpdateIVRTheme API call (PATCH with file)
 	client.On("PatchMultipartFormWithFieldsAndResponse", mock.Anything, "configuration/v1/ivr_theme/123/",
 		mock.Anything, "package", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Run(func(args mock.Arguments) {
 		fields := args.Get(2).(map[string]string)
 		ivr_theme := args.Get(6).(*config.IVRTheme)
-
-		// Update mock state based on fields
 		if name, ok := fields["name"]; ok && name != "" {
 			mockState.Name = name
 		}
-
-		// Return updated state
 		*ivr_theme = *mockState
 	}).Maybe()
 
