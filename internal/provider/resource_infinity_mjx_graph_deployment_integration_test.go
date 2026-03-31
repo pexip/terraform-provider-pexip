@@ -22,7 +22,7 @@ import (
 	"github.com/pexip/go-infinity-sdk/v38"
 )
 
-func TestInfinityMjxEndpointIntegration(t *testing.T) {
+func TestInfinityMjxGraphDeploymentIntegration(t *testing.T) {
 	_ = os.Setenv("TF_ACC", "1")
 
 	client, err := infinity.New(
@@ -41,5 +41,5 @@ func TestInfinityMjxEndpointIntegration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testInfinityMjxEndpoint(t, client)
+	testInfinityMjxGraphDeployment(t, client)
 }

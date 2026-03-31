@@ -16,7 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -78,10 +81,16 @@ func (r *InfinityMjxEndpointResource) Schema(ctx context.Context, req resource.S
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Resource URI for the MJX endpoint in Infinity.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"resource_id": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "The resource integer identifier for the MJX endpoint in Infinity",
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required: true,
@@ -455,10 +464,7 @@ func (r *InfinityMjxEndpointResource) Update(ctx context.Context, req resource.U
 		updateRequest.PolyPassword = &password
 	}
 
-	if !plan.PolyRaiseAlarmsForThisEndpoint.IsNull() && !plan.PolyRaiseAlarmsForThisEndpoint.IsUnknown() {
-		alarms := plan.PolyRaiseAlarmsForThisEndpoint.ValueBool()
-		updateRequest.PolyRaiseAlarmsForThisEndpoint = &alarms
-	}
+	updateRequest.PolyRaiseAlarmsForThisEndpoint = plan.PolyRaiseAlarmsForThisEndpoint.ValueBool()
 
 	if !plan.WebexDeviceID.IsNull() && !plan.WebexDeviceID.IsUnknown() {
 		deviceID := plan.WebexDeviceID.ValueString()

@@ -10,6 +10,10 @@ terraform {
       source  = "pexip"
       version = "0.0.1"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
