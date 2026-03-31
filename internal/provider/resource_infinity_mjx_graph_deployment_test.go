@@ -35,15 +35,15 @@ func TestInfinityMjxGraphDeployment(t *testing.T) {
 	client.On("PostWithResponse", mock.Anything, "configuration/v1/mjx_graph_deployment/", mock.Anything, mock.Anything).Return(createResponse, nil).Run(func(args mock.Arguments) {
 		createReq := args.Get(2).(*config.MjxGraphDeploymentCreateRequest)
 		*mockState = config.MjxGraphDeployment{
-			ID:             123,
-			ResourceURI:    "/api/admin/configuration/v1/mjx_graph_deployment/123/",
-			Name:           createReq.Name,
-			Description:    createReq.Description,
-			ClientID:       createReq.ClientID,
-			OAuthTokenURL:  createReq.OAuthTokenURL,
-			GraphAPIDomain: createReq.GraphAPIDomain,
-			RequestQuota:   createReq.RequestQuota,
-			DisableProxy:   createReq.DisableProxy,
+			ID:              123,
+			ResourceURI:     "/api/admin/configuration/v1/mjx_graph_deployment/123/",
+			Name:            createReq.Name,
+			Description:     createReq.Description,
+			ClientID:        createReq.ClientID,
+			OAuthTokenURL:   createReq.OAuthTokenURL,
+			GraphAPIDomain:  createReq.GraphAPIDomain,
+			RequestQuota:    createReq.RequestQuota,
+			DisableProxy:    createReq.DisableProxy,
 			MjxIntegrations: createReq.MjxIntegrations,
 		}
 	})
