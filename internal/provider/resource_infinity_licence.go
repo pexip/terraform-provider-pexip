@@ -82,6 +82,9 @@ func (r *InfinityLicenceResource) Schema(ctx context.Context, req resource.Schem
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Resource URI for the licence in Infinity",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"fulfillment_id": schema.StringAttribute{
 				Computed:            true,
