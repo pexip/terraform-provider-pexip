@@ -70,3 +70,11 @@ resource "pexip_infinity_automatic_participant" "tf-test-participant1" {
     pexip_infinity_conference.tf-test-conference
   ]
 }
+
+resource "pexip_infinity_automatic_participant" "tf-test-participant2" {
+  alias = "tf-test-participant2@example.com"
+
+  depends_on = [
+    pexip_infinity_conference.tf-test-conference
+  ]
+}

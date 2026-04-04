@@ -776,11 +776,12 @@ func (r *InfinityConferenceResource) read(ctx context.Context, resourceID int) (
 	}
 	data.Aliases = aliasesSetValue
 
-	// Convert automatic participants from SDK to Terraform format
+	// Convert automatic participants from SDK to Terraform format.
+	// The API does not populate resource_uri on embedded participant objects; construct it from ID instead.
 	var participants []string
 	if srv.AutomaticParticipants != nil {
 		for _, participant := range *srv.AutomaticParticipants {
-			participants = append(participants, participant.ResourceURI)
+			participants = append(participants, fmt.Sprintf("/api/admin/configuration/v1/automatic_participant/%d/", participant.ID))
 		}
 	}
 	participantsSetValue, diags := types.SetValueFrom(ctx, types.StringType, participants)
