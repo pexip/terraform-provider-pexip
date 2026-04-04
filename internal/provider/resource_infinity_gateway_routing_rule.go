@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -28,7 +29,8 @@ import (
 )
 
 var (
-	_ resource.ResourceWithImportState = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithImportState        = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithConfigValidators   = (*InfinityGatewayRoutingRuleResource)(nil)
 )
 
 type InfinityGatewayRoutingRuleResource struct {
@@ -772,6 +774,45 @@ func (r *InfinityGatewayRoutingRuleResource) Delete(ctx context.Context, req res
 			fmt.Sprintf("Could not delete Infinity gateway routing rule with ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
+	}
+}
+
+func (r *InfinityGatewayRoutingRuleResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		gatewayRoutingRuleTeamsLiveCaptionsValidator{},
+	}
+}
+
+// gatewayRoutingRuleTeamsLiveCaptionsValidator enforces that live_captions_enabled
+// must be "no" when outgoing_protocol is "teams".
+type gatewayRoutingRuleTeamsLiveCaptionsValidator struct{}
+
+func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) Description(_ context.Context) string {
+	return "When outgoing_protocol is 'teams', live_captions_enabled must be 'no'."
+}
+
+func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) MarkdownDescription(_ context.Context) string {
+	return "When `outgoing_protocol` is `teams`, `live_captions_enabled` must be `no`."
+}
+
+func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config InfinityGatewayRoutingRuleResourceModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.OutgoingProtocol.IsUnknown() || config.LiveCaptionsEnabled.IsUnknown() {
+		return
+	}
+
+	if config.OutgoingProtocol.ValueString() == "teams" && config.LiveCaptionsEnabled.ValueString() != "no" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("live_captions_enabled"),
+			"Invalid live_captions_enabled for Teams protocol",
+			"When outgoing_protocol is 'teams', live_captions_enabled must be 'no'.",
+		)
 	}
 }
 
