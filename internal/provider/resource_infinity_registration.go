@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -78,7 +79,9 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				},
 			},
 			"enable": schema.BoolAttribute{
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Allows devices to register to Pexip Infinity in order to receive calls. Devices remain registered to Pexip Infinity until they send an unregister command or until their registration expires. ",
 			},
 			"refresh_strategy": schema.StringAttribute{
@@ -177,37 +180,38 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	// Only send refresh values that match the strategy to avoid validation errors
+	// Only send refresh values that match the strategy to avoid validation errors.
+	// Skip Unknown values (Optional+Computed fields not yet known on fresh create).
 	strategy := plan.RefreshStrategy.ValueString()
 	if strategy == "adaptive" || strategy == "" {
-		if !plan.AdaptiveMinRefresh.IsNull() {
+		if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
 			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
 			updateRequest.AdaptiveMinRefresh = &refresh
 		}
-		if !plan.AdaptiveMaxRefresh.IsNull() {
+		if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
 			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
 			updateRequest.AdaptiveMaxRefresh = &refresh
 		}
 	}
 
 	if strategy == "maximum" {
-		if !plan.MaximumMinRefresh.IsNull() {
+		if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
 			refresh := int(plan.MaximumMinRefresh.ValueInt64())
 			updateRequest.MaximumMinRefresh = &refresh
 		}
-		if !plan.MaximumMaxRefresh.IsNull() {
+		if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
 			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
 			updateRequest.MaximumMaxRefresh = &refresh
 		}
 	}
 
 	// Natted fields apply to all strategies
-	if !plan.NattedMinRefresh.IsNull() {
+	if !plan.NattedMinRefresh.IsNull() && !plan.NattedMinRefresh.IsUnknown() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
 	}
 
-	if !plan.NattedMaxRefresh.IsNull() {
+	if !plan.NattedMaxRefresh.IsNull() && !plan.NattedMaxRefresh.IsUnknown() {
 		refresh := int(plan.NattedMaxRefresh.ValueInt64())
 		updateRequest.NattedMaxRefresh = &refresh
 	}
@@ -354,37 +358,38 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	// Only send refresh values that match the strategy to avoid validation errors
+	// Only send refresh values that match the strategy to avoid validation errors.
+	// Skip Unknown values (Optional+Computed fields not yet known on fresh create).
 	strategy := plan.RefreshStrategy.ValueString()
 	if strategy == "adaptive" || strategy == "" {
-		if !plan.AdaptiveMinRefresh.IsNull() {
+		if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
 			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
 			updateRequest.AdaptiveMinRefresh = &refresh
 		}
-		if !plan.AdaptiveMaxRefresh.IsNull() {
+		if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
 			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
 			updateRequest.AdaptiveMaxRefresh = &refresh
 		}
 	}
 
 	if strategy == "maximum" {
-		if !plan.MaximumMinRefresh.IsNull() {
+		if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
 			refresh := int(plan.MaximumMinRefresh.ValueInt64())
 			updateRequest.MaximumMinRefresh = &refresh
 		}
-		if !plan.MaximumMaxRefresh.IsNull() {
+		if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
 			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
 			updateRequest.MaximumMaxRefresh = &refresh
 		}
 	}
 
 	// Natted fields apply to all strategies
-	if !plan.NattedMinRefresh.IsNull() {
+	if !plan.NattedMinRefresh.IsNull() && !plan.NattedMinRefresh.IsUnknown() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
 	}
 
-	if !plan.NattedMaxRefresh.IsNull() {
+	if !plan.NattedMaxRefresh.IsNull() && !plan.NattedMaxRefresh.IsUnknown() {
 		refresh := int(plan.NattedMaxRefresh.ValueInt64())
 		updateRequest.NattedMaxRefresh = &refresh
 	}
@@ -430,22 +435,37 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 }
 
 func (r *InfinityRegistrationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// For singleton resources, delete means resetting to default values
-	// We'll disable registration to "delete" the configuration
-	tflog.Info(ctx, "Deleting Infinity registration configuration (disabling)")
+	// For singleton resources, delete means resetting all fields to their API defaults.
+	tflog.Info(ctx, "Resetting Infinity registration configuration to defaults")
+
+	enable := true
+	adaptiveMin := 60
+	adaptiveMax := 3600
+	nattedMin := 60
+	nattedMax := 90
+	routeVia := true
+	pushNotif := false
+	googleCloud := true
 
 	updateRequest := &config.RegistrationUpdateRequest{
-		Enable: func() *bool { v := false; return &v }(),
+		Enable:                     &enable,
+		RefreshStrategy:            "adaptive",
+		AdaptiveMinRefresh:         &adaptiveMin,
+		AdaptiveMaxRefresh:         &adaptiveMax,
+		NattedMinRefresh:           &nattedMin,
+		NattedMaxRefresh:           &nattedMax,
+		RouteViaRegistrar:          &routeVia,
+		EnablePushNotifications:    &pushNotif,
+		EnableGoogleCloudMessaging: &googleCloud,
 	}
 
-	// Use PatchJSON directly since the API only supports PATCH, not PUT
 	endpoint := "configuration/v1/registration/1/"
 	var result config.Registration
 	err := r.InfinityClient.PatchJSON(ctx, endpoint, updateRequest, &result)
 	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
 		resp.Diagnostics.AddError(
-			"Error Deleting Infinity registration configuration",
-			fmt.Sprintf("Could not delete Infinity registration configuration: %s", err),
+			"Error Resetting Infinity registration configuration",
+			fmt.Sprintf("Could not reset Infinity registration configuration: %s", err),
 		)
 		return
 	}
