@@ -184,11 +184,33 @@ func testInfinityManagementVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "primary", "true"),
 				),
 			},
-			// Step 2: Destroy — triggers the delete mock which asserts all fields
-			// are reset to their schema defaults.
+			// Step 2: Destroy — triggers the delete which resets all fields to defaults.
 			{
 				Destroy: true,
 				Config:  test.LoadTestFolder(t, "resource_infinity_management_vm_full"),
+			},
+			// Step 3: Re-apply min config and verify all fields are at their defaults,
+			// confirming the delete actually reset the API state.
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_management_vm_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_management_vm.management_vm-test", "id"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "name", "management_vm-test"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "description", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "enable_ssh", "GLOBAL"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ssh_authorized_keys_use_cloud", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_mode", "DISABLED"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_community", "public"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_username", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_system_contact", "admin@domain.com"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_system_location", "Virtual machine"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_address"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_gateway"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "http_proxy"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "tls_certificate"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_network_management_system"),
+				),
 			},
 		},
 	})

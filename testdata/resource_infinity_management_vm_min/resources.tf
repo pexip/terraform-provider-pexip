@@ -6,4 +6,5 @@
 
 resource "pexip_infinity_management_vm" "management_vm-test" {
   name = "management_vm-test"
+  mtu  = 1500
 }

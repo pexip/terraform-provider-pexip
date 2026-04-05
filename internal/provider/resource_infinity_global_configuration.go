@@ -657,7 +657,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			"signalling_ports_start": schema.Int64Attribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             int64default.StaticInt64(34000),
+				Default:             int64default.StaticInt64(33000),
 				MarkdownDescription: "Start port for signalling traffic.",
 			},
 			"sip_tls_cert_verify_mode": schema.StringAttribute{
