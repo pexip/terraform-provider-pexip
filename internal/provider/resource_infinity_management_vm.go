@@ -130,40 +130,23 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "A description of the Management Node. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.IPAddress(),
-				},
+				Computed: true,
 				MarkdownDescription: "The IPv4 address for this Management Node.",
 			},
 			"netmask": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.Netmask(),
-				},
+				Computed: true,
 				MarkdownDescription: "The IPv4 network mask for this Management Node.",
 			},
 			"gateway": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.IPAddress(),
-				},
+				Computed: true,
 				MarkdownDescription: "The IPv4 address of the default gateway.",
 			},
 			"hostname": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(63),
-				},
+				Computed: true,
 				MarkdownDescription: "The hostname for this Management Node. Maximum length: 63 characters.",
 			},
 			"domain": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.Domain(),
-					stringvalidator.LengthAtMost(192),
-				},
+				Computed: true,
 				MarkdownDescription: "The domain name for this Management Node. Maximum length: 192 characters.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
@@ -677,16 +660,27 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 }
 
 func (r *InfinityManagementVMResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	tflog.Info(ctx, "Setting Infinity management VM to empty state")
+	tflog.Info(ctx, "Resetting Infinity management VM to defaults")
 
 	updateRequest := &config.ManagementVMUpdateRequest{
+		// Fields without omitempty — always sent in JSON
+		Description:                 "",
 		DNSServers:                  []string{},
 		NTPServers:                  []string{},
 		SyslogServers:               []string{},
-		SSHAuthorizedKeys:           []string{},
 		StaticRoutes:                []string{},
 		TLSCertificate:              nil,
+		SSHAuthorizedKeys:           []string{},
+		SSHAuthorizedKeysUseCloud:   true,
 		SNMPNetworkManagementSystem: nil,
+		Initializing:                false,
+		// Fields with omitempty but non-zero/non-empty defaults — will be sent
+		MTU:                1500,
+		EnableSSH:          "GLOBAL",
+		SNMPMode:           "DISABLED",
+		SNMPCommunity:      "public",
+		SNMPSystemContact:  "admin@domain.com",
+		SNMPSystemLocation: "Virtual machine",
 	}
 
 	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
