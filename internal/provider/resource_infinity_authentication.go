@@ -571,8 +571,56 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 }
 
 func (r *InfinityAuthenticationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// For authentication, nothing needs to be done on delete
-	tflog.Info(ctx, "Deleting Infinity authentication configuration is a no-op")
+	// For singleton resources, delete means resetting all fields to their API defaults.
+	tflog.Info(ctx, "Resetting Infinity authentication configuration to defaults")
+
+	falseVal := false
+	expirationDefault := 3600
+
+	updateRequest := &config.AuthenticationUpdateRequest{
+		Source:                    "LOCAL",
+		ClientCertificate:         "NO",
+		ApiOauth2DisableBasic:     &falseVal,
+		ApiOauth2AllowAllPerms:    &falseVal,
+		ApiOauth2Expiration:       &expirationDefault,
+		LdapServer:                "",
+		LdapBaseDN:                "",
+		LdapBindUsername:          "",
+		LdapBindPassword:          "",
+		LdapUserSearchDN:          "",
+		LdapUserFilter:            "(&(objectclass=person)(!(objectclass=computer)))",
+		LdapUserSearchFilter:      "(|(uid={username})(sAMAccountName={username}))",
+		LdapUserGroupAttributes:   "memberOf",
+		LdapGroupSearchDN:         "",
+		LdapGroupFilter:           "(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup))",
+		LdapGroupMembershipFilter: "(|(member={userdn})(uniquemember={userdn})(memberuid={useruid}))",
+		LdapUseGlobalCatalog:      &falseVal,
+		LdapPermitNoTLS:           &falseVal,
+		OidcMetadataURL:           "",
+		OidcMetadata:              "",
+		OidcClientID:              "",
+		OidcClientSecret:          "",
+		OidcPrivateKey:            "",
+		OidcAuthMethod:            "client_secret",
+		OidcScope:                 "openid profile email",
+		OidcAuthorizeURL:          "",
+		OidcTokenEndpointURL:      "",
+		OidcUsernameField:         "preferred_username",
+		OidcGroupsField:           "groups",
+		OidcRequiredKey:           "",
+		OidcRequiredValue:         "",
+		OidcDomainHint:            "",
+		OidcLoginButton:           "",
+	}
+
+	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
+		resp.Diagnostics.AddError(
+			"Error Resetting Infinity authentication configuration",
+			fmt.Sprintf("Could not reset Infinity authentication configuration: %s", err),
+		)
+		return
+	}
 }
 
 func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
