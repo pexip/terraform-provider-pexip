@@ -553,6 +553,28 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
 `,
 				ExpectError: regexp.MustCompile(`aws_secret_key must be configured`),
 			},
+			{
+				// bursting_enabled=true with cloud_provider=AZURE but no Azure credentials — expect errors for all four fields
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled = true
+  cloud_provider   = "AZURE"
+}
+`,
+				ExpectError: regexp.MustCompile(`azure_client_id must be configured|azure_secret must be configured|azure_subscription_id must be configured|azure_tenant must be configured`),
+			},
+			{
+				// bursting_enabled=true with cloud_provider=AZURE and only some credentials — expect errors for missing fields
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled        = true
+  cloud_provider          = "AZURE"
+  azure_client_id         = "11111111-2222-3333-4444-555555555555"
+  azure_subscription_id   = "22222222-3333-4444-5555-666666666666"
+}
+`,
+				ExpectError: regexp.MustCompile(`azure_secret must be configured|azure_tenant must be configured`),
+			},
 		},
 	})
 }

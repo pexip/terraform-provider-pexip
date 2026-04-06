@@ -1228,15 +1228,46 @@ func (r *InfinityGlobalConfigurationResource) ValidateConfig(ctx context.Context
 		if data.AWSAccessKey.IsNull() || data.AWSAccessKey.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aws_access_key"),
-				"AWS Access Key Required",
+				"Missing AWS Access Key",
 				"aws_access_key must be configured when bursting_enabled is true and cloud_provider is \"AWS\".",
 			)
 		}
 		if data.AWSSecretKey.IsNull() || data.AWSSecretKey.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aws_secret_key"),
-				"AWS Secret Key Required",
+				"Missing AWS Secret Key",
 				"aws_secret_key must be configured when bursting_enabled is true and cloud_provider is \"AWS\".",
+			)
+		}
+	}
+
+	if data.BurstingEnabled.ValueBool() && data.CloudProvider.ValueString() == "AZURE" {
+		if data.AzureClientID.IsNull() || data.AzureClientID.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("azure_client_id"),
+				"Missing Azure Client ID",
+				"azure_client_id must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
+			)
+		}
+		if data.AzureSecret.IsNull() || data.AzureSecret.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("azure_secret"),
+				"Missing Azure Secret Key",
+				"azure_secret must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
+			)
+		}
+		if data.AzureSubscriptionID.IsNull() || data.AzureSubscriptionID.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("azure_subscription_id"),
+				"Missing Azure Subscription ID",
+				"azure_subscription_id must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
+			)
+		}
+		if data.AzureTenant.IsNull() || data.AzureTenant.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("azure_tenant"),
+				"Missing Azure Tenant ID",
+				"azure_tenant must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
 			)
 		}
 	}
