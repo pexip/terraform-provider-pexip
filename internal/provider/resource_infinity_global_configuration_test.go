@@ -8,6 +8,7 @@ package provider
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -508,6 +509,49 @@ func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "site_banner_bg", "#c0c0c0"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "site_banner_fg", "#000000"),
 				),
+			},
+		},
+	})
+}
+
+func TestInfinityGlobalConfigurationValidation(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				// bursting_enabled=true with no cloud_provider (defaults to AWS) but no AWS keys — expect errors
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled = true
+}
+`,
+				ExpectError: regexp.MustCompile(`aws_access_key must be configured|aws_secret_key must be configured`),
+			},
+			{
+				// bursting_enabled=true with cloud_provider=AWS but no AWS keys — expect errors for both missing keys
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled = true
+  cloud_provider   = "AWS"
+}
+`,
+				ExpectError: regexp.MustCompile(`aws_access_key must be configured|aws_secret_key must be configured`),
+			},
+			{
+				// bursting_enabled=true with cloud_provider=AWS and only the access key — expect error for missing secret key
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled = true
+  cloud_provider   = "AWS"
+  aws_access_key   = "test-access-key"
+}
+`,
+				ExpectError: regexp.MustCompile(`aws_secret_key must be configured`),
 			},
 		},
 	})

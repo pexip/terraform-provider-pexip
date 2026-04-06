@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -28,7 +29,8 @@ import (
 )
 
 var (
-	_ resource.ResourceWithImportState = (*InfinityGlobalConfigurationResource)(nil)
+	_ resource.ResourceWithImportState    = (*InfinityGlobalConfigurationResource)(nil)
+	_ resource.ResourceWithValidateConfig = (*InfinityGlobalConfigurationResource)(nil)
 )
 
 type InfinityGlobalConfigurationResource struct {
@@ -1206,4 +1208,36 @@ func (r *InfinityGlobalConfigurationResource) ImportState(ctx context.Context, r
 
 	// Set the state from the imported resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+func (r *InfinityGlobalConfigurationResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var data InfinityGlobalConfigurationResourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Skip validation if bursting_enabled or cloud_provider are unknown (known after apply).
+	if data.BurstingEnabled.IsUnknown() || data.CloudProvider.IsUnknown() {
+		return
+	}
+
+	// cloud_provider defaults to "AWS", so treat null (not set) the same as "AWS".
+	isAWSProvider := data.CloudProvider.IsNull() || data.CloudProvider.ValueString() == "AWS"
+	if data.BurstingEnabled.ValueBool() && isAWSProvider {
+		if data.AWSAccessKey.IsNull() || data.AWSAccessKey.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("aws_access_key"),
+				"AWS Access Key Required",
+				"aws_access_key must be configured when bursting_enabled is true and cloud_provider is \"AWS\".",
+			)
+		}
+		if data.AWSSecretKey.IsNull() || data.AWSSecretKey.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("aws_secret_key"),
+				"AWS Secret Key Required",
+				"aws_secret_key must be configured when bursting_enabled is true and cloud_provider is \"AWS\".",
+			)
+		}
+	}
 }
