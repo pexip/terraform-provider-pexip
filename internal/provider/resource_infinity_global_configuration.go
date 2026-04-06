@@ -1225,14 +1225,14 @@ func (r *InfinityGlobalConfigurationResource) ValidateConfig(ctx context.Context
 	// cloud_provider defaults to "AWS", so treat null (not set) the same as "AWS".
 	isAWSProvider := data.CloudProvider.IsNull() || data.CloudProvider.ValueString() == "AWS"
 	if data.BurstingEnabled.ValueBool() && isAWSProvider {
-		if data.AWSAccessKey.IsNull() || data.AWSAccessKey.IsUnknown() {
+		if data.AWSAccessKey.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aws_access_key"),
 				"Missing AWS Access Key",
 				"aws_access_key must be configured when bursting_enabled is true and cloud_provider is \"AWS\".",
 			)
 		}
-		if data.AWSSecretKey.IsNull() || data.AWSSecretKey.IsUnknown() {
+		if data.AWSSecretKey.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("aws_secret_key"),
 				"Missing AWS Secret Key",
@@ -1241,29 +1241,53 @@ func (r *InfinityGlobalConfigurationResource) ValidateConfig(ctx context.Context
 		}
 	}
 
+	if data.BurstingEnabled.ValueBool() && data.CloudProvider.ValueString() == "GCP" {
+		if data.GcpClientEmail.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gcp_client_email"),
+				"Missing GCP Service Account ID",
+				"gcp_client_email must be configured when bursting_enabled is true and cloud_provider is \"GCP\".",
+			)
+		}
+		if data.GcpPrivateKey.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gcp_private_key"),
+				"Missing GCP Private Key",
+				"gcp_private_key must be configured when bursting_enabled is true and cloud_provider is \"GCP\".",
+			)
+		}
+		if data.GcpProjectID.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("gcp_project_id"),
+				"Missing GCP Project ID",
+				"gcp_project_id must be configured when bursting_enabled is true and cloud_provider is \"GCP\".",
+			)
+		}
+	}
+
 	if data.BurstingEnabled.ValueBool() && data.CloudProvider.ValueString() == "AZURE" {
-		if data.AzureClientID.IsNull() || data.AzureClientID.IsUnknown() {
+		if data.AzureClientID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("azure_client_id"),
 				"Missing Azure Client ID",
 				"azure_client_id must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
 			)
 		}
-		if data.AzureSecret.IsNull() || data.AzureSecret.IsUnknown() {
+		if data.AzureSecret.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("azure_secret"),
 				"Missing Azure Secret Key",
 				"azure_secret must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
 			)
 		}
-		if data.AzureSubscriptionID.IsNull() || data.AzureSubscriptionID.IsUnknown() {
+		if data.AzureSubscriptionID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("azure_subscription_id"),
 				"Missing Azure Subscription ID",
 				"azure_subscription_id must be configured when bursting_enabled is true and cloud_provider is \"AZURE\".",
 			)
 		}
-		if data.AzureTenant.IsNull() || data.AzureTenant.IsUnknown() {
+		if data.AzureTenant.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("azure_tenant"),
 				"Missing Azure Tenant ID",

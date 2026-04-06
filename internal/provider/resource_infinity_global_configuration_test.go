@@ -575,6 +575,27 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
 `,
 				ExpectError: regexp.MustCompile(`azure_secret must be configured|azure_tenant must be configured`),
 			},
+			{
+				// bursting_enabled=true with cloud_provider=GCP but no GCP credentials — expect errors for all three fields
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled = true
+  cloud_provider   = "GCP"
+}
+`,
+				ExpectError: regexp.MustCompile(`gcp_client_email must be configured|gcp_private_key must be configured|gcp_project_id must be configured`),
+			},
+			{
+				// bursting_enabled=true with cloud_provider=GCP and only some credentials — expect errors for missing fields
+				Config: `
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  bursting_enabled  = true
+  cloud_provider    = "GCP"
+  gcp_client_email  = "tf-test@project.iam.gserviceaccount.com"
+}
+`,
+				ExpectError: regexp.MustCompile(`gcp_private_key must be configured|gcp_project_id must be configured`),
+			},
 		},
 	})
 }
