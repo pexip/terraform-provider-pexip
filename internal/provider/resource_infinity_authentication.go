@@ -300,7 +300,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"oidc_scope": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("openid profile email"),
+				Default:             stringdefault.StaticString("openid email profile"),
 				MarkdownDescription: "The OpenID Connection OAuth2 scope to request.",
 			},
 			"oidc_authorize_url": schema.StringAttribute{
@@ -433,32 +433,20 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 		OidcLoginButton:           plan.OidcLoginButton.ValueString(),
 	}
 
-	// Handle boolean pointers
-	if !plan.ApiOauth2DisableBasic.IsNull() {
-		val := plan.ApiOauth2DisableBasic.ValueBool()
-		updateRequest.ApiOauth2DisableBasic = &val
-	}
+	apiOauth2DisableBasic := plan.ApiOauth2DisableBasic.ValueBool()
+	updateRequest.ApiOauth2DisableBasic = &apiOauth2DisableBasic
 
-	if !plan.ApiOauth2AllowAllPerms.IsNull() {
-		val := plan.ApiOauth2AllowAllPerms.ValueBool()
-		updateRequest.ApiOauth2AllowAllPerms = &val
-	}
+	apiOauth2AllowAllPerms := plan.ApiOauth2AllowAllPerms.ValueBool()
+	updateRequest.ApiOauth2AllowAllPerms = &apiOauth2AllowAllPerms
 
-	if !plan.LdapUseGlobalCatalog.IsNull() {
-		val := plan.LdapUseGlobalCatalog.ValueBool()
-		updateRequest.LdapUseGlobalCatalog = &val
-	}
+	ldapUseGlobalCatalog := plan.LdapUseGlobalCatalog.ValueBool()
+	updateRequest.LdapUseGlobalCatalog = &ldapUseGlobalCatalog
 
-	if !plan.LdapPermitNoTLS.IsNull() {
-		val := plan.LdapPermitNoTLS.ValueBool()
-		updateRequest.LdapPermitNoTLS = &val
-	}
+	ldapPermitNoTLS := plan.LdapPermitNoTLS.ValueBool()
+	updateRequest.LdapPermitNoTLS = &ldapPermitNoTLS
 
-	// Handle integer pointers
-	if !plan.ApiOauth2Expiration.IsNull() {
-		val := int(plan.ApiOauth2Expiration.ValueInt64())
-		updateRequest.ApiOauth2Expiration = &val
-	}
+	apiOauth2Expiration := int(plan.ApiOauth2Expiration.ValueInt64())
+	updateRequest.ApiOauth2Expiration = &apiOauth2Expiration
 
 	return updateRequest
 }
@@ -602,7 +590,7 @@ func (r *InfinityAuthenticationResource) Delete(ctx context.Context, req resourc
 		OidcClientSecret:          "",
 		OidcPrivateKey:            "",
 		OidcAuthMethod:            "client_secret",
-		OidcScope:                 "openid profile email",
+		OidcScope:                 "openid email profile",
 		OidcAuthorizeURL:          "",
 		OidcTokenEndpointURL:      "",
 		OidcUsernameField:         "preferred_username",

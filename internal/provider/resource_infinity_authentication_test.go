@@ -75,7 +75,7 @@ func TestInfinityAuthentication(t *testing.T) {
 		OidcClientSecret:          "",
 		OidcPrivateKey:            "",
 		OidcAuthMethod:            "client_secret",
-		OidcScope:                 "openid profile email",
+		OidcScope:                 "openid email profile",
 		OidcAuthorizeURL:          "",
 		OidcTokenEndpointURL:      "",
 		OidcUsernameField:         "preferred_username",
@@ -123,7 +123,7 @@ func TestInfinityAuthentication(t *testing.T) {
 		assert.Equal(t, "", req.OidcClientSecret)
 		assert.Equal(t, "", req.OidcPrivateKey)
 		assert.Equal(t, "client_secret", req.OidcAuthMethod)
-		assert.Equal(t, "openid profile email", req.OidcScope)
+		assert.Equal(t, "openid email profile", req.OidcScope)
 		assert.Equal(t, "", req.OidcAuthorizeURL)
 		assert.Equal(t, "", req.OidcTokenEndpointURL)
 		assert.Equal(t, "preferred_username", req.OidcUsernameField)
@@ -158,7 +158,7 @@ func TestInfinityAuthentication(t *testing.T) {
 		mockState.OidcClientSecret = ""
 		mockState.OidcPrivateKey = ""
 		mockState.OidcAuthMethod = "client_secret"
-		mockState.OidcScope = "openid profile email"
+		mockState.OidcScope = "openid email profile"
 		mockState.OidcAuthorizeURL = ""
 		mockState.OidcTokenEndpointURL = ""
 		mockState.OidcUsernameField = "preferred_username"
@@ -177,15 +177,9 @@ func TestInfinityAuthentication(t *testing.T) {
 
 		mockState.Source = req.Source
 		mockState.ClientCertificate = req.ClientCertificate
-		if req.ApiOauth2DisableBasic != nil {
-			mockState.ApiOauth2DisableBasic = *req.ApiOauth2DisableBasic
-		}
-		if req.ApiOauth2AllowAllPerms != nil {
-			mockState.ApiOauth2AllowAllPerms = *req.ApiOauth2AllowAllPerms
-		}
-		if req.ApiOauth2Expiration != nil {
-			mockState.ApiOauth2Expiration = *req.ApiOauth2Expiration
-		}
+		mockState.ApiOauth2DisableBasic = *req.ApiOauth2DisableBasic
+		mockState.ApiOauth2AllowAllPerms = *req.ApiOauth2AllowAllPerms
+		mockState.ApiOauth2Expiration = *req.ApiOauth2Expiration
 		mockState.LdapServer = req.LdapServer
 		mockState.LdapBaseDN = req.LdapBaseDN
 		mockState.LdapBindUsername = req.LdapBindUsername
@@ -196,12 +190,8 @@ func TestInfinityAuthentication(t *testing.T) {
 		mockState.LdapGroupSearchDN = req.LdapGroupSearchDN
 		mockState.LdapGroupFilter = req.LdapGroupFilter
 		mockState.LdapGroupMembershipFilter = req.LdapGroupMembershipFilter
-		if req.LdapUseGlobalCatalog != nil {
-			mockState.LdapUseGlobalCatalog = *req.LdapUseGlobalCatalog
-		}
-		if req.LdapPermitNoTLS != nil {
-			mockState.LdapPermitNoTLS = *req.LdapPermitNoTLS
-		}
+		mockState.LdapUseGlobalCatalog = *req.LdapUseGlobalCatalog
+		mockState.LdapPermitNoTLS = *req.LdapPermitNoTLS
 		mockState.OidcMetadataURL = req.OidcMetadataURL
 		mockState.OidcMetadata = req.OidcMetadata
 		mockState.OidcClientID = req.OidcClientID
@@ -305,7 +295,7 @@ func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_metadata_url", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_client_id", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_auth_method", "client_secret"),
-					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_scope", "openid profile email"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_scope", "openid email profile"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_authorize_url", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_token_endpoint_url", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_username_field", "preferred_username"),
