@@ -71,10 +71,12 @@ func TestInfinityManagementVM(t *testing.T) {
 		assert.Equal(t, []string{}, req.SyslogServers)
 		assert.Equal(t, []string{}, req.SSHAuthorizedKeys)
 		assert.Equal(t, []string{}, req.StaticRoutes)
+		assert.Equal(t, []string{}, req.EventSinks)
 
 		// Reset mockState to defaults
 		mockState.Description = ""
 		mockState.MTU = 1500
+		mockState.StaticNATAddress = nil
 		mockState.HTTPProxy = nil
 		mockState.TLSCertificate = nil
 		mockState.EnableSSH = "GLOBAL"
@@ -88,6 +90,9 @@ func TestInfinityManagementVM(t *testing.T) {
 		mockState.SNMPSystemLocation = "Virtual machine"
 		mockState.SNMPNetworkManagementSystem = nil
 		mockState.Initializing = false
+		mockState.StaticRoutes = nil
+		mockState.EventSinks = nil
+		mockState.SSHAuthorizedKeys = nil
 
 		*result = *mockState
 	}).Once()
@@ -107,6 +112,7 @@ func TestInfinityManagementVM(t *testing.T) {
 		if req.MTU != 0 {
 			mockState.MTU = req.MTU
 		}
+		mockState.StaticNATAddress = req.StaticNATAddress
 		mockState.HTTPProxy = req.HTTPProxy
 		mockState.TLSCertificate = req.TLSCertificate
 		if req.EnableSSH != "" {
@@ -166,13 +172,14 @@ func testInfinityManagementVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "gateway", "192.168.1.1"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "hostname", "management_vm-test"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "domain", "example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "mtu", "1500"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "mtu", "1400"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_address", "2001:db8::1"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_gateway", "2001:db8::1"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "static_nat_address", "192.0.2.1"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "http_proxy", "http://proxy.example.com:8080"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "tls_certificate", "test-certificate"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "enable_ssh", "ON"),
-					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ssh_authorized_keys_use_cloud", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ssh_authorized_keys_use_cloud", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_mode", "AUTHPRIV"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_community", "public"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_username", "management_vm-test"),
@@ -207,6 +214,7 @@ func testInfinityManagementVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_system_location", "Virtual machine"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_address"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "ipv6_gateway"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "static_nat_address"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "http_proxy"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "tls_certificate"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_network_management_system"),

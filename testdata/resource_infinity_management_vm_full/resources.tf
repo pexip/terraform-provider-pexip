@@ -9,11 +9,12 @@ resource "pexip_infinity_management_vm" "management_vm-test" {
   description                    = "Test ManagementVM"
   ipv6_address                   = "2001:db8::1"
   ipv6_gateway                   = "2001:db8::1"
-  mtu                            = 1500
+  mtu                            = 1400
+  static_nat_address             = "192.0.2.1"
   http_proxy                     = "http://proxy.example.com:8080"
   tls_certificate                = "test-certificate"
   enable_ssh                     = "ON"
-  ssh_authorized_keys_use_cloud  = true
+  ssh_authorized_keys_use_cloud  = false
   snmp_mode                      = "AUTHPRIV"
   snmp_community                 = "public"
   snmp_username                  = "management_vm-test"
