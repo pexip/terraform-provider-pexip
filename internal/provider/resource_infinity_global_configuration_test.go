@@ -60,6 +60,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		EnableApplicationAPI:                false, // default: true
 		EnableBreakoutRooms:                 true,  // default: false
 		EnableChat:                          false, // default: true
+		EnableClock:                         true,  // default: false
 		EnableDenoise:                       false, // default: true
 		EnableDialout:                       false, // default: true
 		EnableDirectory:                     false, // default: true
@@ -151,14 +152,14 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		assert.Nil(t, req.AzureSecret)
 		assert.Nil(t, req.AzureSubscriptionID)
 		assert.Nil(t, req.AzureTenant)
-		assert.Nil(t, req.BurstingMinLifetime)
-		assert.Nil(t, req.BurstingThreshold)
+		assert.Equal(t, 50, *req.BurstingMinLifetime)
+		assert.Equal(t, 5, *req.BurstingThreshold)
 		assert.Nil(t, req.DefaultTheme)
 		assert.Nil(t, req.DefaultWebappAlias)
 		assert.Nil(t, req.GcpClientEmail)
-		assert.Nil(t, req.GcpPrivateKey)
+		assert.Equal(t, "", *req.GcpPrivateKey)
 		assert.Nil(t, req.GcpProjectID)
-		assert.Nil(t, req.ManagementQos)
+		assert.Equal(t, 0, *req.ManagementQos)
 		assert.Nil(t, req.MaxCallrateIn)
 		assert.Nil(t, req.MaxCallrateOut)
 		assert.Equal(t, 20, req.BdpmMaxPinFailuresPerWindow)
@@ -175,6 +176,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		assert.True(t, req.EnableApplicationAPI)
 		assert.False(t, req.EnableBreakoutRooms)
 		assert.True(t, req.EnableChat)
+		assert.False(t, req.EnableClock)
 		assert.True(t, req.EnableDenoise)
 		assert.True(t, req.EnableDialout)
 		assert.True(t, req.EnableDirectory)
@@ -241,8 +243,8 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.BdpmPinChecksEnabled = true
 		mockState.BdpmScanQuarantineEnabled = true
 		mockState.BurstingEnabled = false
-		mockState.BurstingMinLifetime = nil
-		mockState.BurstingThreshold = nil
+		mockState.BurstingMinLifetime = test.IntPtr(50)
+		mockState.BurstingThreshold = test.IntPtr(5)
 		mockState.CloudProvider = "AWS"
 		mockState.ContactEmailAddress = ""
 		mockState.ContentSecurityPolicyState = true
@@ -254,6 +256,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.EnableApplicationAPI = true
 		mockState.EnableBreakoutRooms = false
 		mockState.EnableChat = true
+		mockState.EnableClock = false
 		mockState.EnableDenoise = true
 		mockState.EnableDialout = true
 		mockState.EnableDirectory = true
@@ -282,7 +285,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.EsShortTermMemoryExpiration = 2
 		mockState.ExternalParticipantAvatarLookup = true
 		mockState.GcpClientEmail = nil
-		mockState.GcpPrivateKey = nil
+		mockState.GcpPrivateKey = test.StringPtr("")
 		mockState.GcpProjectID = nil
 		mockState.GuestsOnlyTimeout = 60
 		mockState.LegacyAPIUsername = ""
@@ -292,7 +295,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.LocalMssipDomain = ""
 		mockState.LogonBanner = ""
 		mockState.LogsMaxAge = 0
-		mockState.ManagementQos = nil
+		mockState.ManagementQos = test.IntPtr(0)
 		mockState.ManagementSessionTimeout = 30
 		mockState.ManagementStartPage = "/admin/conferencingstatus/deploymentgraph/deployment_graph/"
 		mockState.MaxCallrateIn = nil
@@ -353,6 +356,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.EnableApplicationAPI = updateRequest.EnableApplicationAPI
 		mockState.EnableBreakoutRooms = updateRequest.EnableBreakoutRooms
 		mockState.EnableChat = updateRequest.EnableChat
+		mockState.EnableClock = updateRequest.EnableClock
 		mockState.EnableDenoise = updateRequest.EnableDenoise
 		mockState.EnableDialout = updateRequest.EnableDialout
 		mockState.EnableDirectory = updateRequest.EnableDirectory

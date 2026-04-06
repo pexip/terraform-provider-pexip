@@ -83,6 +83,7 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableBreakoutRooms                 types.Bool   `tfsdk:"enable_breakout_rooms"`
 	EnableChat                          types.Bool   `tfsdk:"enable_chat"`
 	EnableClock                         types.Bool   `tfsdk:"enable_clock"`
+	EnableClock                         types.Bool   `tfsdk:"enable_clock"`
 	EnableDenoise                       types.Bool   `tfsdk:"enable_denoise"`
 	EnableDialout                       types.Bool   `tfsdk:"enable_dialout"`
 	EnableDirectory                     types.Bool   `tfsdk:"enable_directory"`
@@ -262,7 +263,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 			"content_security_policy_header": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("upgrade-insecure-requests; default-src 'self'; frame-src 'self' https://telemetryservice.firstpartyapps.oaspapps.com/telemetryservice/telemetryproxy.html https://*.microsoft.com https://*.office.com; style-src 'self' 'unsafe-inline' https://*.microsoft.com https://*.office.com; object-src 'self'; font-src 'self' https://*.microsoft.com https://*.office.com; img-src 'self' https://www.adobe.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.microsoft.com https://*.office.com https://ajax.aspnetcdn.com https://api.keen.io; media-src 'self' blob:; connect-src 'self' https://*.microsoft.com https://*.office.com https://example.com; frame-ancestors 'self';"),
+				Default:             stringdefault.StaticString("upgrade-insecure-requests; default-src 'self'; frame-ancestors 'self'; frame-src 'self' https://telemetryservice.firstpartyapps.oaspapps.com/telemetryservice/telemetryproxy.html https://*.microsoft.com https://*.office.com; style-src 'self' 'unsafe-inline' https://*.microsoft.com https://*.office.com; object-src 'self'; font-src 'self' https://*.microsoft.com https://*.office.com; img-src 'self' https://www.adobe.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.microsoft.com https://*.office.com https://ajax.aspnetcdn.com https://api.keen.io; media-src 'self' blob:; connect-src 'self' https://*.microsoft.com https://*.office.com https://example.com;"),
 				MarkdownDescription: "HTTP Content-Security-Policy header contents.",
 			},
 			"content_security_policy_state": schema.BoolAttribute{
@@ -296,6 +297,9 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Deployment UUID.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"disabled_codecs": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -342,7 +346,7 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Enable clock display.",
+				MarkdownDescription: "Enable in-conference timer or countdown clock display.",
 			},
 			"enable_denoise": schema.BoolAttribute{
 				Optional:            true,
@@ -737,6 +741,7 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		EnableBreakoutRooms:                 plan.EnableBreakoutRooms.ValueBool(),
 		EnableChat:                          plan.EnableChat.ValueBool(),
 		EnableClock:                         plan.EnableClock.ValueBool(),
+		EnableClock:                         plan.EnableClock.ValueBool(),
 		EnableDenoise:                       plan.EnableDenoise.ValueBool(),
 		EnableDialout:                       plan.EnableDialout.ValueBool(),
 		EnableDirectory:                     plan.EnableDirectory.ValueBool(),
@@ -942,6 +947,7 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.EnableBreakoutRooms = types.BoolValue(srv.EnableBreakoutRooms)
 	data.EnableChat = types.BoolValue(srv.EnableChat)
 	data.EnableClock = types.BoolValue(srv.EnableClock)
+	data.EnableClock = types.BoolValue(srv.EnableClock)
 	data.EnableDenoise = types.BoolValue(srv.EnableDenoise)
 	data.EnableDialout = types.BoolValue(srv.EnableDialout)
 	data.EnableDirectory = types.BoolValue(srv.EnableDirectory)
@@ -1076,24 +1082,31 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 	// For singleton resources, delete means resetting all fields to their schema defaults.
 	tflog.Info(ctx, "Deleting Infinity global configuration (resetting to defaults)")
 
+	burstingMinLifetimeDefault := 50
+	burstingThresholdDefault := 5
+	managementQosDefault := 0
+	gcpPrivateKeyDefault := ""
+
 	updateRequest := &config.GlobalConfigurationUpdateRequest{
-		// Nullable fields — cleared to nil
+		// Nullable fields with null defaults — cleared to nil
 		AWSAccessKey:        nil,
 		AWSSecretKey:        nil,
 		AzureClientID:       nil,
 		AzureSecret:         nil,
 		AzureSubscriptionID: nil,
 		AzureTenant:         nil,
-		BurstingMinLifetime: nil,
-		BurstingThreshold:   nil,
 		DefaultTheme:        nil,
 		DefaultWebappAlias:  nil,
 		GcpClientEmail:      nil,
-		GcpPrivateKey:       nil,
 		GcpProjectID:        nil,
-		ManagementQos:       nil,
 		MaxCallrateIn:       nil,
 		MaxCallrateOut:      nil,
+
+		// Nullable fields with non-null defaults — must send the default value explicitly
+		BurstingMinLifetime: &burstingMinLifetimeDefault,
+		BurstingThreshold:   &burstingThresholdDefault,
+		GcpPrivateKey:       &gcpPrivateKeyDefault,
+		ManagementQos:       &managementQosDefault,
 
 		// Non-nullable fields — schema defaults
 		BdpmMaxPinFailuresPerWindow:         20,
@@ -1111,6 +1124,7 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 		EnableApplicationAPI:                true,
 		EnableBreakoutRooms:                 false,
 		EnableChat:                          true,
+		EnableClock:                         false,
 		EnableDenoise:                       true,
 		EnableDialout:                       true,
 		EnableDirectory:                     true,
