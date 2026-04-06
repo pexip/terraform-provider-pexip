@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -86,6 +88,8 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"refresh_strategy": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("adaptive"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("adaptive", "maximum"),
 				},
@@ -94,6 +98,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(60),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -102,6 +107,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"adaptive_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(3600),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -110,6 +116,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"maximum_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(60),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -118,6 +125,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(300),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -126,6 +134,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(60),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -134,6 +143,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			"natted_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
+				Default:  int64default.StaticInt64(90),
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
@@ -141,14 +151,20 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 			},
 			"route_via_registrar": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "When enabled, all calls from registered desktop clients are routed via the registrar. ",
 			},
 			"enable_push_notifications": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Allows mobile devices to register to Pexip Infinity and receive push notifications when they are called. ",
 			},
 			"enable_google_cloud_messaging": schema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enables sending of push notifications to registered mobile devices via the Google Cloud Messaging service. ",
 			},
 			"push_token": schema.StringAttribute{
@@ -180,37 +196,27 @@ func (r *InfinityRegistrationResource) Create(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	// Only send refresh values that match the strategy to avoid validation errors.
 	// Skip Unknown values (Optional+Computed fields not yet known on fresh create).
-	strategy := plan.RefreshStrategy.ValueString()
-	if strategy == "adaptive" || strategy == "" {
-		if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
-			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
-			updateRequest.AdaptiveMinRefresh = &refresh
-		}
-		if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
-			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
-			updateRequest.AdaptiveMaxRefresh = &refresh
-		}
+	if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
+		refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
+		updateRequest.AdaptiveMinRefresh = &refresh
 	}
-
-	if strategy == "maximum" {
-		if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
-			refresh := int(plan.MaximumMinRefresh.ValueInt64())
-			updateRequest.MaximumMinRefresh = &refresh
-		}
-		if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
-			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
-			updateRequest.MaximumMaxRefresh = &refresh
-		}
+	if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
+		refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
+		updateRequest.AdaptiveMaxRefresh = &refresh
 	}
-
-	// Natted fields apply to all strategies
+	if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
+		refresh := int(plan.MaximumMinRefresh.ValueInt64())
+		updateRequest.MaximumMinRefresh = &refresh
+	}
+	if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
+		refresh := int(plan.MaximumMaxRefresh.ValueInt64())
+		updateRequest.MaximumMaxRefresh = &refresh
+	}
 	if !plan.NattedMinRefresh.IsNull() && !plan.NattedMinRefresh.IsUnknown() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
 	}
-
 	if !plan.NattedMaxRefresh.IsNull() && !plan.NattedMaxRefresh.IsUnknown() {
 		refresh := int(plan.NattedMaxRefresh.ValueInt64())
 		updateRequest.NattedMaxRefresh = &refresh
@@ -273,37 +279,14 @@ func (r *InfinityRegistrationResource) read(ctx context.Context, planPushToken t
 	data.Enable = types.BoolValue(srv.Enable)
 	data.RefreshStrategy = types.StringValue(srv.RefreshStrategy)
 
-	// Set refresh values based on strategy, null for unused strategies
-	switch srv.RefreshStrategy {
-	case "adaptive":
-		data.AdaptiveMinRefresh = types.Int64Value(int64(srv.AdaptiveMinRefresh))
-		data.AdaptiveMaxRefresh = types.Int64Value(int64(srv.AdaptiveMaxRefresh))
-		data.MaximumMinRefresh = types.Int64Null()
-		data.MaximumMaxRefresh = types.Int64Null()
-	case "maximum":
-		data.MaximumMinRefresh = types.Int64Value(int64(srv.MaximumMinRefresh))
-		data.MaximumMaxRefresh = types.Int64Value(int64(srv.MaximumMaxRefresh))
-		data.AdaptiveMinRefresh = types.Int64Null()
-		data.AdaptiveMaxRefresh = types.Int64Null()
-	default:
-		// For other strategies or when not set, all strategy-specific fields are null
-		data.AdaptiveMinRefresh = types.Int64Null()
-		data.AdaptiveMaxRefresh = types.Int64Null()
-		data.MaximumMinRefresh = types.Int64Null()
-		data.MaximumMaxRefresh = types.Int64Null()
-	}
-
-	// Natted fields are strategy-independent but may be null if not configured
-	if srv.NattedMinRefresh > 0 {
-		data.NattedMinRefresh = types.Int64Value(int64(srv.NattedMinRefresh))
-	} else {
-		data.NattedMinRefresh = types.Int64Null()
-	}
-	if srv.NattedMaxRefresh > 0 {
-		data.NattedMaxRefresh = types.Int64Value(int64(srv.NattedMaxRefresh))
-	} else {
-		data.NattedMaxRefresh = types.Int64Null()
-	}
+	// The API stores all refresh interval values independently of the current strategy.
+	// Always read them all so that switching strategies does not cause drift.
+	data.AdaptiveMinRefresh = types.Int64Value(int64(srv.AdaptiveMinRefresh))
+	data.AdaptiveMaxRefresh = types.Int64Value(int64(srv.AdaptiveMaxRefresh))
+	data.MaximumMinRefresh = types.Int64Value(int64(srv.MaximumMinRefresh))
+	data.MaximumMaxRefresh = types.Int64Value(int64(srv.MaximumMaxRefresh))
+	data.NattedMinRefresh = types.Int64Value(int64(srv.NattedMinRefresh))
+	data.NattedMaxRefresh = types.Int64Value(int64(srv.NattedMaxRefresh))
 
 	data.RouteViaRegistrar = types.BoolValue(srv.RouteViaRegistrar)
 	data.EnablePushNotifications = types.BoolValue(srv.EnablePushNotifications)
@@ -358,37 +341,27 @@ func (r *InfinityRegistrationResource) Update(ctx context.Context, req resource.
 		updateRequest.Enable = &enable
 	}
 
-	// Only send refresh values that match the strategy to avoid validation errors.
 	// Skip Unknown values (Optional+Computed fields not yet known on fresh create).
-	strategy := plan.RefreshStrategy.ValueString()
-	if strategy == "adaptive" || strategy == "" {
-		if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
-			refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
-			updateRequest.AdaptiveMinRefresh = &refresh
-		}
-		if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
-			refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
-			updateRequest.AdaptiveMaxRefresh = &refresh
-		}
+	if !plan.AdaptiveMinRefresh.IsNull() && !plan.AdaptiveMinRefresh.IsUnknown() {
+		refresh := int(plan.AdaptiveMinRefresh.ValueInt64())
+		updateRequest.AdaptiveMinRefresh = &refresh
 	}
-
-	if strategy == "maximum" {
-		if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
-			refresh := int(plan.MaximumMinRefresh.ValueInt64())
-			updateRequest.MaximumMinRefresh = &refresh
-		}
-		if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
-			refresh := int(plan.MaximumMaxRefresh.ValueInt64())
-			updateRequest.MaximumMaxRefresh = &refresh
-		}
+	if !plan.AdaptiveMaxRefresh.IsNull() && !plan.AdaptiveMaxRefresh.IsUnknown() {
+		refresh := int(plan.AdaptiveMaxRefresh.ValueInt64())
+		updateRequest.AdaptiveMaxRefresh = &refresh
 	}
-
-	// Natted fields apply to all strategies
+	if !plan.MaximumMinRefresh.IsNull() && !plan.MaximumMinRefresh.IsUnknown() {
+		refresh := int(plan.MaximumMinRefresh.ValueInt64())
+		updateRequest.MaximumMinRefresh = &refresh
+	}
+	if !plan.MaximumMaxRefresh.IsNull() && !plan.MaximumMaxRefresh.IsUnknown() {
+		refresh := int(plan.MaximumMaxRefresh.ValueInt64())
+		updateRequest.MaximumMaxRefresh = &refresh
+	}
 	if !plan.NattedMinRefresh.IsNull() && !plan.NattedMinRefresh.IsUnknown() {
 		refresh := int(plan.NattedMinRefresh.ValueInt64())
 		updateRequest.NattedMinRefresh = &refresh
 	}
-
 	if !plan.NattedMaxRefresh.IsNull() && !plan.NattedMaxRefresh.IsUnknown() {
 		refresh := int(plan.NattedMaxRefresh.ValueInt64())
 		updateRequest.NattedMaxRefresh = &refresh
@@ -441,6 +414,8 @@ func (r *InfinityRegistrationResource) Delete(ctx context.Context, req resource.
 	enable := true
 	adaptiveMin := 60
 	adaptiveMax := 3600
+	maximumMin := 60
+	maximumMax := 300
 	nattedMin := 60
 	nattedMax := 90
 	routeVia := true
@@ -452,6 +427,8 @@ func (r *InfinityRegistrationResource) Delete(ctx context.Context, req resource.
 		RefreshStrategy:            "adaptive",
 		AdaptiveMinRefresh:         &adaptiveMin,
 		AdaptiveMaxRefresh:         &adaptiveMax,
+		MaximumMinRefresh:          &maximumMin,
+		MaximumMaxRefresh:          &maximumMax,
 		NattedMinRefresh:           &nattedMin,
 		NattedMaxRefresh:           &nattedMax,
 		RouteViaRegistrar:          &routeVia,

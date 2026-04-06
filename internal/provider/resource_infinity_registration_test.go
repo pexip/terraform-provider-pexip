@@ -43,10 +43,12 @@ func TestInfinityRegistration(t *testing.T) {
 	}
 
 	// Delete mock — registered first so it takes priority over the general mock.
-	// Fingerprinted by AdaptiveMinRefresh == 60, which only Delete sends.
+	// Fingerprinted by both AdaptiveMinRefresh == 60 AND MaximumMinRefresh == 60,
+	// which only Delete sends (Create/Update only sends fields matching the active strategy).
 	client.On("PatchJSON", mock.Anything, "configuration/v1/registration/1/",
 		mock.MatchedBy(func(req *config.RegistrationUpdateRequest) bool {
-			return req.AdaptiveMinRefresh != nil && *req.AdaptiveMinRefresh == 60
+			return req.AdaptiveMinRefresh != nil && *req.AdaptiveMinRefresh == 60 &&
+				req.MaximumMinRefresh != nil && *req.MaximumMinRefresh == 60
 		}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		req := args.Get(2).(*config.RegistrationUpdateRequest)
 
@@ -57,6 +59,10 @@ func TestInfinityRegistration(t *testing.T) {
 		assert.Equal(t, 60, *req.AdaptiveMinRefresh)
 		assert.NotNil(t, req.AdaptiveMaxRefresh)
 		assert.Equal(t, 3600, *req.AdaptiveMaxRefresh)
+		assert.NotNil(t, req.MaximumMinRefresh)
+		assert.Equal(t, 60, *req.MaximumMinRefresh)
+		assert.NotNil(t, req.MaximumMaxRefresh)
+		assert.Equal(t, 300, *req.MaximumMaxRefresh)
 		assert.NotNil(t, req.NattedMinRefresh)
 		assert.Equal(t, 60, *req.NattedMinRefresh)
 		assert.NotNil(t, req.NattedMaxRefresh)
@@ -94,26 +100,18 @@ func TestInfinityRegistration(t *testing.T) {
 		}
 		if req.RefreshStrategy != "" {
 			mockState.RefreshStrategy = req.RefreshStrategy
-			switch req.RefreshStrategy {
-			case "maximum":
-				if req.MaximumMinRefresh != nil {
-					mockState.MaximumMinRefresh = *req.MaximumMinRefresh
-				}
-				if req.MaximumMaxRefresh != nil {
-					mockState.MaximumMaxRefresh = *req.MaximumMaxRefresh
-				}
-				mockState.AdaptiveMinRefresh = 60
-				mockState.AdaptiveMaxRefresh = 3600
-			case "adaptive":
-				if req.AdaptiveMinRefresh != nil {
-					mockState.AdaptiveMinRefresh = *req.AdaptiveMinRefresh
-				}
-				if req.AdaptiveMaxRefresh != nil {
-					mockState.AdaptiveMaxRefresh = *req.AdaptiveMaxRefresh
-				}
-				mockState.MaximumMinRefresh = 60
-				mockState.MaximumMaxRefresh = 300
-			}
+		}
+		if req.AdaptiveMinRefresh != nil {
+			mockState.AdaptiveMinRefresh = *req.AdaptiveMinRefresh
+		}
+		if req.AdaptiveMaxRefresh != nil {
+			mockState.AdaptiveMaxRefresh = *req.AdaptiveMaxRefresh
+		}
+		if req.MaximumMinRefresh != nil {
+			mockState.MaximumMinRefresh = *req.MaximumMinRefresh
+		}
+		if req.MaximumMaxRefresh != nil {
+			mockState.MaximumMaxRefresh = *req.MaximumMaxRefresh
 		}
 		if req.NattedMinRefresh != nil {
 			mockState.NattedMinRefresh = *req.NattedMinRefresh
@@ -163,6 +161,8 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "maximum"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "60"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "3600"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_min_refresh", "120"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_max_refresh", "600"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_min_refresh", "120"),
@@ -186,6 +186,8 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "adaptive"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "60"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "3600"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_min_refresh", "60"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_max_refresh", "300"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_min_refresh", "60"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_max_refresh", "90"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "route_via_registrar", "true"),
