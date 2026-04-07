@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	_ resource.ResourceWithImportState        = (*InfinityGatewayRoutingRuleResource)(nil)
-	_ resource.ResourceWithConfigValidators   = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithImportState      = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*InfinityGatewayRoutingRuleResource)(nil)
 )
 
 type InfinityGatewayRoutingRuleResource struct {
