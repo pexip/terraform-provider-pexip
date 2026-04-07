@@ -8,6 +8,7 @@ package provider
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -285,6 +286,135 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 	}).Maybe()
 
 	testInfinityGatewayRoutingRule(t, client)
+}
+
+func TestInfinityGatewayRoutingRuleConfigValidator(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	providerBlock := `
+terraform {
+  required_providers {
+    pexip = {
+      source  = "pexip"
+      version = "0.0.1"
+    }
+  }
+}
+
+provider "pexip" {
+  address  = "https://dev-manager.dev.pexip.network"
+  username = "admin"
+  password = "admin"
+  insecure = true
+}
+`
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				// teams protocol with live_captions_enabled = "yes" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "yes"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled = "default" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "default"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled unset (null → "") must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name              = "tf-test-validator"
+  match_string      = ".*@example.com"
+  priority          = 100
+  outgoing_protocol = "teams"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// gms protocol with live_captions_enabled = "yes" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "yes"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// gms protocol with live_captions_enabled = "default" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "default"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled = "no" must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "no"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				// gms protocol with live_captions_enabled = "no" must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "no"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				// sip protocol is unrestricted — any live_captions_enabled value must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "sip"
+  live_captions_enabled = "yes"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {

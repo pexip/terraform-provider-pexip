@@ -788,11 +788,11 @@ func (r *InfinityGatewayRoutingRuleResource) ConfigValidators(_ context.Context)
 type gatewayRoutingRuleTeamsLiveCaptionsValidator struct{}
 
 func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) Description(_ context.Context) string {
-	return "When outgoing_protocol is 'teams', live_captions_enabled must be 'no'."
+	return "When outgoing_protocol is 'teams' or 'gms', live_captions_enabled must be 'no'."
 }
 
 func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) MarkdownDescription(_ context.Context) string {
-	return "When `outgoing_protocol` is `teams`, `live_captions_enabled` must be `no`."
+	return "When `outgoing_protocol` is `teams` or `gms`, `live_captions_enabled` must be `no`."
 }
 
 func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
@@ -812,6 +812,14 @@ func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) ValidateResource(ctx conte
 			path.Root("live_captions_enabled"),
 			"Invalid live_captions_enabled for Teams protocol",
 			"When outgoing_protocol is 'teams', live_captions_enabled must be 'no'.",
+		)
+	}
+
+	if config.OutgoingProtocol.ValueString() == "gms" && config.LiveCaptionsEnabled.ValueString() != "no" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("live_captions_enabled"),
+			"Invalid live_captions_enabled for GMS protocol",
+			"When outgoing_protocol is 'gms', live_captions_enabled must be 'no'.",
 		)
 	}
 }
