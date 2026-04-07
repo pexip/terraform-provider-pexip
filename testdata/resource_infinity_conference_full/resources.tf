@@ -4,14 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-resource "pexip_infinity_automatic_participant" "tf-test-participant1" {
-  alias = "tf-test-participant1@example.com"
-}
-
-resource "pexip_infinity_automatic_participant" "tf-test-participant2" {
-  alias = "tf-test-participant2@example.com"
-}
-
 resource "pexip_infinity_conference" "tf-test-conference" {
   name                                = "tf-test-conference"
   description                         = "Full test configuration for conference"
@@ -20,7 +12,8 @@ resource "pexip_infinity_conference" "tf-test-conference" {
   guest_pin                           = "654321"
   tag                                 = "tf-test-tag"
   allow_guests                        = true
-  automatic_participants              = [pexip_infinity_automatic_participant.tf-test-participant1.id, pexip_infinity_automatic_participant.tf-test-participant2.id]
+  aliases                             = ["/api/admin/configuration/v1/conference_alias/1/", "/api/admin/configuration/v1/conference_alias/2/"]
+  automatic_participants              = ["/api/admin/configuration/v1/automatic_participant/1/", "/api/admin/configuration/v1/automatic_participant/2/"]
   breakout_rooms                      = true
   call_type                           = "video-only"
   crypto_mode                         = "besteffort"
@@ -52,14 +45,3 @@ resource "pexip_infinity_conference" "tf-test-conference" {
   two_stage_dial_type                 = "regular"
 }
 
-resource "pexip_infinity_conference_alias" "tf-test-alias1" {
-  alias       = "tf-test-alias1"
-  description = "Test alias 1"
-  conference  = pexip_infinity_conference.tf-test-conference.id
-}
-
-resource "pexip_infinity_conference_alias" "tf-test-alias2" {
-  alias       = "tf-test-alias2"
-  description = "Test alias 2"
-  conference  = pexip_infinity_conference.tf-test-conference.id
-}

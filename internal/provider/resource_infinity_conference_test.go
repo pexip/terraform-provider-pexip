@@ -76,6 +76,14 @@ func TestInfinityConference(t *testing.T) {
 		ServiceType:                     "conference",
 		PIN:                             "123456",
 		Tag:                             "tf-test-tag",
+		Aliases: &[]config.ConferenceAlias{
+			{ID: 1},
+			{ID: 2},
+		},
+		AutomaticParticipants: &[]config.AutomaticParticipant{
+			{ID: 1},
+			{ID: 2},
+		},
 	}
 
 	// Mock the GetConference API call for Read operations
@@ -189,302 +197,6 @@ func TestInfinityConference(t *testing.T) {
 		return path == "configuration/v1/conference/123/"
 	}), mock.Anything).Return(nil)
 
-	// Mock ConferenceAlias resources
-	mockAlias1 := &config.ConferenceAlias{}
-	mockAlias2 := &config.ConferenceAlias{}
-
-	// Step 1: Create alias1
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference_alias/", mock.MatchedBy(func(req *config.ConferenceAliasCreateRequest) bool {
-		return req.Alias == "tf-test-alias1"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/conference_alias/1/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.ConferenceAliasCreateRequest)
-		*mockAlias1 = config.ConferenceAlias{
-			ID:          1,
-			ResourceURI: "/api/admin/configuration/v1/conference_alias/1/",
-			Alias:       req.Alias,
-			Description: req.Description,
-			Conference:  req.Conference,
-		}
-		// Update the conference's aliases
-		if mockState.Aliases == nil {
-			mockState.Aliases = &[]config.ConferenceAlias{}
-		}
-		*mockState.Aliases = append(*mockState.Aliases, *mockAlias1)
-	}).Once()
-
-	// Step 1: Create alias2
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference_alias/", mock.MatchedBy(func(req *config.ConferenceAliasCreateRequest) bool {
-		return req.Alias == "tf-test-alias2"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/conference_alias/2/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.ConferenceAliasCreateRequest)
-		*mockAlias2 = config.ConferenceAlias{
-			ID:          2,
-			ResourceURI: "/api/admin/configuration/v1/conference_alias/2/",
-			Alias:       req.Alias,
-			Description: req.Description,
-			Conference:  req.Conference,
-		}
-		// Update the conference's aliases
-		if mockState.Aliases == nil {
-			mockState.Aliases = &[]config.ConferenceAlias{}
-		}
-		*mockState.Aliases = append(*mockState.Aliases, *mockAlias2)
-	}).Once()
-
-	// Step 4: Recreate alias1
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference_alias/", mock.MatchedBy(func(req *config.ConferenceAliasCreateRequest) bool {
-		return req.Alias == "tf-test-alias1"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/conference_alias/1/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.ConferenceAliasCreateRequest)
-		*mockAlias1 = config.ConferenceAlias{
-			ID:          1,
-			ResourceURI: "/api/admin/configuration/v1/conference_alias/1/",
-			Alias:       req.Alias,
-			Description: req.Description,
-			Conference:  req.Conference,
-		}
-		// Update the conference's aliases
-		if mockState.Aliases == nil {
-			mockState.Aliases = &[]config.ConferenceAlias{}
-		}
-		*mockState.Aliases = append(*mockState.Aliases, *mockAlias1)
-	}).Once()
-
-	// Step 4: Recreate alias2
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/conference_alias/", mock.MatchedBy(func(req *config.ConferenceAliasCreateRequest) bool {
-		return req.Alias == "tf-test-alias2"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/conference_alias/2/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.ConferenceAliasCreateRequest)
-		*mockAlias2 = config.ConferenceAlias{
-			ID:          2,
-			ResourceURI: "/api/admin/configuration/v1/conference_alias/2/",
-			Alias:       req.Alias,
-			Description: req.Description,
-			Conference:  req.Conference,
-		}
-		// Update the conference's aliases
-		if mockState.Aliases == nil {
-			mockState.Aliases = &[]config.ConferenceAlias{}
-		}
-		*mockState.Aliases = append(*mockState.Aliases, *mockAlias2)
-	}).Once()
-
-	client.On("GetJSON", mock.Anything, "configuration/v1/conference_alias/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		alias := args.Get(3).(*config.ConferenceAlias)
-		*alias = *mockAlias1
-	}).Maybe()
-
-	client.On("GetJSON", mock.Anything, "configuration/v1/conference_alias/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		alias := args.Get(3).(*config.ConferenceAlias)
-		*alias = *mockAlias2
-	}).Maybe()
-
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference_alias/1/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		// Remove alias1 from conference's aliases
-		if mockState.Aliases != nil {
-			aliases := []config.ConferenceAlias{}
-			for _, a := range *mockState.Aliases {
-				if a.ID != 1 {
-					aliases = append(aliases, a)
-				}
-			}
-			if len(aliases) > 0 {
-				mockState.Aliases = &aliases
-			} else {
-				mockState.Aliases = nil
-			}
-		}
-	})
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/conference_alias/2/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		// Remove alias2 from conference's aliases
-		if mockState.Aliases != nil {
-			aliases := []config.ConferenceAlias{}
-			for _, a := range *mockState.Aliases {
-				if a.ID != 2 {
-					aliases = append(aliases, a)
-				}
-			}
-			if len(aliases) > 0 {
-				mockState.Aliases = &aliases
-			} else {
-				mockState.Aliases = nil
-			}
-		}
-	})
-
-	// Mock AutomaticParticipant resources
-	mockParticipant1 := &config.AutomaticParticipant{}
-	mockParticipant2 := &config.AutomaticParticipant{}
-
-	appendParticipant := func(p config.AutomaticParticipant) {
-		// Embed in conference without ResourceURI: the real API does not populate it on embedded objects.
-		embedded := p
-		embedded.ResourceURI = ""
-		if mockState.AutomaticParticipants == nil {
-			mockState.AutomaticParticipants = &[]config.AutomaticParticipant{}
-		}
-		*mockState.AutomaticParticipants = append(*mockState.AutomaticParticipants, embedded)
-	}
-
-	removeParticipant := func(id int) {
-		if mockState.AutomaticParticipants == nil {
-			return
-		}
-		remaining := []config.AutomaticParticipant{}
-		for _, p := range *mockState.AutomaticParticipants {
-			if p.ID != id {
-				remaining = append(remaining, p)
-			}
-		}
-		if len(remaining) > 0 {
-			mockState.AutomaticParticipants = &remaining
-		} else {
-			mockState.AutomaticParticipants = nil
-		}
-	}
-
-	// Step 1: Create participant1
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/automatic_participant/", mock.MatchedBy(func(req *config.AutomaticParticipantCreateRequest) bool {
-		return req.Alias == "tf-test-participant1@example.com"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/automatic_participant/1/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
-		*mockParticipant1 = config.AutomaticParticipant{
-			ID:                  1,
-			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/1/",
-			Alias:               req.Alias,
-			Description:         req.Description,
-			Conference:          req.Conference,
-			Protocol:            req.Protocol,
-			CallType:            req.CallType,
-			Role:                req.Role,
-			DTMFSequence:        req.DTMFSequence,
-			KeepConferenceAlive: req.KeepConferenceAlive,
-			Routing:             req.Routing,
-			SystemLocation:      req.SystemLocation,
-			Streaming:           req.Streaming,
-			RemoteDisplayName:   req.RemoteDisplayName,
-			PresentationURL:     req.PresentationURL,
-		}
-		appendParticipant(*mockParticipant1)
-	}).Once()
-
-	// Step 1: Create participant2
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/automatic_participant/", mock.MatchedBy(func(req *config.AutomaticParticipantCreateRequest) bool {
-		return req.Alias == "tf-test-participant2@example.com"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/automatic_participant/2/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
-		*mockParticipant2 = config.AutomaticParticipant{
-			ID:                  2,
-			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/2/",
-			Alias:               req.Alias,
-			Description:         req.Description,
-			Conference:          req.Conference,
-			Protocol:            req.Protocol,
-			CallType:            req.CallType,
-			Role:                req.Role,
-			DTMFSequence:        req.DTMFSequence,
-			KeepConferenceAlive: req.KeepConferenceAlive,
-			Routing:             req.Routing,
-			SystemLocation:      req.SystemLocation,
-			Streaming:           req.Streaming,
-			RemoteDisplayName:   req.RemoteDisplayName,
-			PresentationURL:     req.PresentationURL,
-		}
-		appendParticipant(*mockParticipant2)
-	}).Once()
-
-	// Step 4: Recreate participant1
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/automatic_participant/", mock.MatchedBy(func(req *config.AutomaticParticipantCreateRequest) bool {
-		return req.Alias == "tf-test-participant1@example.com"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/automatic_participant/1/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
-		*mockParticipant1 = config.AutomaticParticipant{
-			ID:                  1,
-			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/1/",
-			Alias:               req.Alias,
-			Description:         req.Description,
-			Conference:          req.Conference,
-			Protocol:            req.Protocol,
-			CallType:            req.CallType,
-			Role:                req.Role,
-			DTMFSequence:        req.DTMFSequence,
-			KeepConferenceAlive: req.KeepConferenceAlive,
-			Routing:             req.Routing,
-			SystemLocation:      req.SystemLocation,
-			Streaming:           req.Streaming,
-			RemoteDisplayName:   req.RemoteDisplayName,
-			PresentationURL:     req.PresentationURL,
-		}
-		appendParticipant(*mockParticipant1)
-	}).Once()
-
-	// Step 4: Recreate participant2
-	client.On("PostWithResponse", mock.Anything, "configuration/v1/automatic_participant/", mock.MatchedBy(func(req *config.AutomaticParticipantCreateRequest) bool {
-		return req.Alias == "tf-test-participant2@example.com"
-	}), mock.Anything).Return(&types.PostResponse{
-		Body:        []byte(""),
-		ResourceURI: "/api/admin/configuration/v1/automatic_participant/2/",
-	}, nil).Run(func(args mock.Arguments) {
-		req := args.Get(2).(*config.AutomaticParticipantCreateRequest)
-		*mockParticipant2 = config.AutomaticParticipant{
-			ID:                  2,
-			ResourceURI:         "/api/admin/configuration/v1/automatic_participant/2/",
-			Alias:               req.Alias,
-			Description:         req.Description,
-			Conference:          req.Conference,
-			Protocol:            req.Protocol,
-			CallType:            req.CallType,
-			Role:                req.Role,
-			DTMFSequence:        req.DTMFSequence,
-			KeepConferenceAlive: req.KeepConferenceAlive,
-			Routing:             req.Routing,
-			SystemLocation:      req.SystemLocation,
-			Streaming:           req.Streaming,
-			RemoteDisplayName:   req.RemoteDisplayName,
-			PresentationURL:     req.PresentationURL,
-		}
-		appendParticipant(*mockParticipant2)
-	}).Once()
-
-	client.On("GetJSON", mock.Anything, "configuration/v1/automatic_participant/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		participant := args.Get(3).(*config.AutomaticParticipant)
-		*participant = *mockParticipant1
-	}).Maybe()
-
-	client.On("GetJSON", mock.Anything, "configuration/v1/automatic_participant/2/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		participant := args.Get(3).(*config.AutomaticParticipant)
-		*participant = *mockParticipant2
-	}).Maybe()
-
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/automatic_participant/1/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		removeParticipant(1)
-	})
-
-	client.On("DeleteJSON", mock.Anything, "configuration/v1/automatic_participant/2/", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		removeParticipant(2)
-	})
-
 	testInfinityConference(t, client)
 }
 
@@ -535,16 +247,11 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "sync_tag", "sync-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "two_stage_dial_type", "regular"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.#", "2"),
-					// Check alias resources exist
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias1", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias1", "alias", "tf-test-alias1"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias2", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias2", "alias", "tf-test-alias2"),
-					// Check automatic participant resources exist
-					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.tf-test-participant1", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.tf-test-participant1", "alias", "tf-test-participant1@example.com"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.tf-test-participant2", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.tf-test-participant2", "alias", "tf-test-participant2@example.com"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.*", "/api/admin/configuration/v1/automatic_participant/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.*", "/api/admin/configuration/v1/automatic_participant/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "aliases.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "aliases.*", "/api/admin/configuration/v1/conference_alias/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "aliases.*", "/api/admin/configuration/v1/conference_alias/2/"),
 				),
 			},
 			// Test 2: Update to min configuration, then delete
@@ -615,16 +322,11 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "sync_tag", "sync-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "two_stage_dial_type", "regular"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.#", "2"),
-					// Check alias resources exist
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias1", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias1", "alias", "tf-test-alias1"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias2", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias2", "alias", "tf-test-alias2"),
-					// Check automatic participant resources exist
-					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.tf-test-participant1", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.tf-test-participant1", "alias", "tf-test-participant1@example.com"),
-					resource.TestCheckResourceAttrSet("pexip_infinity_automatic_participant.tf-test-participant2", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_automatic_participant.tf-test-participant2", "alias", "tf-test-participant2@example.com"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.*", "/api/admin/configuration/v1/automatic_participant/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.*", "/api/admin/configuration/v1/automatic_participant/2/"),
+					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "aliases.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "aliases.*", "/api/admin/configuration/v1/conference_alias/1/"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_conference.tf-test-conference", "aliases.*", "/api/admin/configuration/v1/conference_alias/2/"),
 				),
 			},
 		},
