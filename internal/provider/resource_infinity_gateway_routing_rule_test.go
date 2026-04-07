@@ -345,7 +345,7 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
 				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
 			},
 			{
-				// teams protocol with live_captions_enabled unset (null → "") must fail
+				// teams protocol with live_captions_enabled unset (defaults to "default") must fail
 				Config: providerBlock + `
 resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
   name              = "tf-test-validator"
