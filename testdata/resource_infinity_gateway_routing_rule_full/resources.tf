@@ -8,7 +8,7 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule" {
   name                            = "tf-test-gateway-routing-rule"
   description                     = "tf-test Gateway Routing Rule Description"
   match_string                    = ".*@example.com"
-  priority                        = 100
+  priority                        = 66
   enable                          = false
   match_string_full               = true
   replace_string                  = "replaced@example.com"
@@ -25,6 +25,7 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule" {
   max_pixels_per_second           = "fullhd"
   max_callrate_in                 = 2048
   max_callrate_out                = 4096
+  disabled_codecs                 = ["H261", "H263"]
 
   # Matching rules
   match_incoming_calls            = false
@@ -45,6 +46,6 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule" {
 resource "pexip_infinity_gateway_routing_rule" "tf-test-gateway-routing-rule-registered" {
   name                              = "tf-test-gateway-routing-rule-registered"
   match_string                      = ".*@registered.com"
-  priority                          = 101
+  priority                          = 67
   match_incoming_only_if_registered = true
 }
