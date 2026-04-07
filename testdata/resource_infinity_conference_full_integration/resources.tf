@@ -8,6 +8,14 @@ resource "pexip_infinity_global_configuration" "config" {
   enable_breakout_rooms = true
 }
 
+resource "pexip_infinity_automatic_participant" "tf-test-participant1" {
+  alias = "tf-test-participant1@example.com"
+}
+
+resource "pexip_infinity_automatic_participant" "tf-test-participant2" {
+  alias = "tf-test-participant2@example.com"
+}
+
 resource "pexip_infinity_conference" "tf-test-conference" {
   name                                = "tf-test-conference"
   description                         = "Full test configuration for conference"
@@ -16,6 +24,7 @@ resource "pexip_infinity_conference" "tf-test-conference" {
   guest_pin                           = "654321"
   tag                                 = "tf-test-tag"
   allow_guests                        = true
+  automatic_participants              = [pexip_infinity_automatic_participant.tf-test-participant1.id, pexip_infinity_automatic_participant.tf-test-participant2.id]
   breakout_rooms                      = true
   call_type                           = "video-only"
   crypto_mode                         = "besteffort"
@@ -49,7 +58,7 @@ resource "pexip_infinity_conference" "tf-test-conference" {
   depends_on = [
     pexip_infinity_global_configuration.config
   ]
-}  
+}
 
 resource "pexip_infinity_conference_alias" "tf-test-alias1" {
   alias       = "tf-test-alias1"
@@ -61,20 +70,4 @@ resource "pexip_infinity_conference_alias" "tf-test-alias2" {
   alias       = "tf-test-alias2"
   description = "Test alias 2"
   conference  = pexip_infinity_conference.tf-test-conference.id
-}
-
-resource "pexip_infinity_automatic_participant" "tf-test-participant1" {
-  alias = "tf-test-participant1@example.com"
-
-  depends_on = [
-    pexip_infinity_conference.tf-test-conference
-  ]
-}
-
-resource "pexip_infinity_automatic_participant" "tf-test-participant2" {
-  alias = "tf-test-participant2@example.com"
-
-  depends_on = [
-    pexip_infinity_conference.tf-test-conference
-  ]
 }
