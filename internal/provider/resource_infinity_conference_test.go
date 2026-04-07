@@ -535,7 +535,7 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "sync_tag", "sync-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "two_stage_dial_type", "regular"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.#", "2"),
-				// Check alias resources exist
+					// Check alias resources exist
 					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias1", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias1", "alias", "tf-test-alias1"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias2", "id"),
@@ -615,7 +615,7 @@ func testInfinityConference(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "sync_tag", "sync-123"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "two_stage_dial_type", "regular"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference.tf-test-conference", "automatic_participants.#", "2"),
-				// Check alias resources exist
+					// Check alias resources exist
 					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias1", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_conference_alias.tf-test-alias1", "alias", "tf-test-alias1"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_conference_alias.tf-test-alias2", "id"),
