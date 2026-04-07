@@ -767,23 +767,23 @@ func (r *InfinityGatewayRoutingRuleResource) Delete(ctx context.Context, req res
 
 func (r *InfinityGatewayRoutingRuleResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		gatewayRoutingRuleTeamsLiveCaptionsValidator{},
+		gatewayRoutingRuleTeamsGMSLiveCaptionsValidator{},
 	}
 }
 
-// gatewayRoutingRuleTeamsLiveCaptionsValidator enforces that live_captions_enabled
-// must be "no" when outgoing_protocol is "teams".
-type gatewayRoutingRuleTeamsLiveCaptionsValidator struct{}
+// gatewayRoutingRuleTeamsGMSLiveCaptionsValidator enforces that live_captions_enabled
+// must be "no" when outgoing_protocol is "teams" or "gms".
+type gatewayRoutingRuleTeamsGMSLiveCaptionsValidator struct{}
 
-func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) Description(_ context.Context) string {
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) Description(_ context.Context) string {
 	return "When outgoing_protocol is 'teams' or 'gms', live_captions_enabled must be 'no'."
 }
 
-func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) MarkdownDescription(_ context.Context) string {
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) MarkdownDescription(_ context.Context) string {
 	return "When `outgoing_protocol` is `teams` or `gms`, `live_captions_enabled` must be `no`."
 }
 
-func (v gatewayRoutingRuleTeamsLiveCaptionsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var config InfinityGatewayRoutingRuleResourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
