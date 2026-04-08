@@ -5,5 +5,4 @@
  */
 
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
-  logon_banner = "test-logon-banner"
 }

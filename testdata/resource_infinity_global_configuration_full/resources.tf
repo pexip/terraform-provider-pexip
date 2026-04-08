@@ -23,9 +23,8 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   content_security_policy_state           = false
   crypto_mode                             = "on"
   default_theme                           = "dark"
-  deployment_uuid                         = "custom-uuid"
   disabled_codecs                         = ["H264_H_1", "VP9"]
-  eject_last_participant_backstop_timeout = 10
+  eject_last_participant_backstop_timeout = 60
   enable_analytics                        = true
   enable_application_api                  = false
   enable_breakout_rooms                   = true
@@ -70,7 +69,7 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   local_mssip_domain                      = "notdefaultdomain"
   logon_banner                            = "notdefaultbanner"
   logs_max_age                            = 123
-  management_qos                          = 77
+  management_qos                          = 46
   management_session_timeout              = 99
   management_start_page                   = "/custom/start/page"
   max_callrate_in                         = 888
