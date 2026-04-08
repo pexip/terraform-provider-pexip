@@ -68,6 +68,8 @@ func testInfinityManagementVMIntegration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "enable_ssh", "ON"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "ssh_authorized_keys_use_cloud", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_mode", "AUTHPRIV"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_community", "public"),
+					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_username", "tf-test-snmp-user"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_system_contact", "admin@example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_system_location", "tf-test-datacenter"),
 					resource.TestCheckResourceAttr("pexip_infinity_management_vm.management_vm-test", "dns_servers.#", "1"),

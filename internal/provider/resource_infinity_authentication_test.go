@@ -9,6 +9,8 @@ package provider
 import (
 	"context"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -235,6 +237,7 @@ func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_authentication.authentication-test", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "source", "LOCAL"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "client_certificate", "NO"),
+					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_disable_basic", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_allow_all_perms", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "api_oauth2_expiration", "7200"),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "ldap_server", "ldap.example.com"),
@@ -305,6 +308,147 @@ func testInfinityAuthentication(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_domain_hint", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_authentication.authentication-test", "oidc_login_button", ""),
 				),
+			},
+		},
+	})
+}
+
+func TestInfinityAuthenticationValidation(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  source = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  client_certificate = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  oidc_auth_method = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_server = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_base_dn = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_bind_username = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_bind_password = "` + strings.Repeat("a", 101) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 100`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_user_search_dn = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_user_filter = "` + strings.Repeat("a", 1025) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 1024`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_user_search_filter = "` + strings.Repeat("a", 1025) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 1024`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_user_group_attributes = "` + strings.Repeat("a", 101) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 100`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_group_search_dn = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_group_filter = "` + strings.Repeat("a", 1025) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 1024`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  ldap_group_membership_filter = "` + strings.Repeat("a", 1025) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 1024`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  oidc_domain_hint = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_authentication" "authentication-test" {
+  oidc_login_button = "` + strings.Repeat("a", 129) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 128`),
 			},
 		},
 	})

@@ -187,40 +187,40 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "List of DNS server URIs for the management VM.",
+				MarkdownDescription: "The DNS servers to be used by this Management Node.",
 			},
 			"ntp_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "List of NTP server URIs for the management VM.",
+				MarkdownDescription: "The NTP servers to be used by this Management Node.",
 			},
 			"syslog_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "List of syslog server URIs for the management VM.",
+				MarkdownDescription: "The Syslog servers to be used by this Management Node.",
 			},
 			"static_routes": schema.SetAttribute{
 				Optional:    true,
 				Computed:    true,
 				Default:     nil,
 				ElementType: types.StringType,
-				Description: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
+				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"event_sinks": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of event sink URIs for the management VM.",
+				MarkdownDescription: "The event sinks to be used by this Management Node.",
 			},
 			"http_proxy": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP proxy URI for the management VM.",
+				MarkdownDescription: "The web proxy to be used for outbound web requests from this Management Node.",
 			},
 			"tls_certificate": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "TLS certificate URI for the management VM.",
+				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"enable_ssh": schema.StringAttribute{
 				Optional: true,
@@ -236,7 +236,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 				ElementType:         types.StringType,
 				Default:             nil,
-				MarkdownDescription: "The selected authorized keys.",
+				MarkdownDescription: "The selected authorized keys",
 			},
 			"ssh_authorized_keys_use_cloud": schema.BoolAttribute{
 				Optional:            true,
@@ -283,6 +283,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Optional:  true,
 				Sensitive: true,
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(8),
 					stringvalidator.LengthAtMost(100),
 				},
 				MarkdownDescription: "The password used for SNMPv3 authentication. Minimum length: 8 characters. Maximum length: 100 characters.",
@@ -291,6 +292,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Optional:  true,
 				Sensitive: true,
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(8),
 					stringvalidator.LengthAtMost(100),
 				},
 				MarkdownDescription: "The password used for SNMPv3 privacy. Minimum length: 8 characters. Maximum length: 100 characters.",
@@ -315,7 +317,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"snmp_network_management_system": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "SNMP network management system URI.",
+				MarkdownDescription: "The Network Management System to which SNMP traps for the Management Node will be sent.",
 			},
 			"initializing": schema.BoolAttribute{
 				Computed:            true,
@@ -323,7 +325,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"primary": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Whether this is the primary management VM.",
+				MarkdownDescription: "The IPv4 address for this Management Node.",
 			},
 		},
 		MarkdownDescription: "Manages a management VM configuration with the Infinity service. Management VMs are Pexip Infinity Manager nodes that control the platform. Note: This resource supports Create, Read, and Delete operations only - updates are not supported.",

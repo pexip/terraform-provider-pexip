@@ -8,6 +8,8 @@ package provider
 
 import (
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -219,6 +221,161 @@ func testInfinityManagementVM(t *testing.T, client InfinityClient) {
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "tls_certificate"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_management_vm.management_vm-test", "snmp_network_management_system"),
 				),
+			},
+		},
+	})
+}
+
+func TestInfinityManagementVMValidation(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name = ""
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at least 1`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name = "` + strings.Repeat("a", 33) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 32`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name        = "management_vm-test"
+  description = "` + strings.Repeat("a", 251) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 250`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name             = "management_vm-test"
+  alternative_fqdn = "` + strings.Repeat("a", 256) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name = "management_vm-test"
+  mtu  = 511
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 512 and 1500`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name = "management_vm-test"
+  mtu  = 1501
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 512 and 1500`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name       = "management_vm-test"
+  enable_ssh = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name      = "management_vm-test"
+  snmp_mode = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name           = "management_vm-test"
+  snmp_community = "` + strings.Repeat("a", 17) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 16`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name          = "management_vm-test"
+  snmp_username = "` + strings.Repeat("a", 101) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 100`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                        = "management_vm-test"
+  snmp_authentication_password = "1234567"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at least 8`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                        = "management_vm-test"
+  snmp_authentication_password = "` + strings.Repeat("a", 101) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 100`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                 = "management_vm-test"
+  snmp_privacy_password = "1234567"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at least 8`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                 = "management_vm-test"
+  snmp_privacy_password = "` + strings.Repeat("a", 101) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 100`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                = "management_vm-test"
+  snmp_system_contact = "` + strings.Repeat("a", 71) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 70`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_management_vm" "management_vm-test" {
+  name                 = "management_vm-test"
+  snmp_system_location = "` + strings.Repeat("a", 71) + `"
+}
+`,
+				ExpectError: regexp.MustCompile(`string length must be at most 70`),
 			},
 		},
 	})
