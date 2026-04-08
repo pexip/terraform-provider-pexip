@@ -7,6 +7,8 @@
 resource "pexip_infinity_registration" "registration-test" {
   enable                        = false
   refresh_strategy              = "maximum"
+  adaptive_min_refresh          = 120
+  adaptive_max_refresh          = 600
   maximum_min_refresh           = 120
   maximum_max_refresh           = 600
   natted_min_refresh            = 120

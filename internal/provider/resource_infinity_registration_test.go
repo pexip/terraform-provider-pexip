@@ -8,6 +8,7 @@ package provider
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -161,8 +162,8 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "maximum"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "60"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "3600"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "120"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "600"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_min_refresh", "120"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_max_refresh", "600"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_min_refresh", "120"),
@@ -170,6 +171,7 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "route_via_registrar", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_push_notifications", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_google_cloud_messaging", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "push_token"),
 				),
 			},
 			// Step 2: Destroy — triggers Delete which must reset all fields to API defaults.
@@ -195,6 +197,123 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_google_cloud_messaging", "true"),
 					resource.TestCheckNoResourceAttr("pexip_infinity_registration.registration-test", "push_token"),
 				),
+			},
+		},
+	})
+}
+
+func TestInfinityRegistrationValidation(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  refresh_strategy = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_max_refresh = 7201
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_max_refresh = 7201
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_max_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
 			},
 		},
 	})

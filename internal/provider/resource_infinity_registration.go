@@ -84,7 +84,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Allows devices to register to Pexip Infinity in order to receive calls. Devices remain registered to Pexip Infinity until they send an unregister command or until their registration expires. ",
+				MarkdownDescription: "Allows devices to register to Pexip Infinity in order to receive calls. Devices must register with a permitted alias (Users & Devices > Device aliases).",
 			},
 			"refresh_strategy": schema.StringAttribute{
 				Optional: true,
@@ -93,7 +93,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.OneOf("adaptive", "maximum"),
 				},
-				MarkdownDescription: "Defines which strategy to use when calculating the expiry time of a SIP or H.323 device's registration. Valid choices: adaptive, maximum.",
+				MarkdownDescription: "Defines which strategy to use when calculating the expiry time of a SIP or H.323 registration. Adaptive: Infinity automatically adjusts the refresh interval depending on the number of current registrations on the Conferencing Node handling the request, in order to spread the load of registration refreshes. Basic: Infinity simply uses the configured minimum and maximum settings, along with the requested value, to determine the refresh interval. Valid choices: maximum, adaptive.",
 			},
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -102,16 +102,16 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when using the adaptive strategy. Range: 60 to 3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed, when using the Adaptive strategy. Range: 60 to 3600. Default: 60.",
 			},
 			"adaptive_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Default:  int64default.StaticInt64(3600),
 				Validators: []validator.Int64{
-					int64validator.Between(60, 3600),
+					int64validator.Between(60, 7200),
 				},
-				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when using the adaptive strategy. Range: 60 to 3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed, when using the Adaptive strategy. Range: 60 to 7200. Default: 3600.",
 			},
 			"maximum_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -120,16 +120,16 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when using the maximum strategy. Range: 60 to 3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed, when using the Basic strategy. Range: 60 to 3600. Default: 60.",
 			},
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
 				Default:  int64default.StaticInt64(300),
 				Validators: []validator.Int64{
-					int64validator.Between(60, 3600),
+					int64validator.Between(60, 7200),
 				},
-				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when using the maximum strategy. Range: 60 to 3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed, when using the Basic strategy. Range: 60 to 7200. Default: 300.",
 			},
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -138,7 +138,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed when the device is behind a NAT or firewall. Range: 60 to 3600.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed, for a SIP endpoint behind a NAT. Range: 60 to 3600. Default: 60.",
 			},
 			"natted_max_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -147,30 +147,30 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed when the device is behind a NAT or firewall. Range: 60 to 3600.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed, for a SIP endpoint behind a NAT. Range: 60 to 3600. Default: 90.",
 			},
 			"route_via_registrar": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "When enabled, all calls from registered desktop clients are routed via the registrar. ",
+				MarkdownDescription: "When enabled, all calls from registered desktop clients are routed via the registrar, regardless of the domain being called. When disabled, calls are routed via normal DNS SRV lookups.",
 			},
 			"enable_push_notifications": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Allows mobile devices to register to Pexip Infinity and receive push notifications when they are called. ",
+				MarkdownDescription: "Allows mobile devices to register to Pexip Infinity and receive push notifications.",
 			},
 			"enable_google_cloud_messaging": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Enables sending of push notifications to registered mobile devices via the Google Cloud Messaging service. ",
+				MarkdownDescription: "Enables sending of push notifications to registered mobile devices via the Google Cloud Messaging platform.",
 			},
 			"push_token": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				MarkdownDescription: "Customizes the Google Cloud Messaging push token. You should only change this if you have created a project to use your own push notification servers. ",
+				MarkdownDescription: "Customizes the Google Cloud Messaging push token. You should only change this setting if you are using a custom Pexip mobile application.",
 			},
 		},
 		MarkdownDescription: "Manages the registration configuration with the Infinity service. This is a singleton resource - only one registration configuration exists per system.",
