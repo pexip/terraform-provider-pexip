@@ -14,11 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -28,7 +30,8 @@ import (
 )
 
 var (
-	_ resource.ResourceWithImportState = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithImportState      = (*InfinityGatewayRoutingRuleResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*InfinityGatewayRoutingRuleResource)(nil)
 )
 
 type InfinityGatewayRoutingRuleResource struct {
@@ -137,7 +140,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"crypto_mode": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("besteffort", "on", "off"),
 				},
@@ -162,6 +164,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				MarkdownDescription: "Set of disabled codecs.",
 			},
 			"enable": schema.BoolAttribute{
@@ -181,17 +184,14 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"gms_access_token": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The access token to use when resolving Google Meet meeting codes.",
 			},
 			"h323_gatekeeper": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "When calling an external system, this is the H.323 gatekeeper to use for outbound H.323 calls. Select Use DNS to try to use normal H.323 resolution procedures to route the call.",
 			},
 			"ivr_theme": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The theme for use with this service. If no theme is selected here, files from the theme that has been selected as the default (Platform > Global settings > Default theme) will be applied.",
 			},
 			"live_captions_enabled": schema.StringAttribute{
@@ -253,7 +253,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"match_source_location": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Applies the rule only if the incoming call is being handled by a Conferencing Node in the selected location or the outgoing call is being initiated from the selected location. To apply the rule regardless of the location, select Any Location.",
 			},
 			"match_string": schema.StringAttribute{
@@ -271,7 +270,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"max_callrate_in": schema.Int32Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(128, 8192),
 				},
@@ -279,7 +277,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"max_callrate_out": schema.Int32Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int32{
 					int32validator.Between(128, 8192),
 				},
@@ -287,7 +284,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"max_pixels_per_second": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("sd", "hd", "fullhd"),
 				},
@@ -295,7 +291,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"mssip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "When calling an external system, this is the Lync / Skype for Business server to use for outbound Lync / Skype for Business (MS-SIP) calls. Select Use DNS to try to use normal Lync / Skype for Business (MS-SIP) resolution procedures to route the call. When calling a Lync / Skype for Business meeting, this is the Lync / Skype for Business server to use for the Conference ID lookup and to place the call.",
 			},
 			"name": schema.StringAttribute{
@@ -307,8 +302,7 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"outgoing_location": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "When calling an external system, this forces the outgoing call to be handled by a Conferencing Node in a specific location. When calling a Lync / Skype for Business meeting, a Conferencing Node in this location will handle the outgoing call, and - for 'Lync / Skype for Business meeting direct' targets - perform the Conference ID lookup on the Lync / Skype for Business server. Select Automatic to allow Pexip Infinity to automatically select which Conferencing Node to use.",
+				MarkdownDescription: "When calling an external system, this forces the outgoing call to be handled by a Conferencing Node in a specific location. When calling a Lync / Skype for Business meeting, a Conferencing Node in this location will handle the outgoing call, and - for 'Lync / Skype for Business meeting direct' targets - perform the Conference ID lookup on the Lync / Skype for Business server. Setting to null will allow Pexip Infinity to automatically select which Conferencing Node to use.",
 			},
 			"outgoing_protocol": schema.StringAttribute{
 				Optional: true,
@@ -337,12 +331,10 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"sip_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "When calling an external system, this is the SIP proxy to use for outbound SIP calls. Select Use DNS to try to use normal SIP resolution procedures to route the call.",
 			},
 			"stun_server": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The STUN server to be used for outbound Lync / Skype for Business (MS-SIP) calls (where applicable).",
 			},
 			"tag": schema.StringAttribute{
@@ -356,12 +348,10 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"teams_proxy": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The Teams Connector to use for the Teams meeting. If you do not specify anything, the Teams Connector associated with the outgoing location is used.",
 			},
 			"telehealth_profile": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The Telehealth Profile to use for the meeting.",
 			},
 			"treat_as_trusted": schema.BoolAttribute{
@@ -372,7 +362,6 @@ func (r *InfinityGatewayRoutingRuleResource) Schema(ctx context.Context, req res
 			},
 			"turn_server": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The TURN server to be used for outbound Lync / Skype for Business (MS-SIP) calls (where applicable).",
 			},
 		},
@@ -581,6 +570,7 @@ func (r *InfinityGatewayRoutingRuleResource) read(ctx context.Context, resourceI
 	}
 
 	// Convert disabled codecs from SDK to Terraform format
+	// The API always returns [] for empty disabled_codecs, never null
 	var disabledCodecs []attr.Value
 	if srv.DisabledCodecs != nil {
 		for _, v := range *srv.DisabledCodecs {
@@ -772,6 +762,53 @@ func (r *InfinityGatewayRoutingRuleResource) Delete(ctx context.Context, req res
 			fmt.Sprintf("Could not delete Infinity gateway routing rule with ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
+	}
+}
+
+func (r *InfinityGatewayRoutingRuleResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		gatewayRoutingRuleTeamsGMSLiveCaptionsValidator{},
+	}
+}
+
+// gatewayRoutingRuleTeamsGMSLiveCaptionsValidator enforces that live_captions_enabled
+// must be "no" when outgoing_protocol is "teams" or "gms".
+type gatewayRoutingRuleTeamsGMSLiveCaptionsValidator struct{}
+
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) Description(_ context.Context) string {
+	return "When outgoing_protocol is 'teams' or 'gms', live_captions_enabled must be 'no'."
+}
+
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) MarkdownDescription(_ context.Context) string {
+	return "When `outgoing_protocol` is `teams` or `gms`, `live_captions_enabled` must be `no`."
+}
+
+func (v gatewayRoutingRuleTeamsGMSLiveCaptionsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config InfinityGatewayRoutingRuleResourceModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if config.OutgoingProtocol.IsUnknown() || config.LiveCaptionsEnabled.IsUnknown() {
+		return
+	}
+
+	if config.OutgoingProtocol.ValueString() == "teams" && config.LiveCaptionsEnabled.ValueString() != "no" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("live_captions_enabled"),
+			"Invalid live_captions_enabled for Teams protocol",
+			"When outgoing_protocol is 'teams', live_captions_enabled must be 'no'.",
+		)
+	}
+
+	if config.OutgoingProtocol.ValueString() == "gms" && config.LiveCaptionsEnabled.ValueString() != "no" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("live_captions_enabled"),
+			"Invalid live_captions_enabled for GMS protocol",
+			"When outgoing_protocol is 'gms', live_captions_enabled must be 'no'.",
+		)
 	}
 }
 

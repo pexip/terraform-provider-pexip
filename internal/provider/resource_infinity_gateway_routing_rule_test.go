@@ -8,6 +8,7 @@ package provider
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
@@ -33,7 +34,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		ResourceURI:                     "/api/admin/configuration/v1/gateway_routing_rule/1/",
 		Name:                            "tf-test-gateway-routing-rule",
 		Description:                     "",
-		Priority:                        100,
+		Priority:                        66,
 		Enable:                          true,
 		MatchString:                     ".*@example.com",
 		ReplaceString:                   "",
@@ -58,6 +59,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		MaxPixelsPerSecond:              nil,
 		MaxCallrateIn:                   nil,
 		MaxCallrateOut:                  nil,
+		DisabledCodecs:                  &[]config.CodecValue{},
 	}
 
 	// Second resource state for match_incoming_only_if_registered test
@@ -66,7 +68,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		ResourceURI:                     "/api/admin/configuration/v1/gateway_routing_rule/2/",
 		Name:                            "tf-test-gateway-routing-rule-registered",
 		Description:                     "",
-		Priority:                        101,
+		Priority:                        67,
 		Enable:                          true,
 		MatchString:                     ".*@registered.com",
 		ReplaceString:                   "",
@@ -128,6 +130,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.ExternalParticipantAvatarLookup = req.ExternalParticipantAvatarLookup
 		mockState.LiveCaptionsEnabled = req.LiveCaptionsEnabled
 		mockState.TreatAsTrusted = req.TreatAsTrusted
+		mockState.DisabledCodecs = req.DisabledCodecs
 	}).Once()
 
 	// Step 1: Create with full config (second resource)
@@ -178,6 +181,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.ExternalParticipantAvatarLookup = req.ExternalParticipantAvatarLookup
 		mockState.LiveCaptionsEnabled = req.LiveCaptionsEnabled
 		mockState.TreatAsTrusted = req.TreatAsTrusted
+		mockState.DisabledCodecs = req.DisabledCodecs
 		if args.Get(3) != nil {
 			rule := args.Get(3).(*config.GatewayRoutingRule)
 			*rule = *mockState
@@ -220,6 +224,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.ExternalParticipantAvatarLookup = req.ExternalParticipantAvatarLookup
 		mockState.LiveCaptionsEnabled = req.LiveCaptionsEnabled
 		mockState.TreatAsTrusted = req.TreatAsTrusted
+		mockState.DisabledCodecs = req.DisabledCodecs
 	}).Once()
 
 	// Step 5: Recreate second resource (back in full config)
@@ -267,6 +272,7 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 		mockState.ExternalParticipantAvatarLookup = req.ExternalParticipantAvatarLookup
 		mockState.LiveCaptionsEnabled = req.LiveCaptionsEnabled
 		mockState.TreatAsTrusted = req.TreatAsTrusted
+		mockState.DisabledCodecs = req.DisabledCodecs
 		if args.Get(3) != nil {
 			rule := args.Get(3).(*config.GatewayRoutingRule)
 			*rule = *mockState
@@ -287,6 +293,135 @@ func TestInfinityGatewayRoutingRule(t *testing.T) {
 	testInfinityGatewayRoutingRule(t, client)
 }
 
+func TestInfinityGatewayRoutingRuleConfigValidator(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	providerBlock := `
+terraform {
+  required_providers {
+    pexip = {
+      source  = "pexip"
+      version = "0.0.1"
+    }
+  }
+}
+
+provider "pexip" {
+  address  = "https://dev-manager.dev.pexip.network"
+  username = "admin"
+  password = "admin"
+  insecure = true
+}
+`
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				// teams protocol with live_captions_enabled = "yes" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "yes"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled = "default" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "default"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled unset (defaults to "default") must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name              = "tf-test-validator"
+  match_string      = ".*@example.com"
+  priority          = 100
+  outgoing_protocol = "teams"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// gms protocol with live_captions_enabled = "yes" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "yes"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// gms protocol with live_captions_enabled = "default" must fail
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "default"
+}`,
+				ExpectError: regexp.MustCompile(`live_captions_enabled must be 'no'`),
+			},
+			{
+				// teams protocol with live_captions_enabled = "no" must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "teams"
+  live_captions_enabled = "no"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				// gms protocol with live_captions_enabled = "no" must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "gms"
+  live_captions_enabled = "no"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				// sip protocol is unrestricted — any live_captions_enabled value must succeed
+				Config: providerBlock + `
+resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
+  name                  = "tf-test-validator"
+  match_string          = ".*@example.com"
+  priority              = 100
+  outgoing_protocol     = "sip"
+  live_captions_enabled = "yes"
+}`,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
@@ -301,7 +436,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "description", "tf-test Gateway Routing Rule Description"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string", ".*@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "100"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "66"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string_full", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "replace_string", "replaced@example.com"),
@@ -325,12 +460,15 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable_participant_avatar_lookup", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "live_captions_enabled", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "treat_as_trusted", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.*", "H261"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.*", "H263"),
 					// Second resource checks
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "name", "tf-test-gateway-routing-rule-registered"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_string", ".*@registered.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "101"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "67"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_incoming_only_if_registered", "true"),
 				),
 			},
@@ -343,7 +481,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string", ".*@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "100"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "66"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string_full", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "replace_string", ""),
@@ -363,6 +501,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable_participant_avatar_lookup", "default"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "live_captions_enabled", "default"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "treat_as_trusted", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.#", "0"),
 				),
 			},
 			{
@@ -379,9 +518,10 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "description", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string", ".*@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "100"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "66"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "tag", ""),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "replace_string", ""),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.#", "0"),
 				),
 			},
 			{
@@ -394,7 +534,7 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "name", "tf-test-gateway-routing-rule"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "description", "tf-test Gateway Routing Rule Description"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string", ".*@example.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "100"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "priority", "66"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "match_string_full", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "replace_string", "replaced@example.com"),
@@ -418,12 +558,15 @@ func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "enable_participant_avatar_lookup", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "live_captions_enabled", "yes"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "treat_as_trusted", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.#", "2"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.*", "H261"),
+					resource.TestCheckTypeSetElemAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule", "disabled_codecs.*", "H263"),
 					// Second resource checks
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "id"),
 					resource.TestCheckResourceAttrSet("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "resource_id"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "name", "tf-test-gateway-routing-rule-registered"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_string", ".*@registered.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "101"),
+					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "priority", "67"),
 					resource.TestCheckResourceAttr("pexip_infinity_gateway_routing_rule.tf-test-gateway-routing-rule-registered", "match_incoming_only_if_registered", "true"),
 				),
 			},
