@@ -39,7 +39,6 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   enable_lync_auto_escalate               = true
   enable_lync_vbss                        = true
   enable_mlvad                            = true
-  enable_multiscreen                      = false
   enable_rtmp                             = false
   enable_sip                              = false
   enable_sip_udp                          = true
@@ -61,7 +60,6 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   gcp_private_key                         = "notdefaultkey"
   gcp_project_id                          = "notdefaultproject"
   guests_only_timeout                     = 999
-  legacy_api_http                         = true
   legacy_api_username                     = "notdefaultuser"
   legacy_api_password                     = "notdefaultpass"
   live_captions_vmr_default               = true

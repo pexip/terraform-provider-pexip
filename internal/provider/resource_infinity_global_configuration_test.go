@@ -110,11 +110,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		MediaPortsStart:                     40123,                // default: 40000
 		OcspResponderURL:                    "notdefaultocsp",
 		OcspState:                           "ON", // default: "OFF"
-		PinEntryTimeout:                     321,  // default: 120
-		// PssCustomerID:                       "notdefaultpsscustomer",
-		// PssEnabled:                          true, // default: false
-		// PssGateway:                          "notdefaultpssgateway",
-		// PssToken:                            "notdefaultpsstoken",
+		PinEntryTimeout:       321, // default: 120
 		SessionTimeoutEnabled:       false, // default: true
 		SignallingPortsEnd:          39998, // default: 39999
 		SignallingPortsStart:        33001, // default: 33000
