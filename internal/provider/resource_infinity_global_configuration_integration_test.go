@@ -51,6 +51,11 @@ func testInfinityGlobalConfigurationIntegration(t *testing.T, client InfinityCli
 	// references are cleared, the related resources can be deleted normally in the destroy step.
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source: "hashicorp/tls",
+			},
+		},
 		Steps: []resource.TestStep{
 			// Step 1: Apply full configuration with all related resources.
 			{
@@ -65,7 +70,7 @@ func testInfinityGlobalConfigurationIntegration(t *testing.T, client InfinityCli
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_enabled", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_min_lifetime", "123"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "bursting_threshold", "77"),
-					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "cloud_provider", "GCP"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "contact_email_address", "tf-test@example.com"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "content_security_policy_state", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "crypto_mode", "on"),
@@ -105,7 +110,7 @@ func testInfinityGlobalConfigurationIntegration(t *testing.T, client InfinityCli
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "es_short_term_memory_expiration", "77"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "external_participant_avatar_lookup", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "gcp_client_email", "tf-test@gcp.com"),
-					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "gcp_private_key", ""),
+					resource.TestCheckResourceAttrSet("pexip_infinity_global_configuration.global_configuration-test", "gcp_private_key"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "gcp_project_id", "tf-test-project"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "guests_only_timeout", "999"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "legacy_api_username", "tf-test-user"),

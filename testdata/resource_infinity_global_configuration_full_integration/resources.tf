@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+resource "tls_private_key" "gcp-key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
 resource "pexip_infinity_ivr_theme" "tf-test-theme" {
   name = "tf-test-theme"
 }
@@ -22,7 +27,7 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bursting_enabled                        = true
   bursting_min_lifetime                   = 123
   bursting_threshold                      = 77
-  cloud_provider                          = "AWS"
+  cloud_provider                          = "GCP"
   contact_email_address                   = "tf-test@example.com"
   content_security_policy_state           = false
   crypto_mode                             = "on"
@@ -61,6 +66,7 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   es_short_term_memory_expiration         = 77
   external_participant_avatar_lookup      = false
   gcp_client_email                        = "tf-test@gcp.com"
+  gcp_private_key                         = tls_private_key.gcp-key.private_key_pem
   gcp_project_id                          = "tf-test-project"
   guests_only_timeout                     = 999
   legacy_api_username                     = "tf-test-user"
