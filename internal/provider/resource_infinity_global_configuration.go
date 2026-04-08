@@ -1238,7 +1238,6 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 		ErrorReportingURL:                   "https://acr.pexip.com",
 		EsConnectionTimeout:                 7,
 		EsInitialRetryBackoff:               1,
-		EsMaximumDeferredPosts:              1000,
 		EsMaximumRetryBackoff:               1800,
 		EsMediaStreamsWait:                  1,
 		EsMetricsUpdateInterval:             60,

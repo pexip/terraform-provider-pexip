@@ -82,7 +82,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ErrorReportingEnabled:               true,  // default: false
 		ErrorReportingURL:                   "https://custom-error-reporting.com",
 		EsConnectionTimeout:                 99,    // default: 7
-		EsInitialRetryBackoff:               22,    // default: 1
+		EsInitialRetryBackoff:               22, // default: 1
 		EsMaximumRetryBackoff:               444,   // default: 1800
 		EsMediaStreamsWait:                  55,    // default: 1
 		EsMetricsUpdateInterval:             66,    // default: 60
@@ -195,7 +195,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		assert.Equal(t, "https://acr.pexip.com", req.ErrorReportingURL)
 		assert.Equal(t, 7, req.EsConnectionTimeout)
 		assert.Equal(t, 1, req.EsInitialRetryBackoff)
-		assert.Equal(t, 1000, req.EsMaximumDeferredPosts)
 		assert.Equal(t, 1800, req.EsMaximumRetryBackoff)
 		assert.Equal(t, 1, req.EsMediaStreamsWait)
 		assert.Equal(t, 60, req.EsMetricsUpdateInterval)
@@ -275,7 +274,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.ErrorReportingURL = "https://acr.pexip.com"
 		mockState.EsConnectionTimeout = 7
 		mockState.EsInitialRetryBackoff = 1
-		mockState.EsMaximumDeferredPosts = 1000
 		mockState.EsMaximumRetryBackoff = 1800
 		mockState.EsMediaStreamsWait = 1
 		mockState.EsMetricsUpdateInterval = 60

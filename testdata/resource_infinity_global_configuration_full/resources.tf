@@ -50,7 +50,6 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
   error_reporting_url                     = "https://custom-error-reporting.com"
   es_connection_timeout                   = 99
   es_initial_retry_backoff                = 22
-  es_maximum_deferred_posts               = 333
   es_maximum_retry_backoff                = 444
   es_media_streams_wait                   = 55
   es_metrics_update_interval              = 66
