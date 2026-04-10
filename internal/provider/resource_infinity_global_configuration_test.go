@@ -88,7 +88,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		GcpClientEmail:                      test.StringPtr("notdefault@gcp.com"),
 		GcpPrivateKey:                       test.StringPtr("notdefaultkey"),
 		GcpProjectID:                        test.StringPtr("notdefaultproject"),
-		GuestsOnlyTimeout:                   999,  // default: 60
+		GuestsOnlyTimeout:                   999, // default: 60
 		LegacyAPIUsername:                   "notdefaultuser",
 		LegacyAPIPassword:                   "notdefaultpass",
 		LiveCaptionsVMRDefault:              true,  // default: false
