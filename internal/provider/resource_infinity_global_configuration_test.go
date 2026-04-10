@@ -69,7 +69,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		EnableLyncAutoEscalate:              true,  // default: false
 		EnableLyncVbss:                      true,  // default: false
 		EnableMlvad:                         true,  // default: false
-		EnableMultiscreen:                   false, // default: true
 		EnableRTMP:                          false, // default: true
 		EnableSIP:                           false, // default: true
 		EnableSIPUDP:                        true,  // default: false
@@ -81,7 +80,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ErrorReportingURL:                   "https://custom-error-reporting.com",
 		EsConnectionTimeout:                 99,    // default: 7
 		EsInitialRetryBackoff:               22,    // default: 1
-		EsMaximumDeferredPosts:              333,   // default: 1000
 		EsMaximumRetryBackoff:               444,   // default: 1800
 		EsMediaStreamsWait:                  55,    // default: 1
 		EsMetricsUpdateInterval:             66,    // default: 60
@@ -91,7 +89,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		GcpPrivateKey:                       test.StringPtr("notdefaultkey"),
 		GcpProjectID:                        test.StringPtr("notdefaultproject"),
 		GuestsOnlyTimeout:                   999,  // default: 60
-		LegacyAPIHTTP:                       true, // default: false
 		LegacyAPIUsername:                   "notdefaultuser",
 		LegacyAPIPassword:                   "notdefaultpass",
 		LiveCaptionsVMRDefault:              true,  // default: false
@@ -185,7 +182,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.EnableLyncAutoEscalate = updateRequest.EnableLyncAutoEscalate
 		mockState.EnableLyncVbss = updateRequest.EnableLyncVbss
 		mockState.EnableMlvad = updateRequest.EnableMlvad
-		mockState.EnableMultiscreen = updateRequest.EnableMultiscreen
 		mockState.EnableSIPUDP = updateRequest.EnableSIPUDP
 		mockState.EnableSoftmute = updateRequest.EnableSoftmute
 		mockState.EnableSSH = updateRequest.EnableSSH
@@ -194,7 +190,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.ErrorReportingURL = updateRequest.ErrorReportingURL
 		mockState.EsConnectionTimeout = updateRequest.EsConnectionTimeout
 		mockState.EsInitialRetryBackoff = updateRequest.EsInitialRetryBackoff
-		mockState.EsMaximumDeferredPosts = updateRequest.EsMaximumDeferredPosts
 		mockState.EsMaximumRetryBackoff = updateRequest.EsMaximumRetryBackoff
 		mockState.EsMediaStreamsWait = updateRequest.EsMediaStreamsWait
 		mockState.EsMetricsUpdateInterval = updateRequest.EsMetricsUpdateInterval
@@ -204,7 +199,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.GcpPrivateKey = updateRequest.GcpPrivateKey
 		mockState.GcpProjectID = updateRequest.GcpProjectID
 		mockState.GuestsOnlyTimeout = updateRequest.GuestsOnlyTimeout
-		mockState.LegacyAPIHTTP = updateRequest.LegacyAPIHTTP
 		mockState.LegacyAPIUsername = updateRequest.LegacyAPIUsername
 		mockState.LegacyAPIPassword = updateRequest.LegacyAPIPassword
 		mockState.LiveCaptionsVMRDefault = updateRequest.LiveCaptionsVMRDefault
@@ -223,10 +217,6 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		mockState.OcspResponderURL = updateRequest.OcspResponderURL
 		mockState.OcspState = updateRequest.OcspState
 		mockState.PinEntryTimeout = updateRequest.PinEntryTimeout
-		mockState.PssCustomerID = updateRequest.PssCustomerID
-		mockState.PssEnabled = updateRequest.PssEnabled
-		mockState.PssGateway = updateRequest.PssGateway
-		mockState.PssToken = updateRequest.PssToken
 		mockState.SessionTimeoutEnabled = updateRequest.SessionTimeoutEnabled
 		mockState.SignallingPortsEnd = updateRequest.SignallingPortsEnd
 		mockState.SignallingPortsStart = updateRequest.SignallingPortsStart

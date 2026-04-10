@@ -39,11 +39,18 @@ type InfinityGlobalConfigurationResource struct {
 The following fields have been deprecated in the Infinity API and have been removed from the model:
   * default_to_new_webapp - use 'default_webapp' instead
   * default_webapp - use 'default_webapp_alias' instead
+  * enable_multiscreen (Deprecated field)
   * enable_push_notifications (Deprecated field)
+  * legacy_api_http (Deprecated field)
   * live_captions_api_gateway - use 'media_processing_server' resource
   * live_captions_app_id - use 'media_processing_server' resource
   * live_captions_enabled - this field is deprecated and will be ignored
   * live_captions_public_jwt_key - use 'media_processing_server' resource
+  * es_maximum_deferred_posts (Deprecated field)
+  * pss_customer_id (Deprecated field)
+  * pss_enabled (Deprecated field)
+  * pss_gateway (Deprecated field)
+  * pss_token (Deprecated field)
 */
 
 type InfinityGlobalConfigurationResourceModel struct {
@@ -75,6 +82,7 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableApplicationAPI                types.Bool   `tfsdk:"enable_application_api"`
 	EnableBreakoutRooms                 types.Bool   `tfsdk:"enable_breakout_rooms"`
 	EnableChat                          types.Bool   `tfsdk:"enable_chat"`
+	EnableClock                         types.Bool   `tfsdk:"enable_clock"`
 	EnableDenoise                       types.Bool   `tfsdk:"enable_denoise"`
 	EnableDialout                       types.Bool   `tfsdk:"enable_dialout"`
 	EnableDirectory                     types.Bool   `tfsdk:"enable_directory"`
@@ -85,7 +93,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableLyncAutoEscalate              types.Bool   `tfsdk:"enable_lync_auto_escalate"`
 	EnableLyncVbss                      types.Bool   `tfsdk:"enable_lync_vbss"`
 	EnableMlvad                         types.Bool   `tfsdk:"enable_mlvad"`
-	EnableMultiscreen                   types.Bool   `tfsdk:"enable_multiscreen"`
 	EnableRTMP                          types.Bool   `tfsdk:"enable_rtmp"`
 	EnableSIP                           types.Bool   `tfsdk:"enable_sip"`
 	EnableSIPUDP                        types.Bool   `tfsdk:"enable_sip_udp"`
@@ -97,7 +104,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	ErrorReportingURL                   types.String `tfsdk:"error_reporting_url"`
 	EsConnectionTimeout                 types.Int64  `tfsdk:"es_connection_timeout"`
 	EsInitialRetryBackoff               types.Int64  `tfsdk:"es_initial_retry_backoff"`
-	EsMaximumDeferredPosts              types.Int64  `tfsdk:"es_maximum_deferred_posts"`
 	EsMaximumRetryBackoff               types.Int64  `tfsdk:"es_maximum_retry_backoff"`
 	EsMediaStreamsWait                  types.Int64  `tfsdk:"es_media_streams_wait"`
 	EsMetricsUpdateInterval             types.Int64  `tfsdk:"es_metrics_update_interval"`
@@ -107,7 +113,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	GcpPrivateKey                       types.String `tfsdk:"gcp_private_key"`
 	GcpProjectID                        types.String `tfsdk:"gcp_project_id"`
 	GuestsOnlyTimeout                   types.Int64  `tfsdk:"guests_only_timeout"`
-	LegacyAPIHTTP                       types.Bool   `tfsdk:"legacy_api_http"`
 	LegacyAPIUsername                   types.String `tfsdk:"legacy_api_username"`
 	LegacyAPIPassword                   types.String `tfsdk:"legacy_api_password"`
 	LiveCaptionsVMRDefault              types.Bool   `tfsdk:"live_captions_vmr_default"`
@@ -127,10 +132,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	OcspResponderURL                    types.String `tfsdk:"ocsp_responder_url"`
 	OcspState                           types.String `tfsdk:"ocsp_state"`
 	PinEntryTimeout                     types.Int64  `tfsdk:"pin_entry_timeout"`
-	PssCustomerID                       types.String `tfsdk:"pss_customer_id"`
-	PssEnabled                          types.Bool   `tfsdk:"pss_enabled"`
-	PssGateway                          types.String `tfsdk:"pss_gateway"`
-	PssToken                            types.String `tfsdk:"pss_token"`
 	ResourceURI                         types.String `tfsdk:"resource_uri"`
 	SessionTimeoutEnabled               types.Bool   `tfsdk:"session_timeout_enabled"`
 	SignallingPortsEnd                  types.Int64  `tfsdk:"signalling_ports_end"`
@@ -337,6 +338,12 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Enable chat relay between participants.",
 			},
+			"enable_clock": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Enable clock display.",
+			},
 			"enable_denoise": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -396,12 +403,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Enable advanced voice activity detection.",
-			},
-			"enable_multiscreen": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Enable dual screen layouts.",
 			},
 			"enable_rtmp": schema.BoolAttribute{
 				Optional:            true,
@@ -469,12 +470,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Default:             int64default.StaticInt64(1),
 				MarkdownDescription: "Initial retry backoff for event sink.",
 			},
-			"es_maximum_deferred_posts": schema.Int64Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int64default.StaticInt64(1000),
-				MarkdownDescription: "Maximum deferred posts for event sink.",
-			},
 			"es_maximum_retry_backoff": schema.Int64Attribute{
 				Optional:            true,
 				Computed:            true,
@@ -525,12 +520,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				Default:             int64default.StaticInt64(60),
 				MarkdownDescription: "Timeout for guests-only conferences.",
-			},
-			"legacy_api_http": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Enable legacy API HTTP access.",
 			},
 			"legacy_api_username": schema.StringAttribute{
 				Optional:            true,
@@ -649,30 +638,6 @@ func (r *InfinityGlobalConfigurationResource) Schema(ctx context.Context, req re
 				Default:             int64default.StaticInt64(120),
 				MarkdownDescription: "Timeout for PIN entry (seconds).",
 			},
-			"pss_customer_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Pexip Private Cloud customer ID.",
-			},
-			"pss_enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Enable Pexip Private Cloud connection.",
-			},
-			"pss_gateway": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Pexip Private Cloud gateway URL.",
-			},
-			"pss_token": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Pexip Private Cloud token.",
-			},
 			"resource_uri": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Resource URI for the global configuration.",
@@ -758,9 +723,6 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		MaxPixelsPerSecond:                  plan.MaxPixelsPerSecond.ValueString(),
 		OcspResponderURL:                    plan.OcspResponderURL.ValueString(),
 		OcspState:                           plan.OcspState.ValueString(),
-		PssCustomerID:                       plan.PssCustomerID.ValueString(),
-		PssGateway:                          plan.PssGateway.ValueString(),
-		PssToken:                            plan.PssToken.ValueString(),
 		SipTLSCertVerifyMode:                plan.SipTLSCertVerifyMode.ValueString(),
 		SiteBanner:                          plan.SiteBanner.ValueString(),
 		SiteBannerBg:                        plan.SiteBannerBg.ValueString(),
@@ -774,6 +736,7 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		EnableApplicationAPI:                plan.EnableApplicationAPI.ValueBool(),
 		EnableBreakoutRooms:                 plan.EnableBreakoutRooms.ValueBool(),
 		EnableChat:                          plan.EnableChat.ValueBool(),
+		EnableClock:                         plan.EnableClock.ValueBool(),
 		EnableDenoise:                       plan.EnableDenoise.ValueBool(),
 		EnableDialout:                       plan.EnableDialout.ValueBool(),
 		EnableDirectory:                     plan.EnableDirectory.ValueBool(),
@@ -783,21 +746,18 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		EnableLyncAutoEscalate:              plan.EnableLyncAutoEscalate.ValueBool(),
 		EnableLyncVbss:                      plan.EnableLyncVbss.ValueBool(),
 		EnableMlvad:                         plan.EnableMlvad.ValueBool(),
-		EnableMultiscreen:                   plan.EnableMultiscreen.ValueBool(),
 		EnableSoftmute:                      plan.EnableSoftmute.ValueBool(),
 		EnableSSH:                           plan.EnableSSH.ValueBool(),
 		EnableTurn443:                       plan.EnableTurn443.ValueBool(),
 		ErrorReportingEnabled:               plan.ErrorReportingEnabled.ValueBool(),
 		EsConnectionTimeout:                 int(plan.EsConnectionTimeout.ValueInt64()),
 		EsInitialRetryBackoff:               int(plan.EsInitialRetryBackoff.ValueInt64()),
-		EsMaximumDeferredPosts:              int(plan.EsMaximumDeferredPosts.ValueInt64()),
 		EsMaximumRetryBackoff:               int(plan.EsMaximumRetryBackoff.ValueInt64()),
 		EsMediaStreamsWait:                  int(plan.EsMediaStreamsWait.ValueInt64()),
 		EsMetricsUpdateInterval:             int(plan.EsMetricsUpdateInterval.ValueInt64()),
 		EsShortTermMemoryExpiration:         int(plan.EsShortTermMemoryExpiration.ValueInt64()),
 		ExternalParticipantAvatarLookup:     plan.ExternalParticipantAvatarLookup.ValueBool(),
 		GuestsOnlyTimeout:                   int(plan.GuestsOnlyTimeout.ValueInt64()),
-		LegacyAPIHTTP:                       plan.LegacyAPIHTTP.ValueBool(),
 		LiveCaptionsVMRDefault:              plan.LiveCaptionsVMRDefault.ValueBool(),
 		LogsMaxAge:                          int(plan.LogsMaxAge.ValueInt64()),
 		ManagementSessionTimeout:            int(plan.ManagementSessionTimeout.ValueInt64()),
@@ -968,10 +928,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.MaxPixelsPerSecond = types.StringValue(srv.MaxPixelsPerSecond)
 	data.OcspResponderURL = types.StringValue(srv.OcspResponderURL)
 	data.OcspState = types.StringValue(srv.OcspState)
-	data.PssCustomerID = types.StringValue(srv.PssCustomerID)
-	data.PssEnabled = types.BoolValue(srv.PssEnabled)
-	data.PssGateway = types.StringValue(srv.PssGateway)
-	data.PssToken = types.StringValue(srv.PssToken)
 	data.SipTLSCertVerifyMode = types.StringValue(srv.SipTLSCertVerifyMode)
 	data.SiteBanner = types.StringValue(srv.SiteBanner)
 	data.SiteBannerBg = types.StringValue(srv.SiteBannerBg)
@@ -985,6 +941,7 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.EnableApplicationAPI = types.BoolValue(srv.EnableApplicationAPI)
 	data.EnableBreakoutRooms = types.BoolValue(srv.EnableBreakoutRooms)
 	data.EnableChat = types.BoolValue(srv.EnableChat)
+	data.EnableClock = types.BoolValue(srv.EnableClock)
 	data.EnableDenoise = types.BoolValue(srv.EnableDenoise)
 	data.EnableDialout = types.BoolValue(srv.EnableDialout)
 	data.EnableDirectory = types.BoolValue(srv.EnableDirectory)
@@ -994,7 +951,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.EnableLyncAutoEscalate = types.BoolValue(srv.EnableLyncAutoEscalate)
 	data.EnableLyncVbss = types.BoolValue(srv.EnableLyncVbss)
 	data.EnableMlvad = types.BoolValue(srv.EnableMlvad)
-	data.EnableMultiscreen = types.BoolValue(srv.EnableMultiscreen)
 	data.EnableSIPUDP = types.BoolValue(srv.EnableSIPUDP)
 	data.EnableSoftmute = types.BoolValue(srv.EnableSoftmute)
 	data.EnableSSH = types.BoolValue(srv.EnableSSH)
@@ -1002,7 +958,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.ErrorReportingEnabled = types.BoolValue(srv.ErrorReportingEnabled)
 	data.EsConnectionTimeout = types.Int64Value(int64(srv.EsConnectionTimeout))
 	data.EsInitialRetryBackoff = types.Int64Value(int64(srv.EsInitialRetryBackoff))
-	data.EsMaximumDeferredPosts = types.Int64Value(int64(srv.EsMaximumDeferredPosts))
 	data.EsMaximumRetryBackoff = types.Int64Value(int64(srv.EsMaximumRetryBackoff))
 	data.EsMediaStreamsWait = types.Int64Value(int64(srv.EsMediaStreamsWait))
 	data.EsMetricsUpdateInterval = types.Int64Value(int64(srv.EsMetricsUpdateInterval))
@@ -1012,7 +967,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.GcpClientEmail = types.StringPointerValue(srv.GcpClientEmail)
 	data.GcpPrivateKey = types.StringPointerValue(gcpPrivateKey)
 	data.GuestsOnlyTimeout = types.Int64Value(int64(srv.GuestsOnlyTimeout))
-	data.LegacyAPIHTTP = types.BoolValue(srv.LegacyAPIHTTP)
 	data.LiveCaptionsVMRDefault = types.BoolValue(srv.LiveCaptionsVMRDefault)
 	data.LogsMaxAge = types.Int64Value(int64(srv.LogsMaxAge))
 	data.ManagementSessionTimeout = types.Int64Value(int64(srv.ManagementSessionTimeout))
@@ -1134,7 +1088,6 @@ func (r *InfinityGlobalConfigurationResource) Delete(ctx context.Context, req re
 		DefaultWebappAlias:            nil,
 		ErrorReportingURL:             "https://acr.pexip.com",
 		EsConnectionTimeout:           7,
-		EsMaximumDeferredPosts:        1000,
 		EsMaximumRetryBackoff:         1800,
 		EsMediaStreamsWait:            1,
 		EsShortTermMemoryExpiration:   2,

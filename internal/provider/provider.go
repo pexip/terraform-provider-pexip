@@ -173,7 +173,6 @@ func (p *PexipProvider) Resources(ctx context.Context) []func() resource.Resourc
 		func() resource.Resource { return &InfinityLdapSyncSourceResource{} },
 		func() resource.Resource { return &InfinityConferenceResource{} },
 		func() resource.Resource { return &InfinityConferenceAliasResource{} },
-		func() resource.Resource { return &InfinityLocationResource{} },
 		func() resource.Resource { return &InfinityDeviceResource{} },
 		func() resource.Resource { return &InfinityIvrThemeResource{} },
 		func() resource.Resource { return &InfinityGatewayRoutingRuleResource{} },
