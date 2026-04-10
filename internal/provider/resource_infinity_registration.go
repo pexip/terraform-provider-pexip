@@ -93,7 +93,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.String{
 					stringvalidator.OneOf("adaptive", "maximum"),
 				},
-				MarkdownDescription: "Defines which strategy to use when calculating the expiry time of a SIP or H.323 registration. Adaptive: Infinity automatically adjusts the refresh interval depending on the number of current registrations on the Conferencing Node handling the request, in order to spread the load of registration refreshes. Basic: Infinity simply uses the configured minimum and maximum settings, along with the requested value, to determine the refresh interval. Valid choices: maximum, adaptive.",
+				MarkdownDescription: "Defines which strategy to use when calculating the expiry time of a SIP or H.323 registration. Adaptive: Infinity automatically adjusts the refresh interval depending on the number of current registrations on the Conferencing Node handling the request, in order to spread the load of registration refreshes. Maximum (Basic): Infinity simply uses the configured minimum and maximum settings, along with the requested value, to determine the refresh interval. Valid choices: maximum, adaptive.",
 			},
 			"adaptive_min_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -120,7 +120,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 3600),
 				},
-				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed, when using the Basic strategy. Range: 60 to 3600. Default: 60.",
+				MarkdownDescription: "The minimum interval in seconds before a device's registration must be refreshed, when using the Maximum (Basic) strategy. Range: 60 to 3600. Default: 60.",
 			},
 			"maximum_max_refresh": schema.Int64Attribute{
 				Optional: true,
@@ -129,7 +129,7 @@ func (r *InfinityRegistrationResource) Schema(ctx context.Context, req resource.
 				Validators: []validator.Int64{
 					int64validator.Between(60, 7200),
 				},
-				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed, when using the Basic strategy. Range: 60 to 7200. Default: 300.",
+				MarkdownDescription: "The maximum interval in seconds before a device's registration must be refreshed, when using the Maximum (Basic) strategy. Range: 60 to 7200. Default: 300.",
 			},
 			"natted_min_refresh": schema.Int64Attribute{
 				Optional: true,
