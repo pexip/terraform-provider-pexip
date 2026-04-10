@@ -1037,7 +1037,6 @@ func (r *InfinityGlobalConfigurationResource) read(ctx context.Context, awsSecre
 	data.EnableBreakoutRooms = types.BoolValue(srv.EnableBreakoutRooms)
 	data.EnableChat = types.BoolValue(srv.EnableChat)
 	data.EnableClock = types.BoolValue(srv.EnableClock)
-	data.EnableClock = types.BoolValue(srv.EnableClock)
 	data.EnableDenoise = types.BoolValue(srv.EnableDenoise)
 	data.EnableDialout = types.BoolValue(srv.EnableDialout)
 	data.EnableDirectory = types.BoolValue(srv.EnableDirectory)
