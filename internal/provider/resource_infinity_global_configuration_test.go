@@ -82,7 +82,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		ErrorReportingEnabled:               true,  // default: false
 		ErrorReportingURL:                   "https://custom-error-reporting.com",
 		EsConnectionTimeout:                 99,    // default: 7
-		EsInitialRetryBackoff:               22, // default: 1
+		EsInitialRetryBackoff:               22,    // default: 1
 		EsMaximumRetryBackoff:               444,   // default: 1800
 		EsMediaStreamsWait:                  55,    // default: 1
 		EsMetricsUpdateInterval:             66,    // default: 60
@@ -109,17 +109,17 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 		MediaPortsEnd:                       49999,                // default: 49999
 		MediaPortsStart:                     40123,                // default: 40000
 		OcspResponderURL:                    "notdefaultocsp",
-		OcspState:                           "ON", // default: "OFF"
-		PinEntryTimeout:       321, // default: 120
-		SessionTimeoutEnabled:       false, // default: true
-		SignallingPortsEnd:          39998, // default: 39999
-		SignallingPortsStart:        33001, // default: 33000
-		SipTLSCertVerifyMode:        "ON",  // default: "OFF"
-		SiteBanner:                  "notdefaultsitebanner",
-		SiteBannerBg:                "#ffffff", // default: "#c0c0c0"
-		SiteBannerFg:                "#ff0000", // default: "#000000"
-		TeamsEnablePowerpointRender: true,      // default: false
-		WaitingForChairTimeout: 901, // default: 900
+		OcspState:                           "ON",  // default: "OFF"
+		PinEntryTimeout:                     321,   // default: 120
+		SessionTimeoutEnabled:               false, // default: true
+		SignallingPortsEnd:                  39998, // default: 39999
+		SignallingPortsStart:                33001, // default: 33000
+		SipTLSCertVerifyMode:                "ON",  // default: "OFF"
+		SiteBanner:                          "notdefaultsitebanner",
+		SiteBannerBg:                        "#ffffff", // default: "#c0c0c0"
+		SiteBannerFg:                        "#ff0000", // default: "#000000"
+		TeamsEnablePowerpointRender:         true,      // default: false
+		WaitingForChairTimeout:              901,       // default: 900
 	}
 
 	// Mock the GetGlobalconfiguration API call for Read operations
@@ -590,159 +590,159 @@ resource "pexip_infinity_global_configuration" "global_configuration-test" {
 `,
 				ExpectError: regexp.MustCompile(`gcp_private_key must be configured|gcp_project_id must be configured`),
 			},
-		{
-			// eject_last_participant_backstop_timeout must be 0 or 60-86400 — value of 1 is invalid
-			Config: `
+			{
+				// eject_last_participant_backstop_timeout must be 0 or 60-86400 — value of 1 is invalid
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   eject_last_participant_backstop_timeout = 1
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be one of|value must be between 60 and 86400`),
-		},
-		{
-			// aws_access_key exceeds 40-character maximum
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be one of|value must be between 60 and 86400`),
+			},
+			{
+				// aws_access_key exceeds 40-character maximum
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   aws_access_key = "this-key-is-way-too-long-and-exceeds-the-forty-character-limit"
 }
 `,
-			ExpectError: regexp.MustCompile(`string length must be at most 40`),
-		},
-		{
-			// bdpm_max_pin_failures_per_window below minimum of 5
-			Config: `
+				ExpectError: regexp.MustCompile(`string length must be at most 40`),
+			},
+			{
+				// bdpm_max_pin_failures_per_window below minimum of 5
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bdpm_max_pin_failures_per_window = 4
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
-		},
-		{
-			// bdpm_max_pin_failures_per_window above maximum of 200
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
+			},
+			{
+				// bdpm_max_pin_failures_per_window above maximum of 200
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bdpm_max_pin_failures_per_window = 201
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
-		},
-		{
-			// bdpm_max_scan_attempts_per_window below minimum of 5
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
+			},
+			{
+				// bdpm_max_scan_attempts_per_window below minimum of 5
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bdpm_max_scan_attempts_per_window = 4
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
-		},
-		{
-			// bursting_min_lifetime below minimum of 5
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 5 and 200`),
+			},
+			{
+				// bursting_min_lifetime below minimum of 5
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bursting_min_lifetime = 4
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be at least 5`),
-		},
-		{
-			// bursting_threshold below minimum of 1
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be at least 5`),
+			},
+			{
+				// bursting_threshold below minimum of 1
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   bursting_threshold = 0
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be at least 1`),
-		},
-		{
-			// management_qos above maximum of 63
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be at least 1`),
+			},
+			{
+				// management_qos above maximum of 63
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   management_qos = 64
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 0 and 63`),
-		},
-		{
-			// management_session_timeout below minimum of 5
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 0 and 63`),
+			},
+			{
+				// management_session_timeout below minimum of 5
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   management_session_timeout = 4
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 5 and 1440`),
-		},
-		{
-			// management_session_timeout above maximum of 1440
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 5 and 1440`),
+			},
+			{
+				// management_session_timeout above maximum of 1440
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   management_session_timeout = 1441
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 5 and 1440`),
-		},
-		{
-			// max_callrate_in below minimum of 128
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 5 and 1440`),
+			},
+			{
+				// max_callrate_in below minimum of 128
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   max_callrate_in = 127
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 128 and 8192`),
-		},
-		{
-			// max_callrate_out above maximum of 8192
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 128 and 8192`),
+			},
+			{
+				// max_callrate_out above maximum of 8192
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   max_callrate_out = 8193
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 128 and 8192`),
-		},
-		{
-			// max_presentation_bandwidth_ratio below minimum of 25
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 128 and 8192`),
+			},
+			{
+				// max_presentation_bandwidth_ratio below minimum of 25
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   max_presentation_bandwidth_ratio = 24
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 25 and 75`),
-		},
-		{
-			// media_ports_start below minimum of 10000
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 25 and 75`),
+			},
+			{
+				// media_ports_start below minimum of 10000
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   media_ports_start = 9999
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 10000 and 49999`),
-		},
-		{
-			// media_ports_end above maximum of 49999
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 10000 and 49999`),
+			},
+			{
+				// media_ports_end above maximum of 49999
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   media_ports_end = 50000
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 10000 and 49999`),
-		},
-		{
-			// pin_entry_timeout below minimum of 30
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 10000 and 49999`),
+			},
+			{
+				// pin_entry_timeout below minimum of 30
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   pin_entry_timeout = 29
 }
 `,
-			ExpectError: regexp.MustCompile(`value must be between 30 and 86400`),
-		},
-		{
-			// site_banner exceeds 255-character maximum (256 'a' chars)
-			Config: `
+				ExpectError: regexp.MustCompile(`value must be between 30 and 86400`),
+			},
+			{
+				// site_banner exceeds 255-character maximum (256 'a' chars)
+				Config: `
 resource "pexip_infinity_global_configuration" "global_configuration-test" {
   site_banner = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 `,
-			ExpectError: regexp.MustCompile(`string length must be at most 255`),
-		},
+				ExpectError: regexp.MustCompile(`string length must be at most 255`),
+			},
 		},
 	})
 }

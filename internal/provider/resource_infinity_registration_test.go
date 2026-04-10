@@ -30,17 +30,17 @@ func TestInfinityRegistration(t *testing.T) {
 	mockState := &config.Registration{
 		ID:                         1,
 		ResourceURI:                "/api/admin/configuration/v1/registration/1/",
-		Enable:                     true,             // default
-		RefreshStrategy:            "adaptive",       // default
-		AdaptiveMinRefresh:         60,               // default
-		AdaptiveMaxRefresh:         3600,             // default
-		MaximumMinRefresh:          60,               // default
-		MaximumMaxRefresh:          300,              // default
-		NattedMinRefresh:           60,               // default
-		NattedMaxRefresh:           90,               // default
-		RouteViaRegistrar:          true,             // default
-		EnablePushNotifications:    false,            // default
-		EnableGoogleCloudMessaging: true,             // default
+		Enable:                     true,       // default
+		RefreshStrategy:            "adaptive", // default
+		AdaptiveMinRefresh:         60,         // default
+		AdaptiveMaxRefresh:         3600,       // default
+		MaximumMinRefresh:          60,         // default
+		MaximumMaxRefresh:          300,        // default
+		NattedMinRefresh:           60,         // default
+		NattedMaxRefresh:           90,         // default
+		RouteViaRegistrar:          true,       // default
+		EnablePushNotifications:    false,      // default
+		EnableGoogleCloudMessaging: true,       // default
 	}
 
 	// Delete mock — registered first so it takes priority over the general mock.

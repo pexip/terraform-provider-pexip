@@ -121,7 +121,7 @@ func testInfinityGlobalConfigurationIntegration(t *testing.T, client InfinityCli
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "logs_max_age", "123"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "management_qos", "46"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "management_session_timeout", "99"),
-				resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "management_start_page", "/admin/conferencingstatus/conference/"),
+					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "management_start_page", "/admin/conferencingstatus/conference/"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_callrate_in", "888"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_callrate_out", "999"),
 					resource.TestCheckResourceAttr("pexip_infinity_global_configuration.global_configuration-test", "max_pixels_per_second", "fullhd"),

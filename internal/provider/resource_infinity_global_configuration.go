@@ -86,7 +86,6 @@ type InfinityGlobalConfigurationResourceModel struct {
 	EnableBreakoutRooms                 types.Bool   `tfsdk:"enable_breakout_rooms"`
 	EnableChat                          types.Bool   `tfsdk:"enable_chat"`
 	EnableClock                         types.Bool   `tfsdk:"enable_clock"`
-	EnableClock                         types.Bool   `tfsdk:"enable_clock"`
 	EnableDenoise                       types.Bool   `tfsdk:"enable_denoise"`
 	EnableDialout                       types.Bool   `tfsdk:"enable_dialout"`
 	EnableDirectory                     types.Bool   `tfsdk:"enable_directory"`
@@ -832,7 +831,6 @@ func (r *InfinityGlobalConfigurationResource) buildUpdateRequest(plan *InfinityG
 		EnableApplicationAPI:                plan.EnableApplicationAPI.ValueBool(),
 		EnableBreakoutRooms:                 plan.EnableBreakoutRooms.ValueBool(),
 		EnableChat:                          plan.EnableChat.ValueBool(),
-		EnableClock:                         plan.EnableClock.ValueBool(),
 		EnableClock:                         plan.EnableClock.ValueBool(),
 		EnableDenoise:                       plan.EnableDenoise.ValueBool(),
 		EnableDialout:                       plan.EnableDialout.ValueBool(),

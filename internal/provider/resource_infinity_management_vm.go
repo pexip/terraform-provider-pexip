@@ -202,10 +202,10 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "The Syslog servers to be used by this Management Node.",
 			},
 			"static_routes": schema.SetAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     nil,
-				ElementType: types.StringType,
+				Optional:            true,
+				Computed:            true,
+				Default:             nil,
+				ElementType:         types.StringType,
 				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"event_sinks": schema.SetAttribute{
