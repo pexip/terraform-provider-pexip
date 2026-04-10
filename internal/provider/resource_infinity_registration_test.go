@@ -8,9 +8,11 @@ package provider
 
 import (
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/pexip/go-infinity-sdk/v38/config"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -23,95 +25,128 @@ func TestInfinityRegistration(t *testing.T) {
 	t.Parallel()
 	_ = os.Setenv("TF_ACC", "1")
 
-	// Create a mock client and set up expectations
 	client := infinity.NewClientMock()
 
-	// Registration is a singleton resource with ID 1
-	// Mock the PatchJSON API call (Registration uses PATCH for create/update)
 	mockState := &config.Registration{
 		ID:                         1,
 		ResourceURI:                "/api/admin/configuration/v1/registration/1/",
-		Enable:                     true,
-		RefreshStrategy:            "adaptive",
-		AdaptiveMinRefresh:         300,
-		AdaptiveMaxRefresh:         600,
-		MaximumMinRefresh:          0,
-		MaximumMaxRefresh:          0,
-		NattedMinRefresh:           0,
-		NattedMaxRefresh:           0,
-		RouteViaRegistrar:          true,
-		EnablePushNotifications:    true,
-		EnableGoogleCloudMessaging: true,
-		PushToken:                  "test-value",
+		Enable:                     true,       // default
+		RefreshStrategy:            "adaptive", // default
+		AdaptiveMinRefresh:         60,         // default
+		AdaptiveMaxRefresh:         3600,       // default
+		MaximumMinRefresh:          60,         // default
+		MaximumMaxRefresh:          300,        // default
+		NattedMinRefresh:           60,         // default
+		NattedMaxRefresh:           90,         // default
+		RouteViaRegistrar:          true,       // default
+		EnablePushNotifications:    false,      // default
+		EnableGoogleCloudMessaging: true,       // default
 	}
 
-	client.On("PatchJSON", mock.Anything, "configuration/v1/registration/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		updateRequest := args.Get(2).(*config.RegistrationUpdateRequest)
-		registration := args.Get(3).(*config.Registration)
+	// Delete mock — registered first so it takes priority over the general mock.
+	// Fingerprinted by both AdaptiveMinRefresh == 60 AND MaximumMinRefresh == 60,
+	// which only Delete sends (Create/Update only sends fields matching the active strategy).
+	client.On("PatchJSON", mock.Anything, "configuration/v1/registration/1/",
+		mock.MatchedBy(func(req *config.RegistrationUpdateRequest) bool {
+			return req.AdaptiveMinRefresh != nil && *req.AdaptiveMinRefresh == 60 &&
+				req.MaximumMinRefresh != nil && *req.MaximumMinRefresh == 60
+		}), mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.RegistrationUpdateRequest)
 
-		// Update mock state based on request
-		if updateRequest.Enable != nil {
-			mockState.Enable = *updateRequest.Enable
+		assert.NotNil(t, req.Enable)
+		assert.True(t, *req.Enable)
+		assert.Equal(t, "adaptive", req.RefreshStrategy)
+		assert.NotNil(t, req.AdaptiveMinRefresh)
+		assert.Equal(t, 60, *req.AdaptiveMinRefresh)
+		assert.NotNil(t, req.AdaptiveMaxRefresh)
+		assert.Equal(t, 3600, *req.AdaptiveMaxRefresh)
+		assert.NotNil(t, req.MaximumMinRefresh)
+		assert.Equal(t, 60, *req.MaximumMinRefresh)
+		assert.NotNil(t, req.MaximumMaxRefresh)
+		assert.Equal(t, 300, *req.MaximumMaxRefresh)
+		assert.NotNil(t, req.NattedMinRefresh)
+		assert.Equal(t, 60, *req.NattedMinRefresh)
+		assert.NotNil(t, req.NattedMaxRefresh)
+		assert.Equal(t, 90, *req.NattedMaxRefresh)
+		assert.NotNil(t, req.RouteViaRegistrar)
+		assert.True(t, *req.RouteViaRegistrar)
+		assert.NotNil(t, req.EnablePushNotifications)
+		assert.False(t, *req.EnablePushNotifications)
+		assert.NotNil(t, req.EnableGoogleCloudMessaging)
+		assert.True(t, *req.EnableGoogleCloudMessaging)
+
+		// Reset mockState to defaults
+		mockState.Enable = true
+		mockState.RefreshStrategy = "adaptive"
+		mockState.AdaptiveMinRefresh = 60
+		mockState.AdaptiveMaxRefresh = 3600
+		mockState.MaximumMinRefresh = 60
+		mockState.MaximumMaxRefresh = 300
+		mockState.NattedMinRefresh = 60
+		mockState.NattedMaxRefresh = 90
+		mockState.RouteViaRegistrar = true
+		mockState.EnablePushNotifications = false
+		mockState.EnableGoogleCloudMessaging = true
+		mockState.PushToken = ""
+	}).Once()
+
+	// General PatchJSON mock — handles all create and update calls.
+	client.On("PatchJSON", mock.Anything, "configuration/v1/registration/1/",
+		mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		req := args.Get(2).(*config.RegistrationUpdateRequest)
+		result := args.Get(3).(*config.Registration)
+
+		if req.Enable != nil {
+			mockState.Enable = *req.Enable
 		}
-		if updateRequest.RefreshStrategy != "" {
-			mockState.RefreshStrategy = updateRequest.RefreshStrategy
-			// Update refresh-related fields based on strategy
-			switch updateRequest.RefreshStrategy {
-			case "maximum":
-				if updateRequest.MaximumMinRefresh != nil {
-					mockState.MaximumMinRefresh = *updateRequest.MaximumMinRefresh
-				}
-				if updateRequest.MaximumMaxRefresh != nil {
-					mockState.MaximumMaxRefresh = *updateRequest.MaximumMaxRefresh
-				}
-				// Reset adaptive fields when switching to maximum
-				mockState.AdaptiveMinRefresh = 0
-				mockState.AdaptiveMaxRefresh = 0
-			case "adaptive":
-				if updateRequest.AdaptiveMinRefresh != nil {
-					mockState.AdaptiveMinRefresh = *updateRequest.AdaptiveMinRefresh
-				}
-				if updateRequest.AdaptiveMaxRefresh != nil {
-					mockState.AdaptiveMaxRefresh = *updateRequest.AdaptiveMaxRefresh
-				}
-				// Reset maximum fields when switching to adaptive
-				mockState.MaximumMinRefresh = 0
-				mockState.MaximumMaxRefresh = 0
-			}
+		if req.RefreshStrategy != "" {
+			mockState.RefreshStrategy = req.RefreshStrategy
 		}
-		if updateRequest.NattedMinRefresh != nil {
-			mockState.NattedMinRefresh = *updateRequest.NattedMinRefresh
+		if req.AdaptiveMinRefresh != nil {
+			mockState.AdaptiveMinRefresh = *req.AdaptiveMinRefresh
 		}
-		if updateRequest.NattedMaxRefresh != nil {
-			mockState.NattedMaxRefresh = *updateRequest.NattedMaxRefresh
+		if req.AdaptiveMaxRefresh != nil {
+			mockState.AdaptiveMaxRefresh = *req.AdaptiveMaxRefresh
 		}
-		if updateRequest.RouteViaRegistrar != nil {
-			mockState.RouteViaRegistrar = *updateRequest.RouteViaRegistrar
+		if req.MaximumMinRefresh != nil {
+			mockState.MaximumMinRefresh = *req.MaximumMinRefresh
 		}
-		if updateRequest.EnablePushNotifications != nil {
-			mockState.EnablePushNotifications = *updateRequest.EnablePushNotifications
+		if req.MaximumMaxRefresh != nil {
+			mockState.MaximumMaxRefresh = *req.MaximumMaxRefresh
 		}
-		if updateRequest.EnableGoogleCloudMessaging != nil {
-			mockState.EnableGoogleCloudMessaging = *updateRequest.EnableGoogleCloudMessaging
+		if req.NattedMinRefresh != nil {
+			mockState.NattedMinRefresh = *req.NattedMinRefresh
 		}
-		if updateRequest.PushToken != "" {
-			mockState.PushToken = updateRequest.PushToken
+		if req.NattedMaxRefresh != nil {
+			mockState.NattedMaxRefresh = *req.NattedMaxRefresh
+		}
+		if req.RouteViaRegistrar != nil {
+			mockState.RouteViaRegistrar = *req.RouteViaRegistrar
+		}
+		if req.EnablePushNotifications != nil {
+			mockState.EnablePushNotifications = *req.EnablePushNotifications
+		}
+		if req.EnableGoogleCloudMessaging != nil {
+			mockState.EnableGoogleCloudMessaging = *req.EnableGoogleCloudMessaging
+		}
+		if req.PushToken != "" {
+			mockState.PushToken = req.PushToken
 		}
 
-		// Return updated state
-		*registration = *mockState
+		*result = *mockState
 	}).Maybe()
 
-	// Mock the GetRegistration API call for Read operations
-	client.On("GetJSON", mock.Anything, "configuration/v1/registration/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		registration := args.Get(3).(*config.Registration)
-		*registration = *mockState
+	// GetJSON mock — returns current mockState for all Read operations.
+	client.On(
+		"GetJSON",
+		mock.Anything,
+		"configuration/v1/registration/1/",
+		mock.Anything,
+		mock.AnythingOfType("*config.Registration"),
+	).Return(nil).Run(func(args mock.Arguments) {
+		reg := args.Get(3).(*config.Registration)
+		*reg = *mockState
 	}).Maybe()
-
-	// Mock the DeleteRegistration API call
-	client.On("DeleteJSON", mock.Anything, mock.MatchedBy(func(path string) bool {
-		return path == "configuration/v1/registration/1/"
-	}), mock.Anything).Return(nil)
 
 	testInfinityRegistration(t, client)
 }
@@ -120,27 +155,165 @@ func testInfinityRegistration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
 		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
 		Steps: []resource.TestStep{
+			// Step 1: Apply full configuration with all fields set to non-default values.
 			{
-				Config: test.LoadTestFolder(t, "resource_infinity_registration_basic"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "id"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "adaptive"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "route_via_registrar", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_push_notifications", "true"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_google_cloud_messaging", "true"),
-				),
-			},
-			{
-				Config: test.LoadTestFolder(t, "resource_infinity_registration_basic_updated"),
+				Config: test.LoadTestFolder(t, "resource_infinity_registration_full"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "id"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable", "false"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "maximum"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "120"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "600"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_min_refresh", "120"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_max_refresh", "600"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_min_refresh", "120"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_max_refresh", "180"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "route_via_registrar", "false"),
-					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_push_notifications", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_push_notifications", "true"),
 					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_google_cloud_messaging", "false"),
+					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "push_token"),
 				),
+			},
+			// Step 2: Destroy — triggers Delete which must reset all fields to API defaults.
+			{
+				Config:  test.LoadTestFolder(t, "resource_infinity_registration_full"),
+				Destroy: true,
+			},
+			// Step 3: Re-apply min config and verify the API returned all fields to defaults.
+			{
+				Config: test.LoadTestFolder(t, "resource_infinity_registration_min"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("pexip_infinity_registration.registration-test", "id"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "refresh_strategy", "adaptive"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_min_refresh", "60"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "adaptive_max_refresh", "3600"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_min_refresh", "60"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "maximum_max_refresh", "300"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_min_refresh", "60"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "natted_max_refresh", "90"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "route_via_registrar", "true"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_push_notifications", "false"),
+					resource.TestCheckResourceAttr("pexip_infinity_registration.registration-test", "enable_google_cloud_messaging", "true"),
+					resource.TestCheckNoResourceAttr("pexip_infinity_registration.registration-test", "push_token"),
+				),
+			},
+		},
+	})
+}
+
+func TestInfinityRegistrationValidation(t *testing.T) {
+	t.Parallel()
+	_ = os.Setenv("TF_ACC", "1")
+
+	client := infinity.NewClientMock()
+
+	resource.Test(t, resource.TestCase{
+		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  refresh_strategy = "INVALID"
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be one of`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  adaptive_max_refresh = 7201
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  maximum_max_refresh = 7201
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 7200`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_min_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_min_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_max_refresh = 59
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
+			},
+			{
+				Config: `
+resource "pexip_infinity_registration" "registration-test" {
+  natted_max_refresh = 3601
+}
+`,
+				ExpectError: regexp.MustCompile(`value must be between 60 and 3600`),
 			},
 		},
 	})

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -130,40 +131,23 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "A description of the Management Node. Maximum length: 250 characters.",
 			},
 			"address": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.IPAddress(),
-				},
+				Computed:            true,
 				MarkdownDescription: "The IPv4 address for this Management Node.",
 			},
 			"netmask": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.Netmask(),
-				},
+				Computed:            true,
 				MarkdownDescription: "The IPv4 network mask for this Management Node.",
 			},
 			"gateway": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.IPAddress(),
-				},
+				Computed:            true,
 				MarkdownDescription: "The IPv4 address of the default gateway.",
 			},
 			"hostname": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-					stringvalidator.LengthAtMost(63),
-				},
+				Computed:            true,
 				MarkdownDescription: "The hostname for this Management Node. Maximum length: 63 characters.",
 			},
 			"domain": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					validators.Domain(),
-					stringvalidator.LengthAtMost(192),
-				},
+				Computed:            true,
 				MarkdownDescription: "The domain name for this Management Node. Maximum length: 192 characters.",
 			},
 			"alternative_fqdn": schema.StringAttribute{
@@ -185,6 +169,8 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"mtu": schema.Int32Attribute{
 				Optional: true,
+				Computed: true,
+				Default:  int32default.StaticInt32(1500),
 				Validators: []validator.Int32{
 					int32validator.Between(512, 1500),
 				},
@@ -200,38 +186,41 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			"dns_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of DNS server URIs for the management VM.",
+				Computed:            true,
+				MarkdownDescription: "The DNS servers to be used by this Management Node.",
 			},
 			"ntp_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of NTP server URIs for the management VM.",
+				Computed:            true,
+				MarkdownDescription: "The NTP servers to be used by this Management Node.",
 			},
 			"syslog_servers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "List of syslog server URIs for the management VM.",
+				Computed:            true,
+				MarkdownDescription: "The Syslog servers to be used by this Management Node.",
 			},
 			"static_routes": schema.SetAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     nil,
-				ElementType: types.StringType,
-				Description: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
+				Optional:            true,
+				Computed:            true,
+				Default:             nil,
+				ElementType:         types.StringType,
+				MarkdownDescription: "Additional configuration to permit routing of traffic to networks not accessible through the configured default gateway.",
 			},
 			"event_sinks": schema.SetAttribute{
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of event sink URIs for the management VM.",
+				MarkdownDescription: "The event sinks to be used by this Management Node.",
 			},
 			"http_proxy": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP proxy URI for the management VM.",
+				MarkdownDescription: "The web proxy to be used for outbound web requests from this Management Node.",
 			},
 			"tls_certificate": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "TLS certificate URI for the management VM.",
+				MarkdownDescription: "The TLS certificate to use on this node.",
 			},
 			"enable_ssh": schema.StringAttribute{
 				Optional: true,
@@ -247,7 +236,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 				ElementType:         types.StringType,
 				Default:             nil,
-				MarkdownDescription: "The selected authorized keys.",
+				MarkdownDescription: "The selected authorized keys",
 			},
 			"ssh_authorized_keys_use_cloud": schema.BoolAttribute{
 				Optional:            true,
@@ -293,8 +282,8 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			"snmp_authentication_password": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Computed:  true,
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(8),
 					stringvalidator.LengthAtMost(100),
 				},
 				MarkdownDescription: "The password used for SNMPv3 authentication. Minimum length: 8 characters. Maximum length: 100 characters.",
@@ -302,8 +291,8 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			"snmp_privacy_password": schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
-				Computed:  true,
 				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(8),
 					stringvalidator.LengthAtMost(100),
 				},
 				MarkdownDescription: "The password used for SNMPv3 privacy. Minimum length: 8 characters. Maximum length: 100 characters.",
@@ -328,7 +317,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"snmp_network_management_system": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "SNMP network management system URI.",
+				MarkdownDescription: "The Network Management System to which SNMP traps for the Management Node will be sent.",
 			},
 			"initializing": schema.BoolAttribute{
 				Computed:            true,
@@ -336,7 +325,7 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 			},
 			"primary": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Whether this is the primary management VM.",
+				MarkdownDescription: "The IPv4 address for this Management Node.",
 			},
 		},
 		MarkdownDescription: "Manages a management VM configuration with the Infinity service. Management VMs are Pexip Infinity Manager nodes that control the platform. Note: This resource supports Create, Read, and Delete operations only - updates are not supported.",
@@ -345,13 +334,15 @@ func (r *InfinityManagementVMResource) Schema(ctx context.Context, req resource.
 
 func (r *InfinityManagementVMResource) buildUpdateRequest(plan *InfinityManagementVMResourceModel) *config.ManagementVMUpdateRequest {
 	updateRequest := &config.ManagementVMUpdateRequest{
-		Name:        plan.Name.ValueString(),
-		Address:     plan.Address.ValueString(),
-		Netmask:     plan.Netmask.ValueString(),
-		Gateway:     plan.Gateway.ValueString(),
-		Hostname:    plan.Hostname.ValueString(),
-		Domain:      plan.Domain.ValueString(),
-		Description: plan.Description.ValueString(),
+		Name:                      plan.Name.ValueString(),
+		Address:                   plan.Address.ValueString(),
+		Netmask:                   plan.Netmask.ValueString(),
+		Gateway:                   plan.Gateway.ValueString(),
+		Hostname:                  plan.Hostname.ValueString(),
+		Domain:                    plan.Domain.ValueString(),
+		Description:               plan.Description.ValueString(),
+		AlternativeFQDN:           plan.AlternativeFQDN.ValueString(),
+		SecondaryConfigPassphrase: plan.SecondaryConfigPassphrase.ValueString(),
 	}
 
 	// Handle optional pointer fields
@@ -395,9 +386,7 @@ func (r *InfinityManagementVMResource) buildUpdateRequest(plan *InfinityManageme
 	if !plan.SNMPCommunity.IsNull() && !plan.SNMPCommunity.IsUnknown() {
 		updateRequest.SNMPCommunity = plan.SNMPCommunity.ValueString()
 	}
-	if !plan.SNMPUsername.IsNull() && !plan.SNMPUsername.IsUnknown() {
-		updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
-	}
+	updateRequest.SNMPUsername = plan.SNMPUsername.ValueString()
 	if !plan.SNMPAuthenticationPassword.IsNull() && !plan.SNMPAuthenticationPassword.IsUnknown() {
 		updateRequest.SNMPAuthenticationPassword = plan.SNMPAuthenticationPassword.ValueString()
 	}
@@ -426,12 +415,18 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	// Get the list of DNS, NTP, and Syslog servers
+	// Get the list of DNS, NTP, Syslog, static routes, event sinks, and SSH authorized keys
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
 	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
+	resp.Diagnostics.Append(diags...)
+	staticRoutes, diags := getStringList(ctx, plan.StaticRoutes)
+	resp.Diagnostics.Append(diags...)
+	eventSinks, diags := getStringList(ctx, plan.EventSinks)
+	resp.Diagnostics.Append(diags...)
+	sshAuthorizedKeys, diags := getStringList(ctx, plan.SSHAuthorizedKeys)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -442,6 +437,9 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 	updateRequest.DNSServers = dnsServers
 	updateRequest.NTPServers = ntpServers
 	updateRequest.SyslogServers = syslogServers
+	updateRequest.StaticRoutes = staticRoutes
+	updateRequest.EventSinks = eventSinks
+	updateRequest.SSHAuthorizedKeys = sshAuthorizedKeys
 
 	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
 	if err != nil {
@@ -453,7 +451,7 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
+	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SecondaryConfigPassphrase.ValueString(), plan.SNMPAuthenticationPassword, plan.SNMPPrivacyPassword)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity management VM",
@@ -465,7 +463,7 @@ func (r *InfinityManagementVMResource) Create(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedModel)...)
 }
 
-func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int, _snmpCommunity, _snmpAuthPass, _snmpPrivPass, _secondaryConfigPass string) (*InfinityManagementVMResourceModel, error) {
+func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int, _snmpCommunity, _secondaryConfigPass string, _snmpAuthPass, _snmpPrivPass types.String) (*InfinityManagementVMResourceModel, error) {
 	var data InfinityManagementVMResourceModel
 
 	srv, err := r.InfinityClient.Config().GetManagementVM(ctx)
@@ -494,8 +492,18 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int,
 	data.SNMPMode = types.StringValue(srv.SNMPMode)
 	data.SNMPCommunity = types.StringValue(srv.SNMPCommunity)
 	data.SNMPUsername = types.StringValue(srv.SNMPUsername)
-	data.SNMPAuthenticationPassword = types.StringValue(srv.SNMPAuthenticationPassword)
-	data.SNMPPrivacyPassword = types.StringValue(srv.SNMPPrivacyPassword)
+	// The API does not return these password fields; preserve the prior state/plan value.
+	// Guard against unknown values (which cannot be stored in state).
+	if _snmpAuthPass.IsUnknown() {
+		data.SNMPAuthenticationPassword = types.StringNull()
+	} else {
+		data.SNMPAuthenticationPassword = _snmpAuthPass
+	}
+	if _snmpPrivPass.IsUnknown() {
+		data.SNMPPrivacyPassword = types.StringNull()
+	} else {
+		data.SNMPPrivacyPassword = _snmpPrivPass
+	}
 	data.SNMPSystemContact = types.StringValue(srv.SNMPSystemContact)
 	data.SNMPSystemLocation = types.StringValue(srv.SNMPSystemLocation)
 	data.Initializing = types.BoolValue(srv.Initializing)
@@ -571,35 +579,31 @@ func (r *InfinityManagementVMResource) read(ctx context.Context, resourceID int,
 	}
 	data.SyslogServers = syslogSetValue
 
-	if srv.StaticRoutes != nil {
-		routesSet, diags := types.SetValueFrom(ctx, types.StringType, srv.StaticRoutes)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert static routes: %s", diags.Errors())
-		}
-		data.StaticRoutes = routesSet
-	} else {
-		data.StaticRoutes = types.SetNull(types.StringType)
+	var staticRoutes []string
+	for _, r := range srv.StaticRoutes {
+		staticRoutes = append(staticRoutes, fmt.Sprintf("/api/admin/configuration/v1/static_route/%d/", r.ID))
 	}
+	staticRoutesSet, diags := types.SetValueFrom(ctx, types.StringType, staticRoutes)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting static routes: %v", diags)
+	}
+	data.StaticRoutes = staticRoutesSet
 
-	if srv.EventSinks != nil {
-		sinksSet, diags := types.SetValueFrom(ctx, types.StringType, srv.EventSinks)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert event sinks: %s", diags.Errors())
-		}
-		data.EventSinks = sinksSet
-	} else {
-		data.EventSinks = types.SetNull(types.StringType)
+	var eventSinks []string
+	for _, s := range srv.EventSinks {
+		eventSinks = append(eventSinks, fmt.Sprintf("/api/admin/configuration/v1/event_sink/%d/", s.ID))
 	}
+	eventSinksSet, diags := types.SetValueFrom(ctx, types.StringType, eventSinks)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting event sinks: %v", diags)
+	}
+	data.EventSinks = eventSinksSet
 
-	if srv.SSHAuthorizedKeys != nil {
-		keysSet, diags := types.SetValueFrom(ctx, types.StringType, srv.SSHAuthorizedKeys)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert SSH authorized keys: %s", diags.Errors())
-		}
-		data.SSHAuthorizedKeys = keysSet
-	} else {
-		data.SSHAuthorizedKeys = types.SetNull(types.StringType)
+	sshAuthorizedKeysSet, diags := types.SetValueFrom(ctx, types.StringType, srv.SSHAuthorizedKeys)
+	if diags.HasError() {
+		return nil, fmt.Errorf("error converting SSH authorized keys: %v", diags)
 	}
+	data.SSHAuthorizedKeys = sshAuthorizedKeysSet
 
 	return &data, nil
 }
@@ -613,7 +617,7 @@ func (r *InfinityManagementVMResource) Read(ctx context.Context, req resource.Re
 	}
 
 	resourceID := int(state.ResourceID.ValueInt32())
-	state, err := r.read(ctx, resourceID, state.SNMPCommunity.ValueString(), state.SNMPAuthenticationPassword.ValueString(), state.SNMPPrivacyPassword.ValueString(), state.SecondaryConfigPassphrase.ValueString())
+	state, err := r.read(ctx, resourceID, state.SNMPCommunity.ValueString(), state.SecondaryConfigPassphrase.ValueString(), state.SNMPAuthenticationPassword, state.SNMPPrivacyPassword)
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {
@@ -638,12 +642,18 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	// Get the list of DNS, NTP, and Syslog servers
+	// Get the list of DNS, NTP, Syslog, static routes, event sinks, and SSH authorized keys
 	dnsServers, diags := getStringList(ctx, plan.DNSServers)
 	resp.Diagnostics.Append(diags...)
 	ntpServers, diags := getStringList(ctx, plan.NTPServers)
 	resp.Diagnostics.Append(diags...)
 	syslogServers, diags := getStringList(ctx, plan.SyslogServers)
+	resp.Diagnostics.Append(diags...)
+	staticRoutes, diags := getStringList(ctx, plan.StaticRoutes)
+	resp.Diagnostics.Append(diags...)
+	eventSinks, diags := getStringList(ctx, plan.EventSinks)
+	resp.Diagnostics.Append(diags...)
+	sshAuthorizedKeys, diags := getStringList(ctx, plan.SSHAuthorizedKeys)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -654,6 +664,9 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 	updateRequest.DNSServers = dnsServers
 	updateRequest.NTPServers = ntpServers
 	updateRequest.SyslogServers = syslogServers
+	updateRequest.StaticRoutes = staticRoutes
+	updateRequest.EventSinks = eventSinks
+	updateRequest.SSHAuthorizedKeys = sshAuthorizedKeys
 	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -664,7 +677,7 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 	}
 
 	// Re-read the resource to get the latest state
-	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SNMPAuthenticationPassword.ValueString(), plan.SNMPPrivacyPassword.ValueString(), plan.SecondaryConfigPassphrase.ValueString())
+	updatedModel, err := r.read(ctx, 1, plan.SNMPCommunity.ValueString(), plan.SecondaryConfigPassphrase.ValueString(), plan.SNMPAuthenticationPassword, plan.SNMPPrivacyPassword)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Updated Infinity management VM",
@@ -677,16 +690,28 @@ func (r *InfinityManagementVMResource) Update(ctx context.Context, req resource.
 }
 
 func (r *InfinityManagementVMResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	tflog.Info(ctx, "Setting Infinity management VM to empty state")
+	tflog.Info(ctx, "Resetting Infinity management VM to defaults")
 
 	updateRequest := &config.ManagementVMUpdateRequest{
+		// Fields without omitempty — always sent in JSON
+		Description:                 "",
 		DNSServers:                  []string{},
 		NTPServers:                  []string{},
 		SyslogServers:               []string{},
-		SSHAuthorizedKeys:           []string{},
 		StaticRoutes:                []string{},
+		EventSinks:                  []string{},
 		TLSCertificate:              nil,
+		SSHAuthorizedKeys:           []string{},
+		SSHAuthorizedKeysUseCloud:   true,
 		SNMPNetworkManagementSystem: nil,
+		Initializing:                false,
+		// Fields with omitempty but non-zero/non-empty defaults — will be sent
+		MTU:                1500,
+		EnableSSH:          "GLOBAL",
+		SNMPMode:           "DISABLED",
+		SNMPCommunity:      "public",
+		SNMPSystemContact:  "admin@domain.com",
+		SNMPSystemLocation: "Virtual machine",
 	}
 
 	_, err := r.InfinityClient.Config().UpdateManagementVM(ctx, updateRequest)
@@ -712,7 +737,7 @@ func (r *InfinityManagementVMResource) ImportState(ctx context.Context, req reso
 	tflog.Trace(ctx, fmt.Sprintf("Importing Infinity management VM with resource ID: %d", resourceID))
 
 	// Read the resource from the API
-	model, err := r.read(ctx, resourceID, "", "", "", "")
+	model, err := r.read(ctx, resourceID, "", "", types.StringNull(), types.StringNull())
 	if err != nil {
 		// Check if the error is a 404 (not found)
 		if isNotFoundError(err) {

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -120,26 +119,23 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.OneOf("NO", "CN", "UPN"),
 				},
-				MarkdownDescription: "Whether to require a client TLS certificate for administrator authentication. Valid choices: NO, CN, UPN.",
+				MarkdownDescription: "Whether to require a client TLS certificate for administrator authentication. Requires LDAP to be included as an authentication source. Valid choices: NO, CN, UPN.",
 			},
 			"api_oauth2_disable_basic": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Disable basic authentication for management API clients. When this option is enabled, clients must use OAuth to access the management API. ",
+				MarkdownDescription: "Disable basic authentication for management API clients. When this option is selected, access to the management API can only use OAuth.",
 			},
 			"api_oauth2_allow_all_perms": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Allow management API clients authenticated using Oauth2 to use all permissions. ",
+				MarkdownDescription: "Allow management API clients authenticated using Oauth2 to use all permissions specified in the assigned role. When this option is disabled, modification of authentication configuration is not allowed even if specific in the role.",
 			},
 			"api_oauth2_expiration": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.Int64{
-					int64validator.AtLeast(60),
-				},
+				Optional:            true,
+				Computed:            true,
 				Default:             int64default.StaticInt64(3600),
 				MarkdownDescription: "Specify the access token expiration time in seconds.",
 			},
@@ -168,7 +164,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The username used to bind to the LDAP server. This should be a domain user service account. Maximum length: 255 characters.",
+				MarkdownDescription: "The username used to bind to the LDAP server. This should be a domain user service account, not the Administrator account. Maximum length: 255 characters.",
 			},
 			"ldap_bind_password": schema.StringAttribute{
 				Optional:  true,
@@ -187,7 +183,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The DN relative to the base DN to query for user records (e.g. ou=people). If omitted, the base DN is used. Maximum length: 255 characters.",
+				MarkdownDescription: "The DN relative to the base DN to query for user records (e.g. ou=people). If blank, the base DN will be used. Maximum length: 255 characters.",
 			},
 			"ldap_user_filter": schema.StringAttribute{
 				Optional: true,
@@ -205,7 +201,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "The LDAP filter used to find user records when given the user name. The filter may contain the {username} token, which is replaced with the username, for example: (uid={username}). Maximum length: 1024 characters.",
+				MarkdownDescription: "The LDAP filter used to find user records when given the user name. The filter may contain {username} to indicate locations into which the username is substituted. This filter will be applied in conjunction with the LDAP user filter and must contain at least one substitution. Default: (|(uid={username})(sAMAccountName={username})). Maximum length: 1024 characters.",
 			},
 			"ldap_user_group_attributes": schema.StringAttribute{
 				Optional: true,
@@ -214,7 +210,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},
-				MarkdownDescription: "A comma-separated list of attributes in the LDAP user record to examine for group DNs when searching for the user's groups. Maximum length: 100 characters.",
+				MarkdownDescription: "A comma-separated list of attributes in the LDAP user record to examine for group membership information. The attribute value must contain the DN of each group the user is a member of. If no attributes are specified, or none of the specified attributes are present in the LDAP user record, an LDAP group search will be performed, instead. Default: memberOf. Maximum length: 100 characters.",
 			},
 			"ldap_group_search_dn": schema.StringAttribute{
 				Optional: true,
@@ -223,7 +219,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "The DN relative to the base DN to query for group records (e.g. ou=groups). If omitted, the base DN is used. Maximum length: 255 characters.",
+				MarkdownDescription: "The DN relative to the base DN to query for group records (e.g. ou=groups). If blank, the base DN will be used. Maximum length: 255 characters.",
 			},
 			"ldap_group_filter": schema.StringAttribute{
 				Optional: true,
@@ -241,7 +237,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},
-				MarkdownDescription: "The LDAP filter used to search for group membership of a user. The filter may contain the {userdn} and {useruid} tokens. Default: (|(member={userdn})(uniquemember={userdn})(memberuid={useruid})). Maximum length: 1024 characters.",
+				MarkdownDescription: "The LDAP filter used to search for group membership of a user. The filter may contain {userdn} to indicate locations into which the user DN is substituted. The filter may contain {useruid} to indicate locations into which the user UID is substituted. This filter will be applied in conjunction with the LDAP group filter and must contain at least one substitution. Default: (|(member={userdn})(uniquemember={userdn})(memberuid={useruid})). Maximum length: 1024 characters.",
 			},
 			"ldap_use_global_catalog": schema.BoolAttribute{
 				Optional:            true,
@@ -266,7 +262,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			},
 			"oidc_metadata": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The OpenID Connect configuration metadata.  This will be loaded from the Metadata URL automatically.",
+				MarkdownDescription: "The OpenID Connect configuration metadata.  This will be loaded from the Metadata URL if provided.",
 			},
 			"oidc_client_id": schema.StringAttribute{
 				Optional:            true,
@@ -279,14 +275,14 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				Sensitive:           true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The OpenID Connect client secret to use when authentication method is 'client_secret'. ",
+				MarkdownDescription: "The OpenID Connect client secret to use when authentication method is 'client secret'.",
 			},
 			"oidc_private_key": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Sensitive:           true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The OpenID Connect private key to use when authentication method is 'private_key'. ",
+				MarkdownDescription: "The OpenID Connect private key to use when authentication method is 'private key'.",
 			},
 			"oidc_auth_method": schema.StringAttribute{
 				Optional: true,
@@ -300,7 +296,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 			"oidc_scope": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("openid profile email"),
+				Default:             stringdefault.StaticString("openid email profile"),
 				MarkdownDescription: "The OpenID Connection OAuth2 scope to request.",
 			},
 			"oidc_authorize_url": schema.StringAttribute{
@@ -310,7 +306,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 					validators.URL(true),
 				},
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The OpenID Connect authorization URL.  This will be loaded from the Metadata URL automatically.",
+				MarkdownDescription: "The OpenID Connect authorization URL.  This will be loaded from the Metadata URL if provided.",
 			},
 			"oidc_token_endpoint_url": schema.StringAttribute{
 				Optional: true,
@@ -319,7 +315,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 					validators.URL(true),
 				},
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The OpenID Connect token endpoint URL.  This will be loaded from the Metadata URL automatically.",
+				MarkdownDescription: "The OpenID Connect token endpoint URL.  This will be loaded from the Metadata URL if provided.",
 			},
 			"oidc_username_field": schema.StringAttribute{
 				Optional:            true,
@@ -331,13 +327,13 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("groups"),
-				MarkdownDescription: "The field in the authentication token response to use as the list of groups. ",
+				MarkdownDescription: "The field in the authentication token response to use as the list of groups. You apply role mappings to one or more of these groups by referencing the group in the Role Mapping Value field. If this field is left blank, all users authenticated using OIDC will have the combined access rights of all role mappings that specify a source of OpenID Connect.",
 			},
 			"oidc_required_key": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "If there is a field in the authentication token response which must be present in order to grant access, enter the name of that field here.",
+				MarkdownDescription: "If there is a field in the authentication token response which must be present, enter the name of the field here.",
 			},
 			"oidc_required_value": schema.StringAttribute{
 				Optional:            true,
@@ -352,7 +348,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(255),
 				},
-				MarkdownDescription: "A domain to pass to the OpenID Connect service as a hint to the expected login domain for this user. Maximum length: 255 characters.",
+				MarkdownDescription: "A domain to pass to the OpenID Connect service as a hint to the expected login account. Maximum length: 255 characters.",
 			},
 			"oidc_login_button": schema.StringAttribute{
 				Optional: true,
@@ -361,7 +357,7 @@ func (r *InfinityAuthenticationResource) Schema(ctx context.Context, req resourc
 					stringvalidator.LengthAtMost(128),
 				},
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "The text to use for the OpenID Connect button on the login page of the Pexip Infinity web app.",
+				MarkdownDescription: "The text to use for the OpenID Connect button on the login page of the Pexip Infinity Administrator interface. Defaults to OpenID Connect. Maximum length: 128 characters.",
 			},
 		},
 		MarkdownDescription: "Manages the authentication configuration with the Infinity service. This is a singleton resource - only one authentication configuration exists per system.",
@@ -433,32 +429,20 @@ func (r *InfinityAuthenticationResource) buildUpdateRequest(plan *InfinityAuthen
 		OidcLoginButton:           plan.OidcLoginButton.ValueString(),
 	}
 
-	// Handle boolean pointers
-	if !plan.ApiOauth2DisableBasic.IsNull() {
-		val := plan.ApiOauth2DisableBasic.ValueBool()
-		updateRequest.ApiOauth2DisableBasic = &val
-	}
+	apiOauth2DisableBasic := plan.ApiOauth2DisableBasic.ValueBool()
+	updateRequest.ApiOauth2DisableBasic = &apiOauth2DisableBasic
 
-	if !plan.ApiOauth2AllowAllPerms.IsNull() {
-		val := plan.ApiOauth2AllowAllPerms.ValueBool()
-		updateRequest.ApiOauth2AllowAllPerms = &val
-	}
+	apiOauth2AllowAllPerms := plan.ApiOauth2AllowAllPerms.ValueBool()
+	updateRequest.ApiOauth2AllowAllPerms = &apiOauth2AllowAllPerms
 
-	if !plan.LdapUseGlobalCatalog.IsNull() {
-		val := plan.LdapUseGlobalCatalog.ValueBool()
-		updateRequest.LdapUseGlobalCatalog = &val
-	}
+	ldapUseGlobalCatalog := plan.LdapUseGlobalCatalog.ValueBool()
+	updateRequest.LdapUseGlobalCatalog = &ldapUseGlobalCatalog
 
-	if !plan.LdapPermitNoTLS.IsNull() {
-		val := plan.LdapPermitNoTLS.ValueBool()
-		updateRequest.LdapPermitNoTLS = &val
-	}
+	ldapPermitNoTLS := plan.LdapPermitNoTLS.ValueBool()
+	updateRequest.LdapPermitNoTLS = &ldapPermitNoTLS
 
-	// Handle integer pointers
-	if !plan.ApiOauth2Expiration.IsNull() {
-		val := int(plan.ApiOauth2Expiration.ValueInt64())
-		updateRequest.ApiOauth2Expiration = &val
-	}
+	apiOauth2Expiration := int(plan.ApiOauth2Expiration.ValueInt64())
+	updateRequest.ApiOauth2Expiration = &apiOauth2Expiration
 
 	return updateRequest
 }
@@ -571,8 +555,56 @@ func (r *InfinityAuthenticationResource) Update(ctx context.Context, req resourc
 }
 
 func (r *InfinityAuthenticationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// For authentication, nothing needs to be done on delete
-	tflog.Info(ctx, "Deleting Infinity authentication configuration is a no-op")
+	// For singleton resources, delete means resetting all fields to their API defaults.
+	tflog.Info(ctx, "Resetting Infinity authentication configuration to defaults")
+
+	falseVal := false
+	expirationDefault := 3600
+
+	updateRequest := &config.AuthenticationUpdateRequest{
+		Source:                    "LOCAL",
+		ClientCertificate:         "NO",
+		ApiOauth2DisableBasic:     &falseVal,
+		ApiOauth2AllowAllPerms:    &falseVal,
+		ApiOauth2Expiration:       &expirationDefault,
+		LdapServer:                "",
+		LdapBaseDN:                "",
+		LdapBindUsername:          "",
+		LdapBindPassword:          "",
+		LdapUserSearchDN:          "",
+		LdapUserFilter:            "(&(objectclass=person)(!(objectclass=computer)))",
+		LdapUserSearchFilter:      "(|(uid={username})(sAMAccountName={username}))",
+		LdapUserGroupAttributes:   "memberOf",
+		LdapGroupSearchDN:         "",
+		LdapGroupFilter:           "(|(objectclass=group)(objectclass=groupOfNames)(objectclass=groupOfUniqueNames)(objectclass=posixGroup))",
+		LdapGroupMembershipFilter: "(|(member={userdn})(uniquemember={userdn})(memberuid={useruid}))",
+		LdapUseGlobalCatalog:      &falseVal,
+		LdapPermitNoTLS:           &falseVal,
+		OidcMetadataURL:           "",
+		OidcMetadata:              "",
+		OidcClientID:              "",
+		OidcClientSecret:          "",
+		OidcPrivateKey:            "",
+		OidcAuthMethod:            "client_secret",
+		OidcScope:                 "openid email profile",
+		OidcAuthorizeURL:          "",
+		OidcTokenEndpointURL:      "",
+		OidcUsernameField:         "preferred_username",
+		OidcGroupsField:           "groups",
+		OidcRequiredKey:           "",
+		OidcRequiredValue:         "",
+		OidcDomainHint:            "",
+		OidcLoginButton:           "",
+	}
+
+	_, err := r.InfinityClient.Config().UpdateAuthentication(ctx, updateRequest)
+	if err != nil && !isNotFoundError(err) && !isLookupError(err) {
+		resp.Diagnostics.AddError(
+			"Error Resetting Infinity authentication configuration",
+			fmt.Sprintf("Could not reset Infinity authentication configuration: %s", err),
+		)
+		return
+	}
 }
 
 func (r *InfinityAuthenticationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -1,0 +1,100 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Pexip AS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+resource "tls_private_key" "gcp-key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "pexip_infinity_ivr_theme" "tf-test-theme" {
+  name = "tf-test-theme"
+}
+
+resource "pexip_infinity_global_configuration" "global_configuration-test" {
+  aws_access_key                          = "non-default-aws-access-key"
+  aws_secret_key                          = "non-default-aws-secret-key"
+  azure_client_id                         = "11111111-2222-3333-4444-555555555555"
+  azure_secret                            = "non-default-azure-secret"
+  azure_subscription_id                   = "22222222-3333-4444-5555-666666666666"
+  azure_tenant                            = "33333333-4444-5555-6666-777777777777"
+  bdpm_max_pin_failures_per_window        = 99
+  bdpm_max_scan_attempts_per_window       = 88
+  bdpm_pin_checks_enabled                 = false
+  bdpm_scan_quarantine_enabled            = false
+  bursting_enabled                        = true
+  bursting_min_lifetime                   = 123
+  bursting_threshold                      = 77
+  cloud_provider                          = "GCP"
+  contact_email_address                   = "tf-test@example.com"
+  content_security_policy_state           = false
+  crypto_mode                             = "on"
+  default_theme                           = pexip_infinity_ivr_theme.tf-test-theme.id
+  disabled_codecs                         = ["H264_H_1", "VP9"]
+  eject_last_participant_backstop_timeout = 60
+  enable_analytics                        = true
+  enable_application_api                  = false
+  enable_breakout_rooms                   = true
+  enable_chat                             = false
+  enable_clock                            = true
+  enable_denoise                          = false
+  enable_dialout                          = false
+  enable_directory                        = false
+  enable_edge_non_mesh                    = false
+  enable_fecc                             = false
+  enable_h323                             = false
+  enable_legacy_dialout_api               = true
+  enable_lync_auto_escalate               = true
+  enable_lync_vbss                        = true
+  enable_mlvad                            = true
+  enable_rtmp                             = false
+  enable_sip                              = false
+  enable_sip_udp                          = true
+  enable_softmute                         = false
+  enable_ssh                              = false
+  enable_turn_443                         = true
+  enable_webrtc                           = false
+  error_reporting_enabled                 = true
+  error_reporting_url                     = "https://custom-error-reporting.com"
+  es_connection_timeout                   = 99
+  es_initial_retry_backoff                = 22
+  es_maximum_retry_backoff                = 444
+  es_media_streams_wait                   = 55
+  es_metrics_update_interval              = 66
+  es_short_term_memory_expiration         = 77
+  external_participant_avatar_lookup      = false
+  gcp_client_email                        = "tf-test@gcp.com"
+  gcp_private_key                         = tls_private_key.gcp-key.private_key_pem
+  gcp_project_id                          = "tf-test-project"
+  guests_only_timeout                     = 999
+  legacy_api_username                     = "tf-test-user"
+  legacy_api_password                     = "tf-test-pass"
+  live_captions_vmr_default               = true
+  liveview_show_conferences               = false
+  local_mssip_domain                      = "tf-test.example.com"
+  logon_banner                            = "tf-test-logon-banner"
+  logs_max_age                            = 123
+  management_qos                          = 46
+  management_session_timeout              = 99
+  management_start_page                   = "/admin/conferencingstatus/conference/"
+  max_callrate_in                         = 888
+  max_callrate_out                        = 999
+  max_pixels_per_second                   = "fullhd"
+  max_presentation_bandwidth_ratio        = 33
+  media_ports_end                         = 49999
+  media_ports_start                       = 40123
+  ocsp_responder_url                      = "https://ocsp.tf-test.example.com"
+  ocsp_state                              = "ON"
+  pin_entry_timeout                       = 321
+  session_timeout_enabled                 = false
+  signalling_ports_end                    = 39998
+  signalling_ports_start                  = 33001
+  sip_tls_cert_verify_mode                = "ON"
+  site_banner                             = "tf-test-site-banner"
+  site_banner_bg                          = "#123456"
+  site_banner_fg                          = "#ffffff"
+  teams_enable_powerpoint_render          = true
+  waiting_for_chair_timeout               = 901
+}
