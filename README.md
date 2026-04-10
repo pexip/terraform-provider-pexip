@@ -74,12 +74,6 @@ provider "pexip" {
 ### Essential Resources Example
 
 ```hcl
-# Location for organizing resources (required for worker VMs)
-resource "pexip_infinity_location" "datacenter_1" {
-  name        = "Datacenter-1"
-  description = "Primary data center location"
-}
-
 # Conference configuration
 resource "pexip_infinity_conference" "team_meeting" {
   name         = "team-meeting"
@@ -211,7 +205,7 @@ The provider includes 80+ resources organized into logical categories:
 - **Scheduling**: `pexip_infinity_recurring_conference`, `pexip_infinity_scheduled_alias`
 
 ### 🌐 Network & Infrastructure (8 resources)
-- **Locations**: `pexip_infinity_system_location`, `pexip_infinity_location`
+- **Locations**: `pexip_infinity_system_location`
 - **Networking**: `pexip_infinity_static_route`, `pexip_infinity_dns_server`, `pexip_infinity_ntp_server`
 - **Monitoring**: `pexip_infinity_snmp_network_management_system`, `pexip_infinity_smtp_server`
 - **Gateways**: `pexip_infinity_h323_gatekeeper`, `pexip_infinity_gateway_routing_rule`
@@ -275,18 +269,10 @@ output "manager_bootstrap_config" {
 ### Enterprise Environment Setup
 
 ```hcl
-# Create locations for different sites
-resource "pexip_infinity_location" "locations" {
-  for_each = var.office_locations
-  
-  name        = each.key
-  description = "Office location: ${each.value.description}"
-}
-
 # Deploy worker VMs across locations
 resource "pexip_infinity_worker_vm" "workers" {
   for_each = { for idx, config in var.worker_configs : "${config.location}-${idx}" => config }
-  
+
   name            = "worker-${each.key}"
   hostname        = each.value.hostname
   domain          = "company.com"
@@ -296,8 +282,6 @@ resource "pexip_infinity_worker_vm" "workers" {
   node_type       = "conferencing"
   system_location = each.value.location
   transcoding     = true
-  
-  depends_on = [pexip_infinity_location.locations]
 }
 
 # Conference rooms per department
@@ -447,8 +431,6 @@ terraform import pexip_infinity_conference.existing_room 123
 # Import a worker VM by its ID  
 terraform import pexip_infinity_worker_vm.existing_worker 456
 
-# Import a location by its ID
-terraform import pexip_infinity_location.datacenter 789
 ```
 
 ## Complete Example

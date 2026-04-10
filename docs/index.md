@@ -97,12 +97,6 @@ data "pexip_infinity_manager_config" "primary" {
   contact_email_address = "admin@company.com"
 }
 
-# Create location first (required for worker VMs)
-resource "pexip_infinity_location" "main" {
-  name        = "Main Location"
-  description = "Primary location for production workloads"
-}
-
 # Register worker VMs
 resource "pexip_infinity_worker_vm" "worker_01" {
   name            = "pexip-worker-01"
@@ -111,9 +105,7 @@ resource "pexip_infinity_worker_vm" "worker_01" {
   address         = "10.0.1.20"
   netmask         = "255.255.255.0"
   gateway         = "10.0.1.1"
-  system_location = pexip_infinity_location.main.name
-  
-  depends_on = [pexip_infinity_location.main]
+  system_location = "Main Location"
 }
 
 resource "pexip_infinity_worker_vm" "worker_02" {
@@ -123,9 +115,7 @@ resource "pexip_infinity_worker_vm" "worker_02" {
   address         = "10.0.1.21"
   netmask         = "255.255.255.0"
   gateway         = "10.0.1.1"
-  system_location = pexip_infinity_location.main.name
-  
-  depends_on = [pexip_infinity_location.main]
+  system_location = "Main Location"
 }
 ```
 
@@ -195,17 +185,6 @@ data "pexip_infinity_manager_config" "dev" {
   contact_email_address = "admin@company.com"
 }
 
-# Create locations for environments
-resource "pexip_infinity_location" "production" {
-  name        = "Production"
-  description = "Production environment location"
-}
-
-resource "pexip_infinity_location" "development" {
-  name        = "Development"
-  description = "Development environment location"
-}
-
 # Production worker VMs
 resource "pexip_infinity_worker_vm" "prod_workers" {
   count           = 3
@@ -216,9 +195,7 @@ resource "pexip_infinity_worker_vm" "prod_workers" {
   netmask         = "255.255.255.0"
   gateway         = "10.0.1.1"
   node_type       = "conferencing"
-  system_location = pexip_infinity_location.production.name
-  
-  depends_on = [pexip_infinity_location.production]
+  system_location = "Production"
 }
 
 # Development worker VMs
@@ -231,9 +208,7 @@ resource "pexip_infinity_worker_vm" "dev_workers" {
   netmask         = "255.255.255.0"
   gateway         = "10.0.2.1"
   node_type       = "conferencing"
-  system_location = pexip_infinity_location.development.name
-  
-  depends_on = [pexip_infinity_location.development]
+  system_location = "Development"
 }
 ```
 
@@ -282,7 +257,6 @@ This provider includes the following resources and data sources:
 - [`pexip_infinity_identity_provider`](resources/infinity_identity_provider.md) - Manage identity provider configurations
 - [`pexip_infinity_ldap_sync_source`](resources/infinity_ldap_sync_source.md) - Manage LDAP synchronization sources
 - [`pexip_infinity_licence`](resources/infinity_licence.md) - Manage license configurations
-- [`pexip_infinity_location`](resources/infinity_location.md) - Manage location configurations
 - [`pexip_infinity_management_vm`](resources/infinity_management_vm.md) - Manage management VM configurations
 - [`pexip_infinity_mjx_integration`](resources/infinity_mjx_integration.md) - Manage MJX calendar integrations
 - [`pexip_infinity_ntp_server`](resources/infinity_ntp_server.md) - Manage NTP server configurations
@@ -389,12 +363,6 @@ data "pexip_infinity_manager_config" "config" {
   contact_email_address = "admin@company.com"
 }
 
-# Create location for the environment
-resource "pexip_infinity_location" "environment" {
-  name        = var.environment
-  description = "${title(var.environment)} environment location"
-}
-
 resource "pexip_infinity_worker_vm" "workers" {
   count           = var.node_count
   name            = "${var.environment}-worker-${count.index + 1}"
@@ -404,9 +372,7 @@ resource "pexip_infinity_worker_vm" "workers" {
   netmask         = "255.255.255.0"
   gateway         = "10.0.1.1"
   node_type       = "conferencing"
-  system_location = pexip_infinity_location.environment.name
-  
-  depends_on = [pexip_infinity_location.environment]
+  system_location = var.environment
 }
 ```
 
