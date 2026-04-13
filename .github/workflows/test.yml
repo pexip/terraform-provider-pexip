@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         go-version: ["1.24"]
-        terraform-version: ["1.12"]
+        terraform-version: ["1.14"]
 
     steps:
     - uses: actions/checkout@v6
@@ -72,6 +72,11 @@ jobs:
 
     - name: Verify dependencies
       run: go mod verify
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      with:
+        terraform_version: ${{ matrix.terraform-version }}
 
     - name: Build
       run: go build -v ./...
