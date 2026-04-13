@@ -61,7 +61,7 @@ func TestInfinityAutobackup(t *testing.T) {
 		*autobackup = *mockState
 	}).Maybe()
 
-	client.On("PatchJSON", mock.Anything, "configuration/v1/autobackup/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+	client.On("PutJSON", mock.Anything, "configuration/v1/autobackup/1/", mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		updateReq := args.Get(2).(*config.AutobackupUpdateRequest)
 		result := args.Get(3).(*config.Autobackup)
 
