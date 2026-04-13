@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	_ resource.ResourceWithImportState   = (*InfinityAutobackupResource)(nil)
+	_ resource.ResourceWithImportState    = (*InfinityAutobackupResource)(nil)
 	_ resource.ResourceWithValidateConfig = (*InfinityAutobackupResource)(nil)
 )
 
@@ -36,12 +36,12 @@ type InfinityAutobackupResource struct {
 }
 
 type InfinityAutobackupResourceModel struct {
-	ID                      types.String `tfsdk:"id"`
-	AutobackupEnabled       types.Bool   `tfsdk:"autobackup_enabled"`
-	AutobackupInterval      types.Int32  `tfsdk:"autobackup_interval"`
-	AutobackupPassphrase    types.String `tfsdk:"autobackup_passphrase"`
-	AutobackupStartHour     types.Int32  `tfsdk:"autobackup_start_hour"`
-	AutobackupUploadURL     types.String `tfsdk:"autobackup_upload_url"`
+	ID                       types.String `tfsdk:"id"`
+	AutobackupEnabled        types.Bool   `tfsdk:"autobackup_enabled"`
+	AutobackupInterval       types.Int32  `tfsdk:"autobackup_interval"`
+	AutobackupPassphrase     types.String `tfsdk:"autobackup_passphrase"`
+	AutobackupStartHour      types.Int32  `tfsdk:"autobackup_start_hour"`
+	AutobackupUploadURL      types.String `tfsdk:"autobackup_upload_url"`
 	AutobackupUploadUsername types.String `tfsdk:"autobackup_upload_username"`
 	AutobackupUploadPassword types.String `tfsdk:"autobackup_upload_password"`
 }
