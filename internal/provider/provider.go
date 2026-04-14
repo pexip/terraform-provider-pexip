@@ -11,12 +11,14 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,30 +84,30 @@ func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 		MarkdownDescription: "The Pexip Terraform provider exposes data sources and resources to deploy Pexip Infinity.",
 		Attributes: map[string]schema.Attribute{
 			"address": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					validators.URL(true),
 				},
-				MarkdownDescription: "URL of the Infinity Manager API, e.g. https://infinity.example.com",
+				MarkdownDescription: "URL of the Infinity Manager API, e.g. https://infinity.example.com. Can also be set via the `PEXIP_ADDRESS` environment variable.",
 			},
 			"username": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager username for authentication.",
+				MarkdownDescription: "Pexip Infinity Manager username for authentication. Can also be set via the `PEXIP_USERNAME` environment variable.",
 			},
 			"password": schema.StringAttribute{
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager password for authentication.",
+				MarkdownDescription: "Pexip Infinity Manager password for authentication. Can also be set via the `PEXIP_PASSWORD` environment variable.",
 			},
 			"insecure": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Trust self-signed or otherwise invalid certificates. Defaults to `false`.",
+				MarkdownDescription: "Trust self-signed or otherwise invalid certificates. Defaults to `false`. Can also be set via the `PEXIP_INSECURE` environment variable.",
 			},
 		},
 	}
@@ -118,18 +120,54 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
+	address := data.Address.ValueString()
+	if address == "" {
+		address = os.Getenv("PEXIP_ADDRESS")
+	}
+
+	username := data.Username.ValueString()
+	if username == "" {
+		username = os.Getenv("PEXIP_USERNAME")
+	}
+
+	password := data.Password.ValueString()
+	if password == "" {
+		password = os.Getenv("PEXIP_PASSWORD")
+	}
+
+	insecure := data.Insecure.ValueBool()
+	if !insecure {
+		insecure = os.Getenv("PEXIP_INSECURE") == "true"
+	}
+
+	if address == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("address"), "Missing address",
+			"Expected address to be set in provider config or via the PEXIP_ADDRESS environment variable.")
+	}
+	if username == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("username"), "Missing username",
+			"Expected username to be set in provider config or via the PEXIP_USERNAME environment variable.")
+	}
+	if password == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("password"), "Missing password",
+			"Expected password to be set in provider config or via the PEXIP_PASSWORD environment variable.")
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	if p.client == nil {
 		var err error
 		userAgent := fmt.Sprintf("terraform-provider-pexip/%s", version.Version().String())
 
 		p.client, err = infinity.New(
-			infinity.WithBaseURL(data.Address.ValueString()),
-			infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
+			infinity.WithBaseURL(address),
+			infinity.WithBasicAuth(username, password),
 			infinity.WithUserAgent(userAgent),
 			infinity.WithMaxRetries(2),
 			infinity.WithTransport(&http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: data.Insecure.ValueBool(), // #nosec G402 -- This is intentionally configurable for testing environments
+					InsecureSkipVerify: insecure, // #nosec G402 -- This is intentionally configurable for testing environments
 					MinVersion:         tls.VersionTLS12,
 				},
 				MaxIdleConns:        30,
