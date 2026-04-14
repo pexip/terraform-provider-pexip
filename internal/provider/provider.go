@@ -11,6 +11,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"sync"
@@ -128,18 +129,24 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	}
 
 	address := data.Address.ValueString()
-	if address == "" {
+	addressFromEnv := false
+	if data.Address.IsNull() {
 		address = os.Getenv("PEXIP_ADDRESS")
+		addressFromEnv = true
 	}
 
 	username := data.Username.ValueString()
-	if username == "" {
+	usernameFromEnv := false
+	if data.Username.IsNull() {
 		username = os.Getenv("PEXIP_USERNAME")
+		usernameFromEnv = true
 	}
 
 	password := data.Password.ValueString()
-	if password == "" {
+	passwordFromEnv := false
+	if data.Password.IsNull() {
 		password = os.Getenv("PEXIP_PASSWORD")
+		passwordFromEnv = true
 	}
 
 	insecure := data.Insecure.ValueBool()
@@ -166,6 +173,30 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	if password == "" {
 		resp.Diagnostics.AddAttributeError(path.Root("password"), "Missing password",
 			"Expected password to be set in provider config or via the PEXIP_PASSWORD environment variable.")
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Validate env var-derived values using the same rules as the schema validators,
+	// since schema validators only run for values set in provider config.
+	if addressFromEnv {
+		u, err := url.ParseRequestURI(address)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(path.Root("address"), "Invalid PEXIP_ADDRESS value",
+				fmt.Sprintf("Cannot parse PEXIP_ADDRESS=%q as a URL: %s", address, err))
+		} else if u.Scheme != "https" {
+			resp.Diagnostics.AddAttributeError(path.Root("address"), "Invalid PEXIP_ADDRESS value",
+				fmt.Sprintf("PEXIP_ADDRESS=%q must be an HTTPS URL, but scheme is %q", address, u.Scheme))
+		}
+	}
+	if usernameFromEnv && len(username) < 4 {
+		resp.Diagnostics.AddAttributeError(path.Root("username"), "Invalid PEXIP_USERNAME value",
+			fmt.Sprintf("PEXIP_USERNAME must be at least 4 characters, got %d", len(username)))
+	}
+	if passwordFromEnv && len(password) < 4 {
+		resp.Diagnostics.AddAttributeError(path.Root("password"), "Invalid PEXIP_PASSWORD value",
+			fmt.Sprintf("PEXIP_PASSWORD must be at least 4 characters, got %d", len(password)))
 	}
 	if resp.Diagnostics.HasError() {
 		return
