@@ -27,7 +27,7 @@ func TestInfinityAutobackupValidator(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: `resource "pexip_infinity_autobackup" "autobackup-test" {
@@ -87,7 +87,7 @@ func TestInfinityAutobackup(t *testing.T) {
 
 func testInfinityAutobackup(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with full config

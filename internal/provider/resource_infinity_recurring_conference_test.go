@@ -142,7 +142,7 @@ func TestInfinityRecurringConference(t *testing.T) {
 
 func testInfinityRecurringConference(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_recurring_conference_basic"),

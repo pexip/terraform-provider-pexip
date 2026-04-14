@@ -141,7 +141,7 @@ func TestInfinityDevice(t *testing.T) {
 func testInfinityDevice(t *testing.T, client InfinityClient) {
 	// Test 1 & 2: Create with full config, update to min config, then delete
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			// Test 1: Create with full config
 			{
@@ -178,7 +178,7 @@ func testInfinityDevice(t *testing.T, client InfinityClient) {
 
 	// Test 3 & 4: Create with min config, update to full config
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			// Test 3: Create with min config
 			{

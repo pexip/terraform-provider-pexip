@@ -47,7 +47,7 @@ func TestInfinityMjxExchangeAutodiscoverURLIntegration(t *testing.T) {
 
 func testInfinityMjxExchangeAutodiscoverURLIntegration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			// Step 1: Create with full config
 			{

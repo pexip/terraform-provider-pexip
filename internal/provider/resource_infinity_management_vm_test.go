@@ -159,7 +159,7 @@ func TestInfinityManagementVM(t *testing.T) {
 
 func testInfinityManagementVM(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			// Step 1: Set all configurable values
 			{
@@ -233,7 +233,7 @@ func TestInfinityManagementVMValidation(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: `
