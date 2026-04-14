@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -122,7 +123,7 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 	// If any values are unknown (e.g. referencing resources not yet created),
 	// return early so Terraform can defer provider configuration until apply.
-	if data.Address.IsUnknown() || data.Username.IsUnknown() || data.Password.IsUnknown() {
+	if data.Address.IsUnknown() || data.Username.IsUnknown() || data.Password.IsUnknown() || data.Insecure.IsUnknown() {
 		return
 	}
 
@@ -142,8 +143,16 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	}
 
 	insecure := data.Insecure.ValueBool()
-	if !insecure {
-		insecure = os.Getenv("PEXIP_INSECURE") == "true"
+	if data.Insecure.IsNull() {
+		if val := os.Getenv("PEXIP_INSECURE"); val != "" {
+			var err error
+			insecure, err = strconv.ParseBool(val)
+			if err != nil {
+				resp.Diagnostics.AddAttributeError(path.Root("insecure"), "Invalid PEXIP_INSECURE value",
+					fmt.Sprintf("Cannot parse PEXIP_INSECURE=%q as a boolean: %s", val, err))
+				return
+			}
+		}
 	}
 
 	if address == "" {
