@@ -120,6 +120,12 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
+	// If any values are unknown (e.g. referencing resources not yet created),
+	// return early so Terraform can defer provider configuration until apply.
+	if data.Address.IsUnknown() || data.Username.IsUnknown() || data.Password.IsUnknown() {
+		return
+	}
+
 	address := data.Address.ValueString()
 	if address == "" {
 		address = os.Getenv("PEXIP_ADDRESS")
