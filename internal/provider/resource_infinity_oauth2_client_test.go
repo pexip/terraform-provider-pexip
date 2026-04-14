@@ -81,7 +81,7 @@ func TestInfinityOAuth2Client(t *testing.T) {
 
 func testInfinityOAuth2Client(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_oauth2_client_full"),

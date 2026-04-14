@@ -99,7 +99,7 @@ g2OX6o8rGmwv2UgI1X+x9kLrdj0OFenKrwaBiEI=
 
 func testInfinityCACertificate(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_ca_certificate_basic"),

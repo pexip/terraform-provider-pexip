@@ -99,7 +99,7 @@ func TestInfinityCertificateSigningRequest(t *testing.T) {
 
 func testInfinityCertificateSigningRequest(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_certificate_signing_request_basic"),

@@ -11,13 +11,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func getTestProtoV5ProviderFactories(client InfinityClient) map[string]func() (tfprotov5.ProviderServer, error) {
-	return map[string]func() (tfprotov5.ProviderServer, error){
-		"pexip": providerserver.NewProtocol5WithError(newTestProvider(client)),
+func getTestProtoV6ProviderFactories(client InfinityClient) map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"pexip": providerserver.NewProtocol6WithError(newTestProvider(client)),
 	}
 }
 

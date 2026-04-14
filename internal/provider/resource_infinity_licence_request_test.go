@@ -58,7 +58,7 @@ func TestInfinityLicenceRequest(t *testing.T) {
 
 func testInfinityLicenceRequest(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		// Skip the final destroy since this resource cannot be deleted.
 		// The test already verifies that a destroy operation fails as expected.
 		CheckDestroy: func(s *terraform.State) error {

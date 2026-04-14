@@ -54,7 +54,7 @@ func TestInfinitySystemSyncpoint(t *testing.T) {
 
 func testInfinitySystemSyncpoint(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_system_syncpoint_basic"),

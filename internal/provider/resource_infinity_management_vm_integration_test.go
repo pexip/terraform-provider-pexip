@@ -50,7 +50,7 @@ func testInfinityManagementVMIntegration(t *testing.T, client InfinityClient) {
 	// all fields to API defaults, clearing any references to related resources. Once those
 	// references are cleared, the related resources can be deleted normally in the destroy step.
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"tls": {
 				Source: "hashicorp/tls",

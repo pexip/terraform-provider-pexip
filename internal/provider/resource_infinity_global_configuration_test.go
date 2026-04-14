@@ -415,7 +415,7 @@ func TestInfinityGlobalConfiguration(t *testing.T) {
 
 func testInfinityGlobalConfiguration(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			// Step 1: Apply full configuration with all fields set to non-default values.
 			{
@@ -515,7 +515,7 @@ func TestInfinityGlobalConfigurationValidation(t *testing.T) {
 	client := infinity.NewClientMock()
 
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				// bursting_enabled=true with no cloud_provider (defaults to AWS) but no AWS keys — expect errors

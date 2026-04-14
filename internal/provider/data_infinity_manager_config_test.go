@@ -33,7 +33,7 @@ func TestInfinityManagerConfig(t *testing.T) {
 
 func testInfinityManagerConfig(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "data_infinity_manager_config_basic"),

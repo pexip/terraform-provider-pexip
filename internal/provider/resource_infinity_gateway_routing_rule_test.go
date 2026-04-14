@@ -318,7 +318,7 @@ provider "pexip" {
 `
 
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				// teams protocol with live_captions_enabled = "yes" must fail
@@ -424,7 +424,7 @@ resource "pexip_infinity_gateway_routing_rule" "tf-test-validator" {
 
 func testInfinityGatewayRoutingRule(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				// Step 1: Create with full config

@@ -87,7 +87,7 @@ func TestInfinityGoogleAuthServer(t *testing.T) {
 
 func testInfinityGoogleAuthServer(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		Steps: []resource.TestStep{
 			{
 				Config: test.LoadTestFolder(t, "resource_infinity_google_auth_server_basic"),

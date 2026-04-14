@@ -325,7 +325,7 @@ func TestInfinityWorkerVM(t *testing.T) {
 
 func testInfinityWorkerVM(t *testing.T, client InfinityClient) {
 	resource.Test(t, resource.TestCase{
-		ProtoV5ProviderFactories: getTestProtoV5ProviderFactories(client),
+		ProtoV6ProviderFactories: getTestProtoV6ProviderFactories(client),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"tls": {
 				Source: "hashicorp/tls",
