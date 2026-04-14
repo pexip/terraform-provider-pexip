@@ -11,12 +11,16 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,30 +86,30 @@ func (p *PexipProvider) Schema(ctx context.Context, req provider.SchemaRequest, 
 		MarkdownDescription: "The Pexip Terraform provider exposes data sources and resources to deploy Pexip Infinity.",
 		Attributes: map[string]schema.Attribute{
 			"address": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					validators.URL(true),
 				},
-				MarkdownDescription: "URL of the Infinity Manager API, e.g. https://infinity.example.com",
+				MarkdownDescription: "URL of the Infinity Manager API, e.g. https://infinity.example.com. Can also be set via the `PEXIP_ADDRESS` environment variable.",
 			},
 			"username": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager username for authentication.",
+				MarkdownDescription: "Pexip Infinity Manager username for authentication. Can also be set via the `PEXIP_USERNAME` environment variable.",
 			},
 			"password": schema.StringAttribute{
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(4),
 				},
-				MarkdownDescription: "Pexip Infinity Manager password for authentication.",
+				MarkdownDescription: "Pexip Infinity Manager password for authentication. Can also be set via the `PEXIP_PASSWORD` environment variable.",
 			},
 			"insecure": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Trust self-signed or otherwise invalid certificates. Defaults to `false`.",
+				MarkdownDescription: "Trust self-signed or otherwise invalid certificates. Defaults to `false`. Can also be set via the `PEXIP_INSECURE` environment variable.",
 			},
 		},
 	}
@@ -118,18 +122,98 @@ func (p *PexipProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
+	// If any values are unknown (e.g. referencing resources not yet created),
+	// return early so Terraform can defer provider configuration until apply.
+	if data.Address.IsUnknown() || data.Username.IsUnknown() || data.Password.IsUnknown() || data.Insecure.IsUnknown() {
+		return
+	}
+
+	address := data.Address.ValueString()
+	addressFromEnv := false
+	if data.Address.IsNull() {
+		address = os.Getenv("PEXIP_ADDRESS")
+		addressFromEnv = true
+	}
+
+	username := data.Username.ValueString()
+	usernameFromEnv := false
+	if data.Username.IsNull() {
+		username = os.Getenv("PEXIP_USERNAME")
+		usernameFromEnv = true
+	}
+
+	password := data.Password.ValueString()
+	passwordFromEnv := false
+	if data.Password.IsNull() {
+		password = os.Getenv("PEXIP_PASSWORD")
+		passwordFromEnv = true
+	}
+
+	insecure := data.Insecure.ValueBool()
+	if data.Insecure.IsNull() {
+		if val := os.Getenv("PEXIP_INSECURE"); val != "" {
+			var err error
+			insecure, err = strconv.ParseBool(val)
+			if err != nil {
+				resp.Diagnostics.AddAttributeError(path.Root("insecure"), "Invalid PEXIP_INSECURE value",
+					fmt.Sprintf("Cannot parse PEXIP_INSECURE=%q as a boolean: %s", val, err))
+				return
+			}
+		}
+	}
+
+	if address == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("address"), "Missing address",
+			"Expected address to be set in provider config or via the PEXIP_ADDRESS environment variable.")
+	}
+	if username == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("username"), "Missing username",
+			"Expected username to be set in provider config or via the PEXIP_USERNAME environment variable.")
+	}
+	if password == "" {
+		resp.Diagnostics.AddAttributeError(path.Root("password"), "Missing password",
+			"Expected password to be set in provider config or via the PEXIP_PASSWORD environment variable.")
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Validate env var-derived values using the same rules as the schema validators,
+	// since schema validators only run for values set in provider config.
+	if addressFromEnv {
+		u, err := url.ParseRequestURI(address)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(path.Root("address"), "Invalid PEXIP_ADDRESS value",
+				fmt.Sprintf("Cannot parse PEXIP_ADDRESS=%q as a URL: %s", address, err))
+		} else if u.Scheme != "https" {
+			resp.Diagnostics.AddAttributeError(path.Root("address"), "Invalid PEXIP_ADDRESS value",
+				fmt.Sprintf("PEXIP_ADDRESS=%q must be an HTTPS URL, but scheme is %q", address, u.Scheme))
+		}
+	}
+	if usernameFromEnv && len(username) < 4 {
+		resp.Diagnostics.AddAttributeError(path.Root("username"), "Invalid PEXIP_USERNAME value",
+			fmt.Sprintf("PEXIP_USERNAME must be at least 4 characters, got %d", len(username)))
+	}
+	if passwordFromEnv && len(password) < 4 {
+		resp.Diagnostics.AddAttributeError(path.Root("password"), "Invalid PEXIP_PASSWORD value",
+			fmt.Sprintf("PEXIP_PASSWORD must be at least 4 characters, got %d", len(password)))
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	if p.client == nil {
 		var err error
 		userAgent := fmt.Sprintf("terraform-provider-pexip/%s", version.Version().String())
 
 		p.client, err = infinity.New(
-			infinity.WithBaseURL(data.Address.ValueString()),
-			infinity.WithBasicAuth(data.Username.ValueString(), data.Password.ValueString()),
+			infinity.WithBaseURL(address),
+			infinity.WithBasicAuth(username, password),
 			infinity.WithUserAgent(userAgent),
 			infinity.WithMaxRetries(2),
 			infinity.WithTransport(&http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: data.Insecure.ValueBool(), // #nosec G402 -- This is intentionally configurable for testing environments
+					InsecureSkipVerify: insecure, // #nosec G402 -- This is intentionally configurable for testing environments
 					MinVersion:         tls.VersionTLS12,
 				},
 				MaxIdleConns:        30,
