@@ -1,4 +1,4 @@
-> **Beta Notice:** This Terraform provider is currently in Beta and is not recommended for production deployments. Please use with caution.
+> **Notice:** This terraform repository is no longer in use. The terraform provider has been renamed and moved to [terraform-provider-infinity](https://github.com/pexip/terraform-provider-infinity).
 
 # Terraform Provider for Pexip Infinity
 
